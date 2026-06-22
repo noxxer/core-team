@@ -1,0 +1,12 @@
+{
+  "name": "core-team",
+  "description": "Саморазворачивающийся мультиагентный фреймворк для Claude Code: один Facilitator + dev-команда subagent-ролей, персистентная память и механические гейты качества.",
+  "version": "4.5.0",
+  "author": {
+    "name": "noxxer"
+  },
+  "homepage": "https://github.com/noxxer/core-team",
+  "repository": "https://github.com/noxxer/core-team",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "keywords": ["multi-agent", "claude-code", "facilitator", "tdd", "functional-clarity", "fpf"]
+}

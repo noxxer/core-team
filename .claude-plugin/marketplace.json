@@ -1,0 +1,11 @@
+{
+  "name": "core-team",
+  "owner": "noxxer",
+  "description": "Core Team — мультиагентный фреймворк для Claude Code.",
+  "plugins": [
+    {
+      "name": "core-team",
+      "source": "noxxer/core-team"
+    }
+  ]
+}
