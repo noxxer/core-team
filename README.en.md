@@ -66,17 +66,18 @@ Every class of bugs gets a machine-verifiable invariant test (**Detect → Fix �
 
 ## Installation
 
-Core Team is an integrated system (`.claude/` + contract + knowledge + templates), so it's installed by copying into your project rather than as an isolated plugin.
+Core Team is an integrated system (`.claude/` + contract + knowledge + templates), so it's installed by **overlaying it onto your project**, not as an isolated plugin. The clone is a throwaway source of files; you always work in **your own** repository.
 
 ```bash
-# 1. Clone
-git clone https://github.com/noxxer/core-team.git
-cd core-team
+# 1. Clone as a throwaway source and detach from the framework's origin
+git clone --depth 1 https://github.com/noxxer/core-team.git
+rm -rf core-team/.git          # detach: the clone is now just a folder of files
 
-# 2. Copy .claude/ into your project
-cp -r .claude /path/to/your-project/
+# 2. Overlay .claude/ onto YOUR project (its own git)
+cp -r core-team/.claude /path/to/your-project/
+rm -rf core-team               # source no longer needed
 
-# 3. Open the project in Claude Code and initialize
+# 3. Initialize inside your project
 cd /path/to/your-project
 claude
 > /setup-project
@@ -84,7 +85,11 @@ claude
 
 `/setup-project` walks you through: project type, active roles, values, `project/` structure, planner-context bootstrap.
 
-**Updating** an already-configured project: copy `.claude/` again (the `project/` runtime is untouched — it's gitignored and owned by the project).
+**Model:** one `.claude/` (the tool) + one `project/` (the memory) per project, at the root of your repo. `project/` is the project's runtime memory (ledger, decisions, role contexts); in **your** repo it's an asset — **commit it**. (In the framework's own repo `project/` is gitignored because there it's "someone else's runtime" — don't conflate the two contexts.)
+
+> ⚠️ **Anti-pattern: don't work inside the core-team clone.** If you keep the clone's `.git` and run your project right there, you get: (1) `origin` points at `noxxer/core-team` → risk of `git push`-ing your project into the framework; (2) `project/` silently gitignored by the framework's rule → your project memory never gets committed; (3) `git pull` of updates conflicts with your edits. The clone is the source; your project is a separate repo.
+
+**Updating** an already-configured project: clone again and copy `.claude/` over the top (your project's `project/` runtime is untouched — it's yours).
 
 ### Self-contained
 
