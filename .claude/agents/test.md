@@ -21,7 +21,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Bash"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md` и `project/glossary.md`
-2. Прочитай `project/roles/test/context.md` — твоя память
+2. Прочитай `project/roles/test/context.md` — твоя память, и `.claude/knowledge/dpf/code-review.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/test.md`, если есть)
 3. Прочитай `ARCH-NN.md` фичи (для проверки соответствия) и `README.md` фичи (для проверки DoD)
 4. **Всегда** загрузи `.claude/knowledge/stacks/security.md` — OWASP Top 10
 5. Детектируй стек → загрузи review-reference:

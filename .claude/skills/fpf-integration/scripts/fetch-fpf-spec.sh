@@ -61,7 +61,7 @@ trap - EXIT
 # Записываем коммит апстрима рядом со спекой, чтобы skill мог сравнить «живой»
 # SHA с тем, на котором построен наш lite-индекс (index_built_against), и
 # детектить дрейф номеров строк / переименований терминов.
-INDEX_BUILT_AGAINST="646b0b9b164f7c13258633a33b92d2d0a569da28"  # см. UPSTREAM-SYNC.md
+INDEX_BUILT_AGAINST="40b232f11ed950ed34082273c57ff4f6c45b7f06"  # см. UPSTREAM-SYNC.md
 sha=""
 if command -v curl >/dev/null 2>&1; then
   sha="$(curl -fsSL "https://api.github.com/repos/ailev/FPF/commits/main" 2>/dev/null \

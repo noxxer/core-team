@@ -26,7 +26,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md` и `project/glossary.md`
-2. Прочитай `project/roles/architect/context.md` — твоя память
+2. Прочитай `project/roles/architect/context.md` — твоя память, и `.claude/knowledge/dpf/architecture.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/architect.md`, если есть)
 3. Детектируй стек проекта (`pyproject.toml`, `package.json`, etc.) → загрузи соответствующий design-reference:
    - `.claude/knowledge/stacks/backend-python/design.md` (Python backend)
    - `.claude/knowledge/stacks/frontend-react/design.md` (React)

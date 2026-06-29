@@ -1,7 +1,7 @@
 # Core Team Framework
 
 > Саморазворачивающаяся система управления мультиагентными командами для Claude Code.
-> Дистиллированное dev-ядро: один Facilitator + 5 ролей-subagent + персистентная память + механические гейты. Версия — в `VERSION` (история — `CHANGELOG.md`).
+> Дистиллированное dev-ядро: один Facilitator + 5 ролей-subagent + **DPF-учебники ремесла ролей** + персистентная память + механические гейты. Версия — в `VERSION` (история — `CHANGELOG.md`).
 > Первый запуск: `/setup-project` для настройки под конкретный проект.
 
 ## Текущий проект
@@ -19,7 +19,7 @@
 
 | Subagent | Модель | Зона ответственности | Пишет (write-allowed) |
 |----------|--------|----------------------|----------------------|
-| **facilitator** *(default)* | sonnet | Оркестратор. 3-стадийный протокол, Decider, Tensions, ADR, Navigator, Pre-DEC checkpoint | `ledger.md`, `decisions/`, `sessions/`, `roles/facilitator/context.md` |
+| **facilitator** *(default)* | sonnet | Оркестратор. Intake-триаж, 3-стадийный протокол, Decider, Tensions, ADR, Navigator, Pre-DEC checkpoint. Опора: facilitation-DPF | `inbox.md`, `ledger.md`, `decisions/`, `sessions/`, `roles/facilitator/context.md` |
 | **architect** | **opus** | Design-only. Bounded contexts, контракты, hand-offs. FPF A.7/A.10/A.11/A.1.1/A.15. Drift-sweep | `features/FEAT-*/ARCH-NN.md`, `roles/architect/context.md` |
 | **dev** | sonnet | Реализация по ARCH через TDD + FC. Pre-feature TDD baseline | production-код, тесты, `roles/dev/context.md` |
 | **test** | sonnet | Code review: OWASP + FC + FPF + CHK-WIRE/CHK-ORPHAN + Code-Change Discipline. **Не правит код** | `features/FEAT-*/REVIEW-NN.md`, `roles/test/context.md` |
@@ -40,7 +40,7 @@
 
 **Дефолт-роль = facilitator.** Прочие ядровые роли активируются по триггерам в сообщении (см. frontmatter `description` каждого `.claude/agents/<role>.md`) или явно через slash-команды (если есть) или Agent tool. Opt-in роли — только после подключения.
 
-**Persistent memory.** Каждый subagent при активации читает `project/roles/<role>/context.md` — свою память между сессиями. Это **обязательный шаг** в активационном ритуале каждой роли.
+**Persistent memory + DPF.** Каждый subagent при активации читает `project/roles/<role>/context.md` (своя память) и `.claude/knowledge/dpf/<craft>.md` (DPF ремесла роли — паттерны/антипаттерны/границы) — **обязательные шаги** активационного ритуала.
 
 ## Универсальное правило контекста
 
@@ -48,7 +48,8 @@
 1. Читает `project/ledger.md` (состояние проекта)
 2. Читает `project/glossary.md` (единый язык проекта)
 3. Читает `project/roles/<role>/context.md` (своя память)
-4. Только потом приступает к работе
+4. Читает `.claude/knowledge/dpf/<craft>.md` (DPF ремесла) + `project/dpf/roles/<role>.md` (оверлей, если есть)
+5. Только потом приступает к работе
 
 ## Глоссарий и знания предметной области
 
@@ -58,6 +59,17 @@
 - **`project/domain.md`** — факты о реальности (рынок, пользователи, система), отдельно от решений
 - Все роли дополняют оба документа. Keeper поддерживает формат. Facilitator модерирует
 - **Факт ≠ решение:** "85% мобильных" (domain.md) ≠ "делаем mobile-first" (decisions/)
+
+## DPF — Предметные учебники (FPPS → FPF → DPF → LPF)
+
+> Полная версия: `.claude/knowledge/dpf/README.md`. Метод постройки: skill `dpf-builder`.
+
+DPF (Domain Principles Framework) — слой **между** общим FPF и локальными артефактами: предметные SoTA-ходы, термины, ошибки и границы, упакованные в FPF-паттерны (E.8: ситуация → силы → ход → последствия → **антипаттерны** → связи → «когда НЕ» → источник → проверка).
+
+- **role-DPF** (`.claude/knowledge/dpf/<craft>.md`) — ремесло роли, едет с фреймворком. Роль читает свой DPF в активационном ритуале. Покрыты 11 ролей (facilitation, architecture, development, code-review, tech-strategy, knowledge-keeping + 5 opt-in).
+- **domain-DPF** (`project/dpf/<domain>.md`) + **project-overlay** (`project/dpf/roles/<role>.md`) — генерятся при `/setup-project` (Шаг 4b) под область проекта; setup чистит DPF неактивных ролей.
+- **Метод `dpf-builder`:** Collect (11 каналов: концепции/книги/статьи/SoTA/плейбуки топ-5 компаний/стандарты/постмортемы/эксперты/сообщества/школы/метрики) → FPF-process (паттерны) → Loop-improve (E.21, draft→reliable).
+- **Факт vs принцип (A.7):** `domain.md` = факты реальности; DPF = проверенные ходы ремесла.
 
 ## Протокол вопросов (3 стадии) — ОБЯЗАТЕЛЬНЫЙ
 
@@ -92,7 +104,7 @@
 **НИКОГДА не модифицировать, не удалять, не перемещать:**
 - `.claude/templates/**` — шаблоны
 - `.claude/skills/**` — навыки
-- `.claude/knowledge/**` — база знаний
+- `.claude/knowledge/**` — база знаний (**исключение:** `.claude/knowledge/dpf/**` — генерируемый DPF-слой: добавляется имплантом роли, чистится setup-ом под активные роли)
 - `.claude/output-styles/**` — стили вывода
 - `.claude/hooks/**` — quality gates
 
@@ -315,6 +327,8 @@ Default — **Sonnet**. Opus — только при явном обоснова
 | Путь | Содержание |
 |------|------------|
 | `.claude/templates/project/ledger.md` | Состояние проекта |
+| `.claude/templates/project/inbox.md` | Сырой вход Founder + триаж (facilitator, capture-first) |
+| `.claude/templates/dpf-template.md` | Структура DPF-файла (паттерны E.8 / антипаттерны / карта противоречий) |
 | `.claude/templates/project/glossary.md` | Словарь (RU/EN/определение/«не является») |
 | `.claude/templates/project/domain.md` | Факты о реальности |
 | `.claude/templates/project/values.md` | Конституция |
@@ -344,5 +358,6 @@ Default — **Sonnet**. Opus — только при явном обоснова
 | `.claude/skills/tdd-master/` | Red-Green-Refactor + framework detection |
 | `.claude/skills/navigator/` | Iceberg / Three Why / System Operator |
 | `.claude/skills/fpf-integration/` | FPF-аудит, чеклисты, NQD, DRR |
+| `.claude/skills/dpf-builder/` | Постройка DPF (Collect 11 каналов → FPF-process → Loop-improve E.21) для ролей и доменов |
 | `.claude/skills/planner/` | Architecture/execution planning + bootstrap |
 | `.claude/skills/planner-reflect/` | Post-session learning, обновление planner-context.md |

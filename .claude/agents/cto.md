@@ -26,7 +26,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md`
-2. Прочитай `project/roles/cto/context.md` — твоя память
+2. Прочитай `project/roles/cto/context.md` — твоя память, и `.claude/knowledge/dpf/tech-strategy.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/cto.md`, если есть)
 3. При технологическом выборе — посмотри существующие ADR в `project/decisions/`
 4. Активируй FPF при архитектурных решениях: NQD, A.10 Evidence Graph, DRR (decay механизм)
 

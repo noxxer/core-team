@@ -1,6 +1,10 @@
 # FPF — Глоссарий ключевых терминов
 
-> **Lite-версия.** Полная спецификация FPF (5 MB) не включена. Этот глоссарий — справочник ключевых терминов для понимания концепций, используемых фреймворком.
+> Сгенерировано из FPF-Spec.md @ ailev/FPF `40b232f11ed9` (2026-06-26). Полный SHA: `40b232f11ed950ed34082273c57ff4f6c45b7f06`.
+> Проверять актуальность: сравни с `~/.claude/knowledge/fpf/FPF-Spec.version` и текущим upstream.
+
+
+> 100 основных терминов FPF. Для поиска в спеке используй Grep по EN-термину.
 
 | Термин (EN) | Термин (RU) | Определение | Где найти |
 |-------------|-------------|-------------|-----------|
@@ -23,9 +27,9 @@
 | Signature Stack | Стек сигнатур | Дисциплина границ с routing laws, admissibility, deontics, evidence. | A.6, E.8, E.17 |
 | Boundary Norm Square | Квадрат норм границ | Разложение граничных утверждений на laws, gates, duties, effects. | A.6.B, A.6, E.17 |
 | Effect Free Epistemic Morphing | Безэффектный эпистемический морфинг | Морфизмы эпистем без эффектов для трансформаций descriptions. | A.6.2, A.6.3, E.17.0 |
-| Epistemic Viewing | Эпистемический просмотр | Просмотр с сохранением EntityOfConcern через viewpoints. | A.6.3, E.17, E.18 |
-| Epistemic Retargeting | Эпистемическое перенаправление | Морфизм с изменением EntityOfConcern через kind bridges. | A.6.4, E.18, C.2.1 |
-| Relational Precision Restoration | Восстановление точности отношений | Сюита для ремонта underspecified relations через qualified records. | A.6.P, A.6.Q, A.6.A |
+| Epistemic Viewing | Эпистемический просмотр | Просмотр с сохранением describedEntity через viewpoints. | A.6.3, E.17, E.18 |
+| Epistemic Retargeting | Эпистемическое перенаправление | Морфизм с изменением describedEntity через kind bridges. | A.6.4, E.18, C.2.1 |
+| Relational Precision Restoration | Восстановление точности отношений | Сюита для ремонта underspecified relations через qualified records. | A.6.P, A.6.A |
 | Strict Distinction | Строгое различие | Clarity lattice для избежания category errors как Object ≠ Description. | A.7, A.1, A.3 |
 | Universal Core | Универсальное ядро | Трансдисциплинарное ядро без domain-specifics. | A.8, P-8 |
 | Cross Scale Consistency | Последовательность через масштабы | Инварианты в композиции holarchies. | A.9, B.1, P-8 |
@@ -37,7 +41,7 @@
 | Role Method Work Alignment | Выравнивание роль-метод-работа | Контекстное enactment с MIC и WorkPlan. | A.15, A.2, A.3 |
 | Work | Работа | Запись occurrence как execution event. | A.15.1, B.1.6, Part D |
 | Work Plan | План работы | Расписание intent как forecast. | A.15.2, A.15.3 |
-| Language-State Move | Ход языка-состояния | Координация moves через reopen, respecify. | A.16, C.2.2a, B.4.1 |
+| Language State Transduction | Трансдукция языка-состояния | Координация moves через reopen, respecify. | A.16, C.2.2a, B.4.1 |
 | Characteristic | Характеристика | Измеримое свойство, заменяющее dimension/axis. | A.17, A.18, C.16 |
 | CSLC | CSLC | Характеристика/шкала/уровень/координата для measurements. | A.18, C.16, G.0 |
 | Characteristic Space | Пространство характеристик | State space с dynamics hook для моделирования. | A.19, A.3.3 |
@@ -61,17 +65,17 @@
 | Role Projection Bridge | Мост проекции ролей | Bridge для domain-specific vocabulary. | B.5.3, C.3 |
 | Sys CAL | Sys-CAL | CAL для physical systems с conservation laws. | C.1, B.1.2 |
 | KD CAL | KD-CAL | CAL для knowledge с F-G-R и trust. | C.2, B.1.3, B.3 |
-| Episteme | Эпистема | Slot graph с EntityOfConcern и grounding holon. | C.2.1, A.6.2, E.17 |
+| Episteme | Эпистема | Slot relation с EntityOfConcern и grounding holon. | C.2.1, A.6.2, E.17 |
 | Reliability R | Надежность R | Warrant в F-G-R с CL penalties и bridge-only reuse. | C.2.2, B.3, F.9 |
 | Language State Space | Пространство языка-состояния | Chart over characteristic space для position claims. | C.2.2a, A.16, B.4.1 |
-| Formality F | Формальность F | F-scale от F0-F9 для rigor и proofs. | C.2.3, B.3.1 |
-| Evidence Graph | Граф доказательств | Структура для traceability и audit с PathId. | G.6, A.10, B.3.2 |
+| Formality F | Формальность F | F-scale от F0-F9 для rigor и proofs. | C.2.3, B.3 |
+| Evidence Graph | Граф доказательств | Структура для traceability и audit с PathId. | G.6, A.10, B.3 |
 | Bridge | Мост | Mapping для cross-context sameness с CL и direction. | A.6.9, F.9, G.7 |
 | Multi View Publication Kit | MVPK | Kit для multi-view descriptions с viewpoints. | E.17, A.6, G.12 |
 | Assurance Level | Уровень assurance | L0-L2 с TA/VA/LA для artifact maturity. | B.3.3, B.3 |
 | Epistemic Debt | Эпистемический долг | Decay evidence от freshness и staleness. | B.3.4, B.3 |
 | Gamma Operator | Оператор Gamma | Агрегация для holons с invariants и proofs. | B.1, B.1.1 |
-| Emergence | Эмерджентность | Recognition через MHT и BOSC triggers. | B.2, B.2.1 |
+| Emergence | Эмерджентность | Recognition через MHT и BOSC triggers. | B.2, B.2.2 |
 | Feedback Loop | Петля обратной связи | Supervisor-subholon для stability в control. | B.2.5, A.12 |
 | Abductive Prompt | Абдуктивный промпт | Prompt с anomaly и rival-set для hypothesis generation. | B.5.2.0, B.5.2 |
 | Parity Run | Parity run | Сравнение для comparability с reference plane. | A.0, G.9 |
@@ -99,3 +103,22 @@
 | Congruence Level | Уровень congruence | CL для penalty routing в bridges. | C.2.2, F.9 |
 | Weakest Link | Слабое звено | Discipline для propagation R в paths. | C.2.2, G.6 |
 | Evidence Decay | Устаревание доказательств | Aging evidence с epistemic debt. | B.3.4, G.11 |
+
+## Новые термины (добавлено при ре-индексации, проверено по спеке)
+
+| Термин (EN) | Термин (RU) | Определение | Где найти |
+|-------------|-------------|-------------|-----------|
+| U.Episteme | Эпистема (U.Episteme) | Несущий утверждения неагентивный холон со слотами EntityOfConcern, GroundingHolon, ClaimGraph, Viewpoint и ReferenceScheme; реализуется видами Card/View/Publication. | C.2.1, A.1, A.6.2 |
+| U.EpistemePublication | Публикация эпистемы (U.EpistemePublication) | Вид эпистемы, публикующий определение/представление через форму и носитель; публикация не становится определяющей эпистемой по факту того, что её встретили. | C.2.1, E.24.PUB, A.10 |
+| EntityOfConcern | Сущность интереса (EntityOfConcern) | Слот эпистемы, указывающий о ЧЁМ утверждение; сохраняется при viewing (A.6.3) и намеренно ретаргетится только через KindBridge (A.6.4). | A.6.2, A.6.3, C.2.1 |
+| U.Ontic | Онтик (U.Ontic) | То, что существует независимо от своего описания; отделяется от описывающей эпистемы, публикации и формы публикации, чтобы карточки/таблицы/диаграммы не подменяли сам онтик. | E.24, E.24.PUB, A.7 |
+| Controlled Semantic Coarsening | Контролируемое семантическое огрубление | Безэффектное огрубление эпистемы или публикации до узкой допустимой области использования с обязательным условием reopen к источнику при выходе за её пределы. | A.6.3.CSC, A.6.3, E.17.EFP |
+| Evidence Graph Referring | Отсылка к графу доказательств | Конституционный принцип (C-4): каждое утверждение прослеживается до носителя доказательств через SCR/RSCR, с разделением носителя и сообщаемого им состояния. | A.10, G.6, B.3 |
+| Evidence Graph & Provenance Ledger | Граф доказательств и реестр происхождения | Структура трассируемости (PathId) и реестр provenance, отделённая от принципа отсылки (A.10); хранит цепочки доказательств для аудита. | G.6, A.10, B.3 |
+| U.LanguageStateSpace | Пространство языка-состояния (U.LanguageStateSpace) | Карта языка-состояния поверх U.CharacteristicSpace: частичные координаты и пороги для публикации position-claim до публикации endpoint-claim. | C.2.2a, A.16, B.4.1 |
+| Publication Discipline (Ontic Description) | Дисциплина публикации (описание онтика) | Держит онтик, его описывающую эпистему, публикацию и форму публикации различимыми; карточки/схемы/виды/источники не становятся онтиком по внешнему виду. | E.24.PUB, E.24, C.2.1 |
+| NQD Onboarding Glossary | Онбординг-глоссарий NQD (A.0) | Вводный глоссарий по novelty/quality-diversity и explore/exploit (E/E-LOG): какие термины обязан публиковать генератор/селектор/публикация набора результатов, чтобы избежать single-winner bias. | A.0, C.18, C.19 |
+| PublicationUnit Stability Discipline | Дисциплина стабильности единицы публикации | Правила стабильности PublicationUnit при ауд­ите и редактировании: восстановление локальной головы и сохранение первичной EntityOfConcern единицы публикации. | E.17.AUD, E.17, E.17.AUD.OOTD |
+| U.EpistemicRetargeting | Эпистемический ретаргетинг (U.EpistemicRetargeting) | Безэффектный морфизм эпистемы, намеренно меняющий entityOfConcernRef под объявленным KindBridge, инвариантом и границей потерь, с сохранением только проверяемых мостом обязательств. | A.6.4, A.6.3, E.18 |
+
+> Правки ссылок при ре-индексации `40b232f` (полный дифф — в `CHANGES-fpf-spec.md`): `A.6.Q` quality-term restoration переехал в `C.16.Q`, relational — в `A.6.P`; планируемые заглушки `B.2.1`/`B.3.1`/`B.3.2` свёрнуты под живых родителей `B.2`/`B.3` (`B.2.2` Meta-System Transition); термин «Ontic Debt» в спеке отсутствует — используется `U.Ontic` / `Epistemic Debt` (B.3.4). `describedEntity` → `EntityOfConcern` почти завершено (8 остаточных упоминаний).

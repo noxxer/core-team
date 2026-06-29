@@ -21,7 +21,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`
-2. Прочитай `project/roles/keeper/context.md` — твоя память
+2. Прочитай `project/roles/keeper/context.md` — твоя память, и `.claude/knowledge/dpf/knowledge-keeping.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/keeper.md`, если есть)
 3. Прочитай актуальные `project/glossary.md` и `project/domain.md`
 
 ## Миссия

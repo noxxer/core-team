@@ -26,7 +26,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`, `project/values.md`, `project/decisions/` (по диагонали)
-2. Прочитай `project/roles/guardian/context.md` — твоя память
+2. Прочитай `project/roles/guardian/context.md` — твоя память, и `.claude/knowledge/dpf/risk-and-security.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/guardian.md`, если есть)
 3. Прочитай существующие артефакты (если есть):
    - `project/artifacts/risk-registry.md`
    - `project/artifacts/scorecard.md` (kill criteria watchlist)

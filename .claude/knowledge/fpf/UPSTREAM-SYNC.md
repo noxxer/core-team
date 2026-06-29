@@ -4,12 +4,28 @@
 
 ## Якорь индекса
 
-- **index_built_against:** `646b0b9b164f7c13258633a33b92d2d0a569da28` (ailev/FPF, 2026-06-17)
+- **index_built_against:** `40b232f11ed950ed34082273c57ff4f6c45b7f06` (ailev/FPF, 2026-06-26)
 - Скрипт `fetch-fpf-spec.sh` пишет этот SHA в `FPF-Spec.version` и предупреждает о дрейфе, если `main` ушёл вперёд.
 
 ## Журнал (append-only)
 
-### 2026-06-23 — drift-fix под FPF-Spec @646b0b9
+### 2026-06-29 — полный ре-индекс под FPF-Spec @40b232f (v5.0)
+
+Источник: `i-m-senior-developer` (@spumer), релиз **v1.4.1** (`functional-clarity` 0.3.2).
+Принят целиком (не surgical) — переход lite → **полный индекс**, согласованный с апстримом.
+
+Применено:
+- 4 файла индекса (`glossary` · `grep-patterns` · `sections-map` · `tasks-lookup`) заменены на пересобранные
+  под FPF-Spec @`40b232f` (~93 220 строк, реестр 279 паттернов: 274 Stable + 5 Planned). Кросс-ссылки
+  адаптированы под наш layout (`fpf-*.md` → без префикса).
+- Карта изменений апстрима: `+33 / −32 / 59 переименований`. Главное: слой архитектуры `C.32.*`
+  (синтез кандидатов, Conway, decision records), этика `D.1–D.4`, **`E.4.DPF/PFR/PFAD` — авторинг
+  экосистемы FPF** (прямо релевантно нашему DPF-слою), онбординг-глоссарий `A.0`.
+- Pin обновлён: `646b0b9` → `40b232f` (здесь + в `fetch-fpf-spec.sh`).
+
+Полный разбор апстрима — `CHANGES-fpf-spec.md` релиза v1.4.1.
+
+### 2026-06-23 — drift-fix под FPF-Spec @646b0b9 (исторический lite-режим)
 
 Источник миграции: `i-m-senior-developer` (@spumer), `functional-clarity/skills/fpf-integration/CHANGES-fpf-spec.md`.
 

@@ -26,7 +26,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/domain.md`, `project/values.md`
-2. Прочитай `project/roles/product/context.md` — твоя память
+2. Прочитай `project/roles/product/context.md` — твоя память, и `.claude/knowledge/dpf/product-management.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/product.md`, если есть)
 3. Прочитай существующие артефакты (если есть): `project/artifacts/scenario-map.md`, `experiment-board.md`, `assumptions.md`
 4. При работе с фичей — прочитай её `features/FEAT-*/README.md`
 

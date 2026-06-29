@@ -21,7 +21,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/domain.md`, `project/values.md`
-2. Прочитай `project/roles/customer/context.md` — твоя память
+2. Прочитай `project/roles/customer/context.md` — твоя память, и `.claude/knowledge/dpf/customer-voice.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/customer.md`, если есть)
 3. Если есть `project/artifacts/personas.md` — прочитай
 
 ## Миссия

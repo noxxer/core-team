@@ -26,7 +26,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md` и `project/glossary.md`
-2. Прочитай `project/roles/dev/context.md` — твоя память
+2. Прочитай `project/roles/dev/context.md` — твоя память, и `.claude/knowledge/dpf/development.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/dev.md`, если есть)
 3. Прочитай актуальный `ARCH-NN.md` фичи (если есть)
 4. Детектируй стек → загрузи implement-reference:
    - `.claude/knowledge/stacks/backend-python/implement.md`

@@ -67,10 +67,12 @@ description: "Первичная настройка проекта: домен, 
 ```
 project/
 ├── ledger.md            ← templates/project/ledger.md
+├── inbox.md             ← templates/project/inbox.md (сырой вход Founder + триаж)
 ├── backlog.md           ← templates/project/backlog.md
 ├── values.md            ← настроенный на шаге 3
 ├── glossary.md          ← templates/project/glossary.md (RU/EN/определение/«не является»)
 ├── domain.md            ← templates/project/domain.md (факты о реальности, по bounded contexts)
+├── dpf/                 ← предметные учебники (Шаг 4b): <domain>.md + roles/<role>.md
 ├── roles/
 │   ├── facilitator/context.md  ← templates/project/role-context-template.md
 │   ├── architect/context.md
@@ -85,6 +87,43 @@ project/
 ├── sessions/            ← по мере сессий (session-template.md, handoff-template.md)
 └── features/            ← по мере /plan-feat (feature-template.md)
 ```
+
+### Шаг 4b: DPF — предметные учебники (сбор предметной области)
+
+> Слой между общим FPF и локальными артефактами. Метод — skill `dpf-builder`
+> (Collect 11 каналов → FPF-process в E.8-паттерны → Loop-improve E.21).
+> Дефолт проекта — **всегда полный web-research** (не seed).
+
+**4b.1 — Чистка role-DPF неактивных ролей.**
+Фреймворк везёт role-DPF всех ролей в `.claude/knowledge/dpf/`. После выбора активных ролей (Шаг 2)
+удали `.claude/knowledge/dpf/<role>.md` для ролей, НЕ активных в этом проекте — чтобы потребитель
+не таскал лишние учебники. (`git status` после — подтвердить удаление.)
+
+**4b.2 — domain-DPF проекта.**
+Запусти `dpf-builder` для предметной области проекта (из описания, Шаг 1):
+
+```
+Agent(subagent_type=facilitator): «Активируй skill dpf-builder. Построй domain-DPF по предметной
+области <домен проекта>. Полный Collection Protocol (11 каналов). Выход → project/dpf/<domain>.md
+по templates/dpf-template.md, frontmatter type: domain.»
+```
+
+Если область широкая — сузить до повторяющейся задачи проекта и зафиксировать в §0 DPF.
+
+**4b.3 — project-overlay role-DPF (для активных ролей).**
+Для каждой активной роли построй проектный оверлей — специализацию её ремесла под домен проекта
+(generic role-DPF из `.claude/knowledge/dpf/<role>.md` = база, оверлей добавляет предметную специфику):
+
+```
+→ project/dpf/roles/<role>.md  (type: role, bounded_context = <домен проекта>)
+```
+
+Тяжёлый шаг (полный research × N ролей). При большом числе ролей — вынести в Phase-B-style workflow
+fan-out (pipeline по ролям: collect → FPF-process → verify). Founder может отложить оверлеи на потом —
+generic role-DPF достаточно для старта; зафиксируй решение.
+
+**4b.4 — Регистрация.** Роли читают свой DPF в активационном ритуале: сначала
+`project/dpf/roles/<role>.md` (оверлей, если есть), затем `.claude/knowledge/dpf/<role>.md` (база).
 
 ### Шаг 5: Output Style
 
@@ -130,7 +169,11 @@ project/
 
 ### Шаг 9: Проверка целостности
 
-Запусти `Agent(subagent_type=facilitator)` с заданием: «`/self-service` в режиме аудита — проверь, что все 8 subagent-ов достижимы, нет осиротевших артефактов, File Ownership непротиворечив (см. таблицу в CLAUDE.md), все skills и команды на месте, planner-context.md согласован с фактическим состоянием `.claude/`».
+Запусти `Agent(subagent_type=facilitator)` с заданием: «`/self-service` в режиме аудита **полученной конструкции пользователя** — проверь, что:
+- все активные subagent-ы достижимы, нет осиротевших артефактов, File Ownership непротиворечив (см. таблицу в CLAUDE.md), все skills и команды на месте, planner-context.md согласован с фактическим состоянием `.claude/`;
+- **DPF-связность:** у каждой активной роли есть читаемый role-DPF (`.claude/knowledge/dpf/<craft>.md`), DPF неактивных ролей удалены (Шаг 4b.1), нет висячих ссылок на удалённые DPF;
+- **дедуп:** нет дублирующихся инструкций между ролями/промптами (одно правило — один дом);
+- **противоречия:** нет конфликтующих инструкций между ролями, DPF и values.md».
 
 ### Шаг 10: Первая сессия
 

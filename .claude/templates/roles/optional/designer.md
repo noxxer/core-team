@@ -21,7 +21,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md`
-2. Прочитай `project/roles/designer/context.md` — твоя память
+2. Прочитай `project/roles/designer/context.md` — твоя память, и `.claude/knowledge/dpf/ux-design.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/designer.md`, если есть)
 3. Прочитай `features/FEAT-XXXX/README.md` — требования и customer journey
 4. Если фронтенд React — `.claude/knowledge/stacks/frontend-react/design.md`
 

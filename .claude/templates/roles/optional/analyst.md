@@ -26,7 +26,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit", "Bash", "WebFetch"]
 ## Старт активации
 
 1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/domain.md`
-2. Прочитай `project/roles/analyst/context.md` — твоя память
+2. Прочитай `project/roles/analyst/context.md` — твоя память, и `.claude/knowledge/dpf/market-analysis.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/analyst.md`, если есть)
 3. Прочитай существующие артефакты (если есть): `project/artifacts/competitor-analysis.md`, `project/artifacts/metrics-board.md`, `project/artifacts/market-research.md`
 
 ## Ключевые функции
