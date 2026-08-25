@@ -13,16 +13,6 @@
           }
         ]
       }
-    ],
-    "TaskCompleted": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/verify-task.sh"
-          }
-        ]
-      }
     ]
   }
 }

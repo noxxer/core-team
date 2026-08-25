@@ -64,7 +64,7 @@ Each role reads its own DPF (`.claude/knowledge/dpf/<craft>.md`) — craft patte
 - **Ledger git-verified** — status is written from the code, not from memory.
 
 ### Memory & continuity
-`project/ledger.md` (source of truth) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart + TaskCompleted hooks.
+`project/ledger.md` (source of truth) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart hook (contract + role-memory thermometer).
 
 ---
 
@@ -160,7 +160,7 @@ Core Team ships its own versions of Functional Clarity, FPF, TDD, and planner. A
 ├── commands/             # slash commands
 ├── skills/               # functional-clarity, tdd-master, planner(+reflect), navigator, fpf, dpf-builder, llms-keeper
 ├── knowledge/            # core-protocols, biases, security, cost-model, fpf/, dpf/, stacks/
-├── hooks/                # session-start.sh (contract injection) + verify-task.sh (memory gate)
+├── hooks/                # session-start.sh (contract + memory thermometer) + *.test.sh (proofs)
 ├── output-styles/        # core-team (invariants + end-session nudge)
 ├── templates/            # project/ templates + opt-in roles
 └── planner-context.md    # orchestrator memory (estimate calibration)

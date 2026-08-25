@@ -3,6 +3,45 @@
 # Инжектит: Facilitator-протокол + Functional Clarity + FPF-гейты + указатели на активные артефакты.
 # Цель — устранить "тихую" активацию: фасилитатор и FPF должны быть в окне с первого хода.
 
+# --- Термометр памяти ролей ---------------------------------------------
+# Замер на двух проектах: у 10 ролей из 22, которые реально работали, память
+# старше их последней работы. Утечка движка непрерывности была невидима, потому
+# что её негде увидеть. SessionStart — единственное событие с подтверждённой
+# частотой срабатывания, поэтому прибор живёт здесь.
+# Хук обязан оставаться безвредным: любая ошибка внутри не должна ломать сессию.
+memory_health() {
+  local roles_dir=${ROLES_DIR:-project/roles} stale_days=${MEMORY_STALE_DAYS:-7}
+  local now file role updated age stale="" empty=""
+  [ -d "$roles_dir" ] || return 0
+  now=$(date +%s 2>/dev/null) || return 0
+
+  for file in "$roles_dir"/*/context.md; do
+    [ -f "$file" ] || continue
+    role=$(basename "$(dirname "$file")")
+    updated=$(grep -m1 -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' "$file" 2>/dev/null | head -1)
+    if [ -z "$updated" ]; then
+      empty="${empty:+$empty, }$role"
+      continue
+    fi
+    age=$(( (now - $(date_to_epoch "$updated")) / 86400 ))
+    [ "$age" -gt "$stale_days" ] && stale="${stale:+$stale, }$role ($age дн.)"
+  done
+
+  [ -n "$stale$empty" ] || return 0
+  printf '\n**Здоровье памяти ролей.** '
+  [ -n "$stale" ] && printf 'Отстаёт от работы: %s. ' "$stale"
+  [ -n "$empty" ] && printf 'Памяти нет вовсе: %s. ' "$empty"
+  printf '\nРоль, чей вывод не дошёл до `context.md`, в следующей сессии начинает с нуля: обнови при первом же её запуске. Пустая память у роли, которая ни разу не работала, — норма.\n'
+}
+
+date_to_epoch() {  # YYYY-MM-DD → epoch; 0 при неудаче, чтобы не ронять хук
+  if [ "$(uname)" = "Darwin" ]; then
+    date -j -f %Y-%m-%d "$1" +%s 2>/dev/null || printf '0'
+  else
+    date -d "$1" +%s 2>/dev/null || printf '0'
+  fi
+}
+
 cat <<'EOF'
 ## Core Team Framework активен
 
@@ -39,3 +78,5 @@ cat <<'EOF'
 
 Если `project/` ещё не создан — это первая сессия проекта; запусти `/setup-project`.
 EOF
+
+memory_health
