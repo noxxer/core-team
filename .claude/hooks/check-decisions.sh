@@ -83,7 +83,7 @@ for file in "${files[@]}"; do
   elif [ -z "$value" ]; then
     missing+=("$name")
   else
-    vague+=("$name → «$value»")
+    vague+=("$name → «${value}»")
   fi
 done
 
