@@ -1,0 +1,42 @@
+name: guards
+
+# Гард, падение которого никто не потребляет, не является гардом.
+# Этот прогон — потребитель гардов самого фреймворка.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  hooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: jq присутствует
+        run: jq --version
+
+      # Класс shell-дефектов, который не поймает ни один тест поведения.
+      # severity=warning: предупреждения и ошибки блокируют, стилевые замечания — нет.
+      - name: shellcheck
+        run: shellcheck --severity=warning .claude/hooks/*.sh
+
+      - name: Прогон гардов фреймворка
+        shell: bash
+        run: |
+          shopt -s nullglob
+          tests=(.claude/hooks/*.test.sh)
+
+          # Половина «найдено не ноль»: пустой перечень тестов зелёным не считается.
+          # Перечисляющая проверка на пустом множестве проходит по построению.
+          if [ ${#tests[@]} -eq 0 ]; then
+            echo "гардов не найдено — прогон пуст, это не успех" >&2
+            exit 1
+          fi
+
+          status=0
+          for test in "${tests[@]}"; do
+            echo "== $test"
+            bash "$test" || status=1
+          done
+          exit $status

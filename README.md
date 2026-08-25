@@ -62,7 +62,7 @@ Dev-ядро: **один Facilitator + 6 ролей + DPF-учебники ре�
 - **Ledger git-verified** — статус пишется по факту кода.
 
 ### Память и непрерывность
-`project/ledger.md` (источник истины) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart + TaskCompleted hooks.
+`project/ledger.md` (источник истины) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart hook (контракт + термометр памяти ролей).
 
 ---
 
@@ -158,7 +158,7 @@ Core Team везёт свои версии Functional Clarity, FPF, TDD и plann
 ├── commands/             # slash-команды
 ├── skills/               # functional-clarity, tdd-master, planner(+reflect), navigator, fpf, dpf-builder, llms-keeper
 ├── knowledge/            # core-protocols, biases, security, cost-model, fpf/, dpf/, stacks/
-├── hooks/                # session-start.sh (инъекция контракта) + verify-task.sh (gate памяти)
+├── hooks/                # session-start.sh (контракт + термометр памяти) + *.test.sh (доказательства)
 ├── output-styles/        # core-team (инварианты + end-session nudge)
 ├── templates/            # шаблоны project/ + opt-in роли
 └── planner-context.md    # память оркестратора (калибровка оценок)
