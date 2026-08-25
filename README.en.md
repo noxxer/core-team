@@ -25,7 +25,7 @@ Core Team's value is the **continuity engine**: `ledger.md` + `handoff.md` give 
 Disagreement between roles is a feature, not a bug. Any tension is captured as a task (`TaskCreate`), discussed by roles, and only then — if unresolved — escalated to the founder via `AskUserQuestion` with explicit consequences per option.
 
 ### A rule without a guard is just an opinion
-Every class of bugs gets a machine-verifiable invariant test (**Detect → Fix → Guard → Document**). Decisions are recorded as ADRs with alternatives (NQD ≥3), kill-criteria, and a review date. The ledger is reconciled against git, not written from memory.
+Every class of bugs gets a machine-verifiable invariant test **and a mutation proof** (**Detect → Fix → Guard → Prove → Document**): a guard with no demonstrated redness is an opinion too — just a green one. Decisions are recorded as ADRs with alternatives (NQD ≥3), kill-criteria, and a review date. The ledger is reconciled against git, not written from memory.
 
 ---
 
@@ -58,7 +58,7 @@ Each role reads its own DPF (`.claude/knowledge/dpf/<craft>.md`) — craft patte
 ### Structural gates
 - **CHK-WIRE / CHK-ORPHAN** — green tests ≠ a working prod path; review walks the path live.
 - **DEC-NNN ⟹ file** + same-session DEC-propagation — decisions don't rot.
-- **Detect → Fix → Guard → Document** — an invariant test per bug class.
+- **Detect → Fix → Guard → Prove → Document** — an invariant test per bug class, plus a mutation proof.
 - **Express-Parallel** — background agents in disjoint file-ownership zones.
 - **Explicit model selection** — against runaway cost on inherited Opus.
 - **Ledger git-verified** — status is written from the code, not from memory.
