@@ -132,7 +132,39 @@ generic role-DPF достаточно для старта; зафиксируй 
 3. `keep-coding-instructions`:
    - `dev` / `hybrid` → `true`
    - `research` / `custom` → `false` (спроси Founder при сомнении)
-4. Установи стиль: в `.claude/settings.json` добавь `"outputStyle": "core-team"`
+4. Установи стиль и остальные настройки развёрнутой копии — допиши в `.claude/settings.json`
+   (ключи `hooks` и `env` уже там, их не трогай):
+
+```jsonc
+{
+  "outputStyle": "core-team",
+  "language": "ru",
+  "permissions": {
+    "deny": [
+      "Edit(.claude/templates/**)",  "Write(.claude/templates/**)",
+      "Edit(.claude/skills/**)",     "Write(.claude/skills/**)",
+      "Edit(.claude/hooks/**)",      "Write(.claude/hooks/**)",
+      "Edit(.claude/output-styles/**)",
+      "Edit(project/decisions/**)",
+      "Edit(project/values.md)",     "Write(project/values.md)"
+    ]
+  }
+}
+```
+
+**Почему именно так.** «НИКОГДА не модифицировать» в `CLAUDE.md` — инструкция, то есть мнение;
+`permissions.deny` — запрет на уровне клиента, действующий независимо от того, что решит модель.
+Проверено пробой: файл под запретом остался нетронутым, соседний обычный — изменён.
+
+Три границы, названные явно:
+
+- **`project/decisions/**` — только `Edit`.** Append-only означает «новые файлы можно, старые не
+  править»: `Write` создаёт, `Edit` меняет. Запрещаем ровно `Edit`.
+- **`.claude/knowledge/**` в списке НЕТ намеренно.** Там генерируется DPF-слой
+  (`knowledge/dpf/**`), а запрет побеждает разрешение — вырезать исключение нечем. Этот каталог
+  держится правилом `.claude/rules/framework-files.md`, приходящим в контекст при касании.
+- **В репозитории самого фреймворка этот блок не ставится** — там перечисленные файлы являются
+  предметом разработки. Он для развёрнутой копии.
 
 ### Шаг 6: Infrastructure Principles (dev, hybrid)
 
