@@ -89,6 +89,4 @@
 ## Связанные артефакты
 
 - `project/decisions/` — kill_criteria, митигации часто = новые DEC
-- `project/artifacts/scorecard.md` — kill criteria watchlist
-- `project/artifacts/assumptions.md` — рисковые допущения
 - `.claude/knowledge/security-rules.md` + `knowledge/stacks/security.md` — security baseline

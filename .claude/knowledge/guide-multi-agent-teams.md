@@ -546,7 +546,7 @@ Task(
 ПРОТОКОЛ:
 - Работай над задачами из TaskList
 - Общайся с другими ролями через SendMessage (по имени)
-- Пиши ТОЛЬКО в свои файлы: project/artifacts/scorecard.md, project/artifacts/experiment-board.md
+- Пиши ТОЛЬКО в свои файлы: project/artifacts/risk-registry.md
 - Результат отправь facilitator через SendMessage
 - По завершении: TaskUpdate → TaskList → claim next"
 )

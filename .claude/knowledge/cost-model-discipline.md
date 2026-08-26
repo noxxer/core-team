@@ -64,7 +64,7 @@
 | Test | sonnet | — | Code review против чеклистов (OWASP, FPF, FC). Структурировано | Security audit с высокими ставками — opus |
 | CTO | **opus** | **xhigh** | Стратегические решения, DRR, Evidence Graphs, экономика выбора | — (уже opus) |
 | Product | sonnet | — | RICE, scope decisions, MVP, scenario-map — структурированный синтез ролей | На сложных trade-off-ах с большими scope-альтернативами — opus |
-| Guardian | sonnet | — | Risk registry, scorecard, devil's advocate — pattern-based, не творческое | На security audit высоких ставок (legal, PII) — opus |
+| Guardian | sonnet | — | Risk registry, devil's advocate — pattern-based, не творческое | На security audit высоких ставок (legal, PII) — opus |
 | Analyst | sonnet | — | MECE-структурирование данных, research, отчёты | На первичной TAM/SAM/SOM oценке нового рынка — opus |
 | Designer | sonnet | — | UX/visual в рамках design-system | Создание новой design-system с нуля — opus |
 | Keeper | sonnet | — | Поддержка glossary/domain/llms.txt — структурированно | — (downgrade до haiku при rote-обновлениях не рекомендуется: терминология требует понимания) |

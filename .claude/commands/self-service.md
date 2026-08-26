@@ -70,6 +70,7 @@ description: "Аудит системы промптов, имплантация
 | Решения без файла | `DEC-NNN` упомянут в `ledger.md`, файла в `project/decisions/` нет — `bash .claude/hooks/check-decisions.sh` | Высокая |
 | Ремесло роли не доехало | роль не называет свой DPF, ссылается на отсутствующий файл, либо слоя `knowledge/dpf/` нет вовсе (копия обновлена с версии до 5.0) — `bash .claude/hooks/check-install-integrity.sh` | Высокая |
 | Копия неработоспособна | объявлено ≠ подключено: `VERSION`, права хуков, проводка `settings.json`, слоты шаблона, числа в документации — `bash .claude/hooks/check-install-integrity.sh` | Высокая |
+| Решение протухло молча | `review_due` просрочен, отсутствует, либо `kill_criteria` назван без `metric_for_revisit` — `bash .claude/hooks/check-decision-decay.sh` | Средняя |
 | Память роли нечитаема | файл `roles/<role>/context.md` за пределом чтения (256 КБ), за бюджетом строк или ведётся лентой — `bash .claude/hooks/check-role-memory.sh`. Роль исполняет ритуал «прочитай свою память» вхолостую и не падает | Высокая |
 | Версия рассогласована | `.claude/VERSION` расходится с `plugin.json` или бейджем README — `bash .claude/hooks/check-version-sync.sh` | Средняя |
 | Размер промптов | Файлы > 100 строк (команды) или > 300 строк (skills) | Низкая |

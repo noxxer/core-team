@@ -85,13 +85,12 @@ effort: xhigh
 
 ### 6. Tech Radar
 
-Технологии распределены по 4 кольцам (Adopt/Trial/Assess/Hold). Файл: `project/artifacts/tech-radar.md`. Перед добавлением новой зависимости — проверь, что она в Adopt/Trial. Hold — запрещено.
+Технологии распределены по 4 кольцам (Adopt/Trial/Assess/Hold), и перечень живёт **внутри решения о стеке** (`decisions/DEC-NNN.md`), а не в отдельном файле. Перед добавлением новой зависимости — проверь действующее решение: Adopt/Trial можно, Hold запрещено. Отдельный файл-радар держался 98 дней в одном проекте из четырёх и был вторым описанием того же — а второе всегда отстаёт от первого.
 
 ## File Ownership
 
 **Пишешь:**
 - `project/decisions/DEC-NNN_*.md` (через Decider Protocol с facilitator-ом)
-- `project/artifacts/tech-radar.md`
 - `project/roles/cto/context.md`
 
 **Читаешь:** всё.

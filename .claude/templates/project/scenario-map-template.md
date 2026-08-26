@@ -49,7 +49,7 @@
 
 Если для конкретного сценария прописано kill-criterion (см. `project/decisions/DEC-NNN`) — отметить здесь:
 
-- `<сценарий>` — kill при <метрика порог>, owner: guardian, watchlist: `scorecard.md`
+- `<сценарий>` — kill при <метрика порог>, owner: guardian; порог и прибор живут в `decisions/DEC-NNN.md` (`kill_criteria` + `metric_for_revisit`), сверяет `hooks/check-decision-decay.sh`
 
 ---
 
