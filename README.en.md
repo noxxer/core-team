@@ -5,7 +5,7 @@
 > A self-bootstrapping multi-agent framework for Claude Code.
 > One conversation unfolds a team of specialized subagent-roles with persistent memory and mechanical quality gates.
 
-![version](https://img.shields.io/badge/version-5.0.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.1.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 A dev core: **one Facilitator + 6 roles + DPF craft handbooks + memory + mechanical gates**.
 
@@ -25,7 +25,7 @@ Core Team's value is the **continuity engine**: `ledger.md` + `handoff.md` give 
 Disagreement between roles is a feature, not a bug. Any tension is captured as a task (`TaskCreate`), discussed by roles, and only then — if unresolved — escalated to the founder via `AskUserQuestion` with explicit consequences per option.
 
 ### A rule without a guard is just an opinion
-Every class of bugs gets a machine-verifiable invariant test (**Detect → Fix → Guard → Document**). Decisions are recorded as ADRs with alternatives (NQD ≥3), kill-criteria, and a review date. The ledger is reconciled against git, not written from memory.
+Every class of bugs gets a machine-verifiable invariant test **and a mutation proof** (**Detect → Fix → Guard → Prove → Document**): a guard with no demonstrated redness is an opinion too — just a green one. Decisions are recorded as ADRs with alternatives (NQD ≥3), kill-criteria, and a review date. The ledger is reconciled against git, not written from memory.
 
 ---
 
@@ -58,13 +58,13 @@ Each role reads its own DPF (`.claude/knowledge/dpf/<craft>.md`) — craft patte
 ### Structural gates
 - **CHK-WIRE / CHK-ORPHAN** — green tests ≠ a working prod path; review walks the path live.
 - **DEC-NNN ⟹ file** + same-session DEC-propagation — decisions don't rot.
-- **Detect → Fix → Guard → Document** — an invariant test per bug class.
+- **Detect → Fix → Guard → Prove → Document** — an invariant test per bug class, plus a mutation proof.
 - **Express-Parallel** — background agents in disjoint file-ownership zones.
 - **Explicit model selection** — against runaway cost on inherited Opus.
 - **Ledger git-verified** — status is written from the code, not from memory.
 
 ### Memory & continuity
-`project/ledger.md` (source of truth) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart + TaskCompleted hooks.
+`project/ledger.md` (source of truth) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart hook (contract + role-memory thermometer).
 
 ---
 
@@ -120,6 +120,11 @@ claude
 
 ### Case 3. Upgrading from an older Core Team
 
+> 🤖 **Want an agent to do it?** Give it one line:
+> "Upgrade Core Team following https://github.com/noxxer/core-team/blob/main/UPGRADING.md"
+> — it carries the ordered steps, a check after each one, stop conditions, and a mandatory report back to you.
+> The manual path is below.
+
 Your `project/` memory stays yours — leave it alone. Only the `.claude/` tool gets replaced:
 
 ```bash
@@ -129,11 +134,18 @@ git switch -c update-core-team
 git clone --depth 1 https://github.com/noxxer/core-team.git
 rm -rf core-team/.git
 diff -rq .claude core-team/.claude   # see what will change first
+cp .claude/settings.json settings.json.mine   # ← REQUIRED: your keys live there
+
 cp -r core-team/.claude .            # overwrite .claude/ (project/ untouched)
 rm -rf core-team
 ```
 
-⚠️ The copy overwrites **your own edits inside `.claude/`**, if you made any. Check the `diff` before copying and reapply your changes after. Then prompt:
+⚠️ **`settings.json` will be overwritten, guaranteed.** It is the one file under `.claude/` you
+are *told* to edit: `/setup-project` (Step 5) puts `outputStyle`, `language` and
+`permissions.deny` there for your project. After copying, restore your keys from
+`settings.json.mine` into the new `.claude/settings.json`, keeping the incoming `hooks` and `env`.
+
+⚠️ The copy overwrites **your other edits inside `.claude/`** too. Check the `diff` before copying and reapply your changes after. Then prompt:
 
 > I upgraded `.claude/` from an older Core Team. Run `/self-service` in audit mode: check connectivity, the new role DPFs, and whether my `project/` artifacts fit the new structure. List what changed in the contract. Don't touch anything in `project/` without confirmation.
 
@@ -160,7 +172,7 @@ Core Team ships its own versions of Functional Clarity, FPF, TDD, and planner. A
 ├── commands/             # slash commands
 ├── skills/               # functional-clarity, tdd-master, planner(+reflect), navigator, fpf, dpf-builder, llms-keeper
 ├── knowledge/            # core-protocols, biases, security, cost-model, fpf/, dpf/, stacks/
-├── hooks/                # session-start.sh (contract injection) + verify-task.sh (memory gate)
+├── hooks/                # session-start.sh (contract + memory thermometer) + *.test.sh (proofs)
 ├── output-styles/        # core-team (invariants + end-session nudge)
 ├── templates/            # project/ templates + opt-in roles
 └── planner-context.md    # orchestrator memory (estimate calibration)

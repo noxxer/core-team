@@ -5,7 +5,7 @@
 > Саморазворачивающийся мультиагентный фреймворк для Claude Code.
 > Один разговор разворачивает команду специализированных subagent-ролей с памятью между сессиями и механическими гейтами качества.
 
-![version](https://img.shields.io/badge/version-5.0.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.1.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 Dev-ядро: **один Facilitator + 6 ролей + DPF-учебники ремёсел + память + механические гейты**.
 
@@ -23,7 +23,7 @@ Dev-ядро: **один Facilitator + 6 ролей + DPF-учебники ре�
 Несогласие между ролями — фича, не баг. Любое напряжение фиксируется как задача (`TaskCreate`), обсуждается ролями и только потом, если не разрешилось, идёт к основателю через `AskUserQuestion` с явными последствиями каждой опции.
 
 ### Правило без гарда — это просто мнение
-Каждый класс багов получает machine-verifiable инвариант-тест (**Detect → Fix → Guard → Document**). Решения фиксируются как ADR с альтернативами (NQD ≥3), kill-criteria и датой пересмотра. Ledger сверяется с git, а не пишется по памяти.
+Каждый класс багов получает machine-verifiable инвариант-тест **и доказательство мутацией** (**Detect → Fix → Guard → Prove → Document**): гард без предъявленной красноты — тоже мнение, просто зелёное. Решения фиксируются как ADR с альтернативами (NQD ≥3), kill-criteria и датой пересмотра. Ledger сверяется с git, а не пишется по памяти.
 
 ---
 
@@ -56,13 +56,13 @@ Dev-ядро: **один Facilitator + 6 ролей + DPF-учебники ре�
 ### Структурные гейты
 - **CHK-WIRE / CHK-ORPHAN** — зелёные тесты ≠ рабочий прод-путь; ревью проходит путь вживую.
 - **DEC-NNN ⟹ файл** + same-session DEC-propagation — решения не «протухают».
-- **Detect → Fix → Guard → Document** — инвариант-тест на каждый класс багов.
+- **Detect → Fix → Guard → Prove → Document** — инвариант-тест на каждый класс багов + доказательство мутацией.
 - **Express-Parallel** — фоновые агенты в непересекающихся file-ownership зонах.
 - **Explicit model selection** — против перерасхода на унаследованном Opus.
 - **Ledger git-verified** — статус пишется по факту кода.
 
 ### Память и непрерывность
-`project/ledger.md` (источник истины) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart + TaskCompleted hooks.
+`project/ledger.md` (источник истины) · `project/sessions/handoff.md` · `project/roles/<role>/context.md` · `.claude/planner-context.md` · SessionStart hook (контракт + термометр памяти ролей).
 
 ---
 
@@ -118,6 +118,11 @@ claude
 
 ### Случай 3. Обновление со старой версии Core Team
 
+> 🤖 **Хочешь, чтобы обновление сделал агент?** Дай ему одну строку:
+> «Обнови Core Team по инструкции https://github.com/noxxer/core-team/blob/main/UPGRADING.md»
+> — там порядок шагов, проверка после каждого, условия остановки и обязательный доклад тебе.
+> Ручной путь — ниже.
+
 Память `project/` остаётся твоей — её не трогаем. Обновляем только инструмент `.claude/`:
 
 ```bash
@@ -127,11 +132,20 @@ git switch -c update-core-team
 git clone --depth 1 https://github.com/noxxer/core-team.git
 rm -rf core-team/.git
 diff -rq .claude core-team/.claude   # сначала посмотри, что изменится
+
+cp .claude/settings.json settings.json.мой   # ← ОБЯЗАТЕЛЬНО: там твои ключи
+
 cp -r core-team/.claude .            # перезапись .claude/ (project/ не трогаем)
 rm -rf core-team
 ```
 
-⚠️ Копирование затрёт **твои правки внутри `.claude/`**, если ты их вносил. Сверься по `diff` до копирования и верни свои изменения после. Затем — промпт:
+⚠️ **`settings.json` затрётся гарантированно.** Это единственный файл `.claude/`, который тебя
+**просят** править: `/setup-project` (Шаг 5) кладёт туда `outputStyle`, `language` и
+`permissions.deny` под твой проект. После копирования верни свои ключи из `settings.json.мой`
+в новый `.claude/settings.json`, сохранив пришедшие сверху `hooks` и `env`.
+
+⚠️ Прочие правки внутри `.claude/` копирование тоже затрёт. Сверься по `diff` до копирования и
+верни свои изменения после. Затем — промпт:
 
 > Я обновил `.claude/` Core Team со старой версии. Прогони `/self-service` в режиме аудита: проверь связность, новые DPF-учебники ролей и совместимость моих `project/`-артефактов с новой структурой. Перечисли, что изменилось в контракте. В `project/` ничего не меняй без подтверждения.
 
@@ -158,7 +172,7 @@ Core Team везёт свои версии Functional Clarity, FPF, TDD и plann
 ├── commands/             # slash-команды
 ├── skills/               # functional-clarity, tdd-master, planner(+reflect), navigator, fpf, dpf-builder, llms-keeper
 ├── knowledge/            # core-protocols, biases, security, cost-model, fpf/, dpf/, stacks/
-├── hooks/                # session-start.sh (инъекция контракта) + verify-task.sh (gate памяти)
+├── hooks/                # session-start.sh (контракт + термометр памяти) + *.test.sh (доказательства)
 ├── output-styles/        # core-team (инварианты + end-session nudge)
 ├── templates/            # шаблоны project/ + opt-in роли
 └── planner-context.md    # память оркестратора (калибровка оценок)

@@ -14,12 +14,12 @@
         ]
       }
     ],
-    "TaskCompleted": [
+    "SubagentStop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/verify-task.sh"
+            "command": ".claude/hooks/subagent-arrival.sh"
           }
         ]
       }

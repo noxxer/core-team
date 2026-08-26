@@ -160,8 +160,7 @@ project-root/
 │   ├── CLAUDE.md              # Центральный контракт (все роли читают)
 │   ├── settings.json          # Включение Agent Teams
 │   ├── hooks/
-│   │   ├── hooks.json         # Конфигурация hooks
-│   │   └── verify-task.sh     # Quality gate для TaskCompleted
+│   │   └── session-start.test.sh  # Доказательство мутацией для термометра
 │   └── commands/
 │       ├── facilitator.md     # Slash-команда /facilitator
 │       ├── role-a.md          # /role-a
@@ -593,66 +592,56 @@ Hooks — shell-команды, которые выполняются в отв�
 
 | Hook | Когда срабатывает | Зачем |
 |------|-------------------|-------|
-| `TaskCompleted` | Teammate пытается пометить задачу completed | Quality gate: проверить что работа сделана |
+| `TaskCompleted` | Teammate помечает задачу completed | Фреймворк **не использует**: замер показал 0 срабатываний на 143 закрытия |
 | `TeammateIdle` | Teammate уходит в idle | Проверить что teammate не остановился рано |
 | `SubagentStart` | Teammate заспавнен | Инициализация окружения |
 | `SubagentStop` | Teammate завершился | Cleanup |
 
-### Файл hooks.json
+### Где объявляются hooks
 
-**Путь:** `.claude/hooks/hooks.json`
+**Проектные hooks живут в `.claude/settings.json`**, в ключе `hooks`. Отдельный
+`.claude/hooks/hooks.json` Claude Code **не читает**: этот путь принадлежит плагинам
+(`~/.claude/plugins/<plugin>/hooks/hooks.json`). Файл с таким именем в проекте выглядит
+как конфигурация и ею не является — хуки молча не подключаются.
 
 ```json
 {
+  "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" },
+  "teammateMode": "in-process",
   "hooks": {
-    "TaskCompleted": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/verify-task.sh"
-          }
-        ]
-      }
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": ".claude/hooks/session-start.sh" } ] }
     ]
   }
 }
 ```
 
-> Hook принимает JSON на stdin с полями: `session_id`, `task_id`, `task_subject`, `task_description`, `teammate_name`, `team_name`, `cwd` и др.
+### Почему у фреймворка один хук, а не два
 
-### Скрипт quality gate
+Раньше здесь был второй — `TaskCompleted`, блокировавший закрытие задачи без обновления
+памяти роли. Замер по стенограммам двух проектов: **143 закрытия задач — 0 срабатываний.**
+У задачи нет владельца-роли (`TaskCreate` несёт только `subject`/`description`/`activeForm`),
+и гейт ключевался по признаку, которого система никогда не заполняла.
 
-**Путь:** `.claude/hooks/verify-task.sh`
+Урок общий: **прежде чем чинить гард, покажи, что он вызывается.** Хук с `exit 0` следов
+не оставляет, поэтому «сработал и пропустил» неотличимо от «не сработал» — пока у гарда нет
+собственного наблюдаемого следа.
 
-```bash
-#!/bin/bash
-# Hook: TaskCompleted
-# Exit 0 = OK (задача закрывается)
-# Exit 2 = блокировать завершение + feedback teammate-у
+Ту же задачу закрывают два механизма без событий гарнесса:
 
-INPUT=$(cat)
-TASK_SUBJECT=$(echo "$INPUT" | jq -r '.task_subject // empty')
-TEAMMATE=$(echo "$INPUT" | jq -r '.teammate_name // empty')
+1. **Оркестратор приземляет память.** Каждая роль возвращает последним разделом отчёта блок
+   «Для памяти роли»; facilitator дописывает его в `project/roles/<role>/context.md`, если
+   записи за этот день там нет. Память становится побочным продуктом конвейера, а не долгом
+   дисциплины — забыть нечего.
+2. **Термометр в `SessionStart`.** Хук печатает роли, чья память отстаёт больше
+   `MEMORY_STALE_DAYS` (по умолчанию 7) или пуста. Это единственное событие с подтверждённой
+   частотой: вывод хука найден в 48 стенограммах из 48.
 
-# Пример: проверить что teammate обновил свой context.md
-CONTEXT_FILE="project/roles/${TEAMMATE}/context.md"
-if [ -f "$CONTEXT_FILE" ]; then
-  MODIFIED=$(stat -f %m "$CONTEXT_FILE" 2>/dev/null || stat -c %Y "$CONTEXT_FILE" 2>/dev/null)
-  NOW=$(date +%s)
-  DIFF=$((NOW - MODIFIED))
+Первый чинит причину, второй показывает, где чинить не сработало.
 
-  # Если context.md не обновлялся более 5 минут — предупредить
-  if [ "$DIFF" -gt 300 ]; then
-    echo "Обнови свой context.md с результатами работы перед закрытием задачи: $TASK_SUBJECT" >&2
-    exit 2
-  fi
-fi
-
-exit 0
-```
-
-Не забудь сделать исполняемым: `chmod +x .claude/hooks/verify-task.sh`
+**Проверка подключения — обязательна.** «Файл лежит» ≠ «хук вызывается»: запусти сессию и
+убедись, что контракт фреймворка появился в контексте. Не появился — hooks не объявлены
+в `settings.json`.
 
 ### TeammateIdle hook (опционально)
 
@@ -815,9 +804,9 @@ Facilitator:
 - [ ] Определить File Ownership (таблица в CLAUDE.md)
 - [ ] Написать spawn prompt в facilitator.md
 - [ ] Определить ключевых собеседников для каждой роли
-- [ ] Создать `.claude/hooks/hooks.json` (опционально)
-- [ ] Создать `.claude/hooks/verify-task.sh` (опционально)
+- [ ] Объявить hooks в `.claude/settings.json` (НЕ в `hooks/hooks.json` — его не читают)
 - [ ] Сделать hook-скрипты исполняемыми (`chmod +x`)
+- [ ] **Проверить, что хук действительно вызывается:** начать сессию и убедиться, что контракт фреймворка появился в контексте. Не появился = hooks не объявлены
 
 ### Проверка
 

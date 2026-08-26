@@ -116,6 +116,12 @@ project/features/FEAT-NNNN-<slug>/
   - test = review only (no code, no fixes)
   - keeper = docs only (no code, no decisions)
 - **Loop until clean:** продолжать до "review clean" (нет P0/P1)
+- **Приёмка стадии — по файлу, а не по отчёту.** У каждой стадии есть свой артефакт (`UX-NN.md`,
+  `ARCH-NN.md`, `REVIEW-NN.md`); после стадии проверь его:
+  `bash .claude/hooks/check-lane-acceptance.sh --since <старт стадии> <путь>`. Замер: в боевом
+  проекте ревью запрашивалось шесть раз, и большинство субагентов завершилось **без отчёта** —
+  это происходит и в последовательном конвейере, не только в параллельной волне. Перед повторным
+  запуском упавшей стадии прочитай её файл: работа может быть уже сделана
 - **File ownership:** см. таблицу subagent-ов в CLAUDE.md
 - **Все вопросы Founder через AskUserQuestion** (compact-safe)
 - **Все задачи через TaskCreate** (compact-safe)
