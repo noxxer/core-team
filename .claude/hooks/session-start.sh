@@ -86,6 +86,24 @@ memory_health() {
 # память физически не открывается инструментом Read (предел 256 КБ). Прибор был
 # зелёным ровно на сломанных ролях: у них память одновременно свежая и нечитаемая.
 # Содержание проверки живёт в check-role-memory.sh — здесь только показ.
+# Актив с истёкшим сроком отключается молча: домен, сервер, оплаченная услуга.
+# Узнать об этом по упавшему проду дороже, чем прочитать строку на старте сессии.
+# Содержание проверки живёт в check-assets.sh — здесь только показ.
+assets_expiry() {
+  local file=${ASSETS_FILE:-project/resources.md} checker findings
+  checker="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/check-assets.sh"
+  [ -f "${checker}" ] || return 0
+  [ -f "${file}" ] || return 0
+
+  # Берём и поток находок, и строку «Срок наступает»: первое — отказ, второе —
+  # предупреждение, и на старте сессии нужны оба. Отчёт о разборе не берём.
+  findings=$(bash "${checker}" "${file}" 2>&1 | grep -vE '^Активы .*: разобрано' || true)
+  [ -n "${findings}" ] || return 0
+
+  printf '\n**Активы.**\n%s\n' "${findings}"
+  return 0
+}
+
 memory_volume() {
   local roles_dir=${ROLES_DIR:-project/roles} checker findings
   checker="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/check-role-memory.sh"
@@ -156,3 +174,4 @@ EOF
 meaning_ladder
 memory_health
 memory_volume
+assets_expiry

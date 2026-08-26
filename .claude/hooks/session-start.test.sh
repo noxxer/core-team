@@ -14,7 +14,7 @@ set -uo pipefail
 HOOK=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/session-start.sh"}
 [ -f "$HOOK" ] || { printf 'нет файла хука: %s\n' "$HOOK" >&2; exit 1; }
 
-EXPECTED_CASES=16
+EXPECTED_CASES=20
 ran=0
 failed=0
 TRASH=()
@@ -172,6 +172,33 @@ check "короткие поля хроникой не считаются" "не
 # Ledger нет вовсе (проект ещё не развёрнут): хук молчит и не падает.
 OUT=$(run_with_ledger "/nonexistent-$$/ledger.md"); code=$?
 check "ledger отсутствует — тихо и без падения" "0/нет" "$code/$(says "$OUT" "Зачем мы здесь")"
+
+# --- Активы: срок отключает молча -------------------------------------------
+# Мир с дефектом: домен оплачен до даты в прошлом. Узнать об этом по упавшему
+# проду дороже, чем прочитать строку на старте сессии.
+make_assets() {  # $1 = «Оплачено до», $2 = владелец
+  local d f; d=$(mktemp -d); TRASH+=("$d"); f="$d/resources.md"
+  { printf -- '---\nexpiry_warning_days: 30\n---\n\n# Активы\n\n## Активы\n\n'
+    printf '| ID | Что | Адрес | Тип | Владелец | Оплачено до | Стоимость | Секрет |\n'
+    printf '|----|-----|-------|-----|----------|-------------|-----------|--------|\n'
+    printf '| ASSET-01 | домен | example.ru | домен | %s | %s | 1200 | — |\n' "$2" "$1"
+  } > "$f"
+  printf '%s' "$f"
+}
+run_with_assets() { ASSETS_FILE="$1" ROLES_DIR="/nonexistent-$$" bash "$HOOK" 2>/dev/null; }
+
+A=$(make_assets 2020-01-01 founder)
+OUT=$(run_with_assets "$A")
+check "истёкший срок назван" "да" "$(says "$OUT" "СРОК ПРОШЁЛ")"
+check "…под своим заголовком" "да" "$(says "$OUT" "**Активы.**")"
+
+# Ложное срабатывание: срок далеко — молчание. Прибор-паникёр не читают.
+A=$(make_assets 2030-01-01 founder)
+check "далёкий срок молчит" "нет" "$(says "$(run_with_assets "$A")" "**Активы.**")"
+
+# Безвредность: файла активов нет вовсе — хук молчит и не падает.
+OUT=$(run_with_assets "/nonexistent-assets-$$"); code=$?
+check "реестра активов нет — тихо и без падения" "0/нет" "$code/$(says "$OUT" "**Активы.**")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"
