@@ -14,7 +14,7 @@ set -uo pipefail
 HOOK=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/session-start.sh"}
 [ -f "$HOOK" ] || { printf 'нет файла хука: %s\n' "$HOOK" >&2; exit 1; }
 
-EXPECTED_CASES=7
+EXPECTED_CASES=12
 ran=0
 failed=0
 TRASH=()
@@ -96,6 +96,49 @@ check "два диагноза различены" "да" \
 #    и не печатает диагноз. Сломанный SessionStart дороже любой находки.
 OUT=$(run_hook "/nonexistent-$$"); code=$?
 check "нет project/roles — тихо и без падения" "0/нет" "$code/$(says "$OUT" "Здоровье памяти ролей")"
+
+# --- Лестница смыслов -------------------------------------------------------
+
+make_ledger() {  # $1 = содержимое секции «Зачем» («-» = секции нет)
+  local dir file
+  dir=$(mktemp -d); TRASH+=("$dir"); mkdir -p "$dir/project"
+  file="$dir/project/ledger.md"
+  printf '# Ledger\n' > "$file"
+  [ "$1" = "-" ] || printf '%s\n' "$1" >> "$file"
+  printf '%s' "$file"
+}
+
+run_with_ledger() { LEDGER_FILE="$1" ROLES_DIR="/nonexistent-$$" bash "$HOOK" 2>/dev/null; }
+
+FULL='## Зачем
+- **Миссия:** понятный разбор анализов
+- **Цель фазы:** довести пилот до 10 активированных
+- **Ближайший шаг:** починить вёрстку карточек'
+
+L=$(make_ledger "$FULL")
+OUT=$(run_with_ledger "$L")
+check "лестница напечатана" "да" "$(says "$OUT" "Цель фазы: довести пилот")"
+
+L=$(make_ledger "-")
+OUT=$(run_with_ledger "$L")
+check "секции нет — просит завести" "да" "$(says "$OUT" "не записано")"
+
+# Гард против хроники: измеренная болезнь — поле смысла вытесняется лентой событий.
+LONG="## Зачем
+- **Миссия:** коротко
+- **Цель фазы:** $(printf 'событие %.0s' $(seq 1 40))
+- **Ближайший шаг:** шаг"
+L=$(make_ledger "$LONG")
+OUT=$(run_with_ledger "$L")
+check "поле-хроника названо" "да" "$(says "$OUT" "превратилось в хронику")"
+
+L=$(make_ledger "$FULL")
+OUT=$(run_with_ledger "$L")
+check "короткие поля хроникой не считаются" "нет" "$(says "$OUT" "превратилось в хронику")"
+
+# Ledger нет вовсе (проект ещё не развёрнут): хук молчит и не падает.
+OUT=$(run_with_ledger "/nonexistent-$$/ledger.md"); code=$?
+check "ledger отсутствует — тихо и без падения" "0/нет" "$code/$(says "$OUT" "Зачем мы здесь")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"
