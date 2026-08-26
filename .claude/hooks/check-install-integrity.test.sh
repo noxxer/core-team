@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=29
+EXPECTED_CASES=39
 ran=0
 failed=0
 TRASH=()
@@ -126,6 +126,60 @@ C=$(make_copy); rm -f "$C/.claude/hooks/"*.sh; printf '{}\n' > "$C/.claude/setti
 check "хуков нет вовсе — не зелёный" 1 "$(run_code "$C")"
 check "…и это назван отказ перечисления" "да" "$(says "$(run_out "$C")" "не найдено ни одного скрипта")"
 check "нет .claude вовсе" 1 "$(run_code "$(mktemp -d)")"
+
+# --- 9. Сущности: короткая таблица ↔ полный словарь ---------------------------
+# Класс: признак различения живёт в CLAUDE.md (всегда в контексте), определения —
+# в knowledge/entities.md. Расходятся молча, и роль применяет признак, которого нет.
+entity_claude() {  # $1=корень $2..=имена сущностей для таблицы
+  local root=$1; shift
+  { printf 'Доказательство мутацией — `check-session-reflection.test.sh` (7 случаев).\n\n'
+    printf '## Сущности — признак различения\n\n'
+    printf '| Сущность | Что это |\n|---|---|\n'
+    for t in "$@"; do printf '| **%s** | пояснение |\n' "$t"; done
+  } > "${root}/.claude/CLAUDE.md"
+}
+entity_dict() {  # $1=корень $2..=имена разделов словаря
+  local root=$1; shift
+  mkdir -p "${root}/.claude/knowledge"
+  { printf '# Сущности\n\n'; for t in "$@"; do printf '## %s\n\nтекст\n\n' "$t"; done; } \
+    > "${root}/.claude/knowledge/entities.md"
+}
+
+D=$(make_copy); entity_claude "$D" Обязательство Требование Риск
+entity_dict "$D" Обязательство Требование Риск
+check "таблица и словарь совпадают" 0 "$(run_code "$D")"
+
+D=$(make_copy); entity_claude "$D" Обязательство Требование Риск
+entity_dict "$D" Обязательство Требование
+check "сущность без раздела в словаре" 1 "$(run_code "$D")"
+check "…и названа именно она" "да" "$(says "$(run_out "$D")" "сущность «Риск» названа")"
+
+# Упоминание в тексте определением не является.
+D=$(make_copy); entity_claude "$D" Обязательство Риск
+entity_dict "$D" Обязательство
+printf 'Риск упоминается здесь в прозе, а раздела у него нет.\n' >> "$D/.claude/knowledge/entities.md"
+check "имя в прозе за определение не сходит" 1 "$(run_code "$D")"
+
+D=$(make_copy); entity_claude "$D" Обязательство
+check "раздел объявлен, словаря нет" 1 "$(run_code "$D")"
+check "…и сказано, чего нет" "да" "$(says "$(run_out "$D")" "knowledge/entities.md нет")"
+
+# Половина «найдено не ноль»: раздел есть, разобрано ноль — съехавшая разметка.
+D=$(make_copy); entity_dict "$D" Обязательство
+printf 'x\n\n## Сущности — признак различения\n\nтекст без таблицы\n' > "$D/.claude/CLAUDE.md"
+check "раздел есть, а таблица не разобрана" 1 "$(run_code "$D")"
+check "…и это названо отказом разбора" "да" "$(says "$(run_out "$D")" "ни одной сущности")"
+
+# Жирное начертание в СЛЕДУЮЩЕМ разделе сущностью не является.
+D=$(make_copy); entity_claude "$D" Обязательство
+entity_dict "$D" Обязательство
+printf '\n## Стеки\n\n| Стек | Кто читает |\n|---|---|\n| **Frontend React** | architect |\n' \
+  >> "$D/.claude/CLAUDE.md"
+check "таблица соседнего раздела не считается" 0 "$(run_code "$D")"
+
+# Законная тишина: копия без раздела сущностей (версия до 5.2).
+D=$(make_copy)
+check "раздела «Сущности» нет вовсе — тихо" 0 "$(run_code "$D")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"
