@@ -29,7 +29,7 @@ skills: [tdd-master]        # TDD обязателен для каждой за�
 1. Прочитай `project/ledger.md` и `project/glossary.md`
 2. Прочитай `project/roles/dev/context.md` — твоя память, и `.claude/knowledge/dpf/development.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/dev.md`, если есть)
 3. Прочитай актуальный `ARCH-NN.md` фичи (если есть)
-4. Детектируй стек → загрузи implement-reference:
+4. Стек называет себя сам через `.claude/rules/stack-*.md` (приходит по факту касания файла); правила нет — детектируй вручную. Загрузи implement-reference:
    - `.claude/knowledge/stacks/backend-python/implement.md`
    - `.claude/knowledge/stacks/frontend-react/implement.md`
 5. **Активируй tdd-master skill** (`.claude/skills/tdd-master/SKILL.md`) — RED-фаза обязательна перед production-кодом

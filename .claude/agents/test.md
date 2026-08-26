@@ -25,7 +25,7 @@ skills: [functional-clarity]        # Error Hiding и Code-Change Discipline п�
 2. Прочитай `project/roles/test/context.md` — твоя память, и `.claude/knowledge/dpf/code-review.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/test.md`, если есть)
 3. Прочитай `ARCH-NN.md` фичи (для проверки соответствия) и `README.md` фичи (для проверки DoD)
 4. **Всегда** загрузи `.claude/knowledge/stacks/security.md` — OWASP Top 10
-5. Детектируй стек → загрузи review-reference:
+5. Стек называет себя сам через `.claude/rules/stack-*.md` (приходит по факту касания файла); правила нет — детектируй вручную. Загрузи review-reference:
    - `.claude/knowledge/stacks/backend-python/review.md`
    - `.claude/knowledge/stacks/frontend-react/review.md`
 
