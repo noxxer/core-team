@@ -129,11 +129,18 @@ git switch -c update-core-team
 git clone --depth 1 https://github.com/noxxer/core-team.git
 rm -rf core-team/.git
 diff -rq .claude core-team/.claude   # see what will change first
+cp .claude/settings.json settings.json.mine   # ← REQUIRED: your keys live there
+
 cp -r core-team/.claude .            # overwrite .claude/ (project/ untouched)
 rm -rf core-team
 ```
 
-⚠️ The copy overwrites **your own edits inside `.claude/`**, if you made any. Check the `diff` before copying and reapply your changes after. Then prompt:
+⚠️ **`settings.json` will be overwritten, guaranteed.** It is the one file under `.claude/` you
+are *told* to edit: `/setup-project` (Step 5) puts `outputStyle`, `language` and
+`permissions.deny` there for your project. After copying, restore your keys from
+`settings.json.mine` into the new `.claude/settings.json`, keeping the incoming `hooks` and `env`.
+
+⚠️ The copy overwrites **your other edits inside `.claude/`** too. Check the `diff` before copying and reapply your changes after. Then prompt:
 
 > I upgraded `.claude/` from an older Core Team. Run `/self-service` in audit mode: check connectivity, the new role DPFs, and whether my `project/` artifacts fit the new structure. List what changed in the contract. Don't touch anything in `project/` without confirmation.
 
