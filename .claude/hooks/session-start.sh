@@ -9,7 +9,8 @@
 # `active_phase` — пересказ последней сессии, `current_omtm` — журнал с десятью
 # архивными строками). Смысл вытесняется лентой событий, если у него нет места
 # с ограничением длины.
-MEANING_MAX=${MEANING_MAX_CHARS:-200}
+# Предел поля смысла живёт в check-ledger.sh; переменная окружения
+# MEANING_MAX_CHARS доезжает до него наследованием, объявлять её здесь нечего.
 
 ledger_line() {  # $1 = метка поля
   grep -m1 -E "^[[:space:]]*[-*][[:space:]]*\*\*$1:\*\*" "$LEDGER" 2>/dev/null |
@@ -17,7 +18,7 @@ ledger_line() {  # $1 = метка поля
 }
 
 meaning_ladder() {
-  local ledger=${LEDGER_FILE:-project/ledger.md} mission goal step long=""
+  local ledger=${LEDGER_FILE:-project/ledger.md} mission goal step
   LEDGER=$ledger
   [ -f "$LEDGER" ] || return 0
 
@@ -38,13 +39,16 @@ meaning_ladder() {
   printf -- '- Ближайший шаг: %s\n' "${step:-<не записан>}"
   printf 'Свяжи тему сессии с этой лестницей первой же репликой: делаем X → шаг к цели фазы → ради миссии.\n'
 
-  # Гард против хроники: поле смысла, разросшееся в ленту событий, смысла не несёт.
-  for field in "Миссия:$mission" "Цель фазы:$goal" "Ближайший шаг:$step"; do
-    if [ "${#field}" -gt "$MEANING_MAX" ]; then
-      long="${long:+$long, }${field%%:*}"
-    fi
-  done
-  [ -n "$long" ] && printf 'Поле смысла превратилось в хронику (длиннее %s символов): %s. Смысл — одна строка; события — в `session.md`.\n' "$MEANING_MAX" "$long"
+  # Гард против хроники живёт в check-ledger.sh — здесь только показ его находок.
+  # Замер, ради которого проверка ушла в отдельный прибор: хроника обнаружилась
+  # не в полях смысла, а в ШАПКЕ ledger — `active_phase` 4141 символ, — куда эта
+  # функция не смотрела вовсе. Одному предмету — один прибор.
+  local checker findings
+  checker="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/check-ledger.sh"
+  if [ -f "${checker}" ]; then
+    findings=$(bash "${checker}" "${LEDGER}" 2>&1 >/dev/null || true)
+    [ -n "${findings}" ] && printf '%s\n' "${findings}"
+  fi
   return 0
 }
 

@@ -11,7 +11,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-assets.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=31
+EXPECTED_CASES=37
 ran=0
 failed=0
 TRASH=()
@@ -28,11 +28,11 @@ head_of() {  # $1=файл $2=предупреждение («-» = поля н�
   { printf -- '---\nartifact_id: "resources"\n'
     [ "${warn}" = "-" ] || printf 'expiry_warning_days: %s\n' "${warn}"
     printf -- '---\n\n# Активы\n\n## Активы\n\n'
-    printf '| ID | Что | Адрес | Тип | Владелец | Оплачено до | Стоимость | Секрет |\n'
-    printf '|----|-----|-------|-----|----------|-------------|-----------|--------|\n'
+    printf '| ID | Что | Адрес | Тип | Владелец | Оплачено до | Стоимость | Секрет | Как работать |\n'
+    printf '|----|-----|-------|-----|----------|-------------|-----------|--------|--------------|\n'
   } > "$f"
 }
-row() { printf '| %s | что | адрес | тип | %s | %s | 100 | — |\n' "$2" "$3" "$4" >> "$1"; }
+row() { printf '| %s | что | адрес | тип | %s | %s | 100 | — | %s |\n' "$2" "$3" "$4" "${5:--}" >> "$1"; }
 
 run_code() { ( bash "$CHECKER" "$1" >/dev/null 2>&1 ); printf '%s' "$?"; }
 run_out()  { ( bash "$CHECKER" "$1" 2>&1 ); }
@@ -114,6 +114,22 @@ check "слово «токен» без значения находкой не �
 F=$(new_file); head_of "$F" 30
 printf '| ASSET-23 | платный вызов | api.provider.tld | услуга | founder | — | 0 | переменная окружения API_KEY |\n' >> "$F"
 check "имя переменной API_KEY без значения — не находка" 0 "$(run_code "$F")"
+
+# --- Инструкция к активу -----------------------------------------------------
+# Указатель в удалённый файл дороже пустой ячейки: он выглядит как ответ.
+F=$(new_file); head_of "$F" 30; row "$F" ASSET-24 founder 2027-01-01 ".claude/hooks/check-assets.sh"
+check "инструкция ведёт в существующий файл" 0 "$(run_code "$F")"
+
+F=$(new_file); head_of "$F" 30; row "$F" ASSET-25 founder 2027-01-01 ".claude/skills/нет-такого/SKILL.md"
+check "инструкция ведёт в никуда" 1 "$(run_code "$F")"
+check "…и назван адрес" "да" "$(says "$(run_out "$F")" "ASSET-25 → .claude/skills/нет-такого/SKILL.md")"
+check "…и сказано, почему это хуже пустой" "да" "$(says "$(run_out "$F")" "выглядит как ответ")"
+
+F=$(new_file); head_of "$F" 30; row "$F" ASSET-26 founder 2027-01-01 "—"
+check "пустая инструкция находкой не является" 0 "$(run_code "$F")"
+
+F=$(new_file); head_of "$F" 30; row "$F" ASSET-27 founder 2027-01-01 "ssh prod && make deploy"
+check "команда указателем не считается" 0 "$(run_code "$F")"
 
 # --- Разбор ------------------------------------------------------------------
 F=$(new_file)
