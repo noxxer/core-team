@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=39
+EXPECTED_CASES=46
 ran=0
 failed=0
 TRASH=()
@@ -30,7 +30,7 @@ make_copy() {  # печатает корень исправной копии
   mkdir -p "$d/.claude/agents" "$d/.claude/skills/навигатор"
   mkdir -p "$d/.claude/knowledge/dpf"
   printf '# Ремесло\n' > "$d/.claude/knowledge/dpf/development.md"
-  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n' > "$d/.claude/agents/dev.md"
+  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n\n## Для памяти роли\n- Текущий фокус: <...>\n' > "$d/.claude/agents/dev.md"
   printf '# Навык\n' > "$d/.claude/skills/навигатор/SKILL.md"
   mkdir -p "$d/.claude/rules" "$d/.claude/knowledge/stacks"
   printf 'ok\n' > "$d/.claude/knowledge/stacks/справочник.md"
@@ -180,6 +180,34 @@ check "таблица соседнего раздела не считается"
 # Законная тишина: копия без раздела сущностей (версия до 5.2).
 D=$(make_copy)
 check "раздела «Сущности» нет вовсе — тихо" 0 "$(run_code "$D")"
+
+# --- 10. Одна спецификация блока памяти на файл роли -------------------------
+# Класс: в пяти файлах ролей лежали ДВА описания одного блока, второе просило
+# «Что сделано» — хронику, которую первое запрещает. Плюс висячая ``` от старого.
+role_spec() {  # $1=корень $2=число описаний блока $3=число ограждений
+  local root=$1 blocks=$2 fences=$3 i
+  { printf -- '---\nname: dev\nskills: [навигатор]\n---\n\n'
+    printf 'Читай `.claude/knowledge/dpf/development.md`.\n\n'
+    for ((i = 1; i <= blocks; i++)); do printf '## Для памяти роли\n- Текущий фокус: <...>\n\n'; done
+    for ((i = 1; i <= fences; i++)); do printf '```\nтекст\n'; done
+  } > "${root}/.claude/agents/dev.md"
+}
+
+D=$(make_copy); role_spec "$D" 1 2
+check "одно описание блока памяти" 0 "$(run_code "$D")"
+
+D=$(make_copy); role_spec "$D" 2 2
+check "два описания блока в одном файле" 1 "$(run_code "$D")"
+check "…и названо противоречием" "да" "$(says "$(run_out "$D")" "противоречие в одном файле")"
+
+D=$(make_copy); role_spec "$D" 1 3
+check "непарное ограждение кода" 1 "$(run_code "$D")"
+check "…и сказано, чем это плохо" "да" "$(says "$(run_out "$D")" "читается как код")"
+
+# Половина «найдено не ноль»: роли есть, описания блока нет ни в одной.
+D=$(make_copy); role_spec "$D" 0 2
+check "ни одной спецификации блока памяти" 1 "$(run_code "$D")"
+check "…и это названо отказом" "да" "$(says "$(run_out "$D")" "нет ни в одном")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"
