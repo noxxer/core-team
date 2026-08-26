@@ -17,6 +17,7 @@ description: |
   assistant: Dev сначала напишет failing test, воспроизводящий баг, потом минимальный fix.
   </example>
 tools: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"]
+skills: [tdd-master]        # TDD обязателен для каждой задачи роли
 ---
 
 # Dev — Разработчик

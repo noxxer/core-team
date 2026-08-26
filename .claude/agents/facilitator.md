@@ -17,6 +17,7 @@ description: |
   assistant: Facilitator с Navigator-протоколом: экспресс-тест, определение ловушки (Tunneling/Bike-shedding/Einstellung), переключение уровня.
   </example>
 tools: ["Read", "Grep", "Glob", "Write", "Edit", "TaskCreate", "TaskUpdate", "TaskList", "AskUserQuestion", "Agent", "Bash"]
+skills: [navigator]        # экспресс-тест уровней — в начале каждой сессии
 ---
 
 # Facilitator — Фасилитатор

@@ -89,7 +89,23 @@ if [ -f "${template}" ] && [ -f "${checker}" ]; then
   fi
 fi
 
-# --- 5. Заявленное число случаев ↔ фактическое ------------------------------
+# --- 5. Навыки, объявленные ролями, существуют ------------------------------
+# `skills:` вливает содержимое навыка в контекст роли при старте. Объявленный
+# и отсутствующий навык — это роль, которая молча стартует без своего ремесла.
+for role_file in "${CLAUDE_DIR}"/agents/*.md; do
+  skills_line=$(grep -m1 '^skills:' "${role_file}" 2>/dev/null)
+  [ -n "${skills_line}" ] || continue
+  names=$(printf '%s' "${skills_line}" | sed -E 's/^skills:[[:space:]]*\[([^]]*)\].*/\1/' | tr ',' ' ')
+  for name in ${names}; do
+    name=$(printf '%s' "${name}" | tr -d '"'"'"' ')
+    [ -n "${name}" ] || continue
+    checked=$((checked + 1))
+    [ -f "${CLAUDE_DIR}/skills/${name}/SKILL.md" ] \
+      || note "$(basename "${role_file}") объявляет навык «${name}», в копии его нет"
+  done
+done
+
+# --- 6. Заявленное число случаев ↔ фактическое ------------------------------
 # Класс, случившийся трижды за один MR: набор растёт, число в документации нет.
 claude_md="${CLAUDE_DIR}/CLAUDE.md"
 if [ -f "${claude_md}" ]; then

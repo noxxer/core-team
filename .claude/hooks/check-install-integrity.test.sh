@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=19
+EXPECTED_CASES=21
 ran=0
 failed=0
 TRASH=()
@@ -27,6 +27,9 @@ make_copy() {  # печатает корень исправной копии
   printf 'EXPECTED_CASES=7\n' > "$d/.claude/hooks/check-session-reflection.test.sh"
   chmod +x "$d/.claude/hooks/check-session-reflection.test.sh"
   printf '### Структура (Iceberg)\n### Ловушки сессии (Trap Scan)\n' > "$d/.claude/templates/project/session-template.md"
+  mkdir -p "$d/.claude/agents" "$d/.claude/skills/навигатор"
+  printf -- '---\nname: dev\nskills: [навигатор]\n---\n' > "$d/.claude/agents/dev.md"
+  printf '# Навык\n' > "$d/.claude/skills/навигатор/SKILL.md"
   printf 'Доказательство мутацией — `check-session-reflection.test.sh` (7 случаев).\n' > "$d/.claude/CLAUDE.md"
   cat > "$d/.claude/settings.json" <<'JSON'
 { "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": ".claude/hooks/session-start.sh" } ] } ] } }
@@ -82,6 +85,11 @@ check "…и назван именно он" "да" "$(says "$(run_out "$C")" "�
 C=$(make_copy); printf 'EXPECTED_CASES=9\n' > "$C/.claude/hooks/check-session-reflection.test.sh"
 check "документация отстала от набора" 1 "$(run_code "$C")"
 check "…названы оба числа" "да" "$(says "$(run_out "$C")" "документация говорит 7 случаев, в наборе 9")"
+
+# --- Роль объявляет навык, которого нет --------------------------------------
+C=$(make_copy); rm -rf "$C/.claude/skills/навигатор"
+check "объявленного навыка нет в копии" 1 "$(run_code "$C")"
+check "…названы роль и навык" "да" "$(says "$(run_out "$C")" 'dev.md объявляет навык «навигатор»')"
 
 # --- Отказ инструмента, а не чистая система ----------------------------------
 # Запасной путь отрезан: объявления хуков тоже сняты, иначе случай краснел бы
