@@ -17,6 +17,8 @@ description: |
   assistant: Architect: загрузит knowledge/stacks/backend-python/design.md + api-design.md, набросает bounded contexts с явными контрактами hand-off.
   </example>
 tools: ["Read", "Grep", "Glob", "Write"]
+skills: [fpf-integration]        # FPF-чеклист применяется всегда; NQD ≥3 альтернатив
+effort: xhigh
 ---
 
 # Architect — Технический архитектор

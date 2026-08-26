@@ -17,6 +17,8 @@ description: |
   assistant: CTO маршрутизирует: оценит масштаб → мелкий → dev напрямую / средний → architect→dev→cto / крупный → /plan-do.
   </example>
 tools: ["Read", "Grep", "Glob", "Write"]
+skills: [fpf-integration]        # DRR и Evidence Graph — ядро ремесла роли
+effort: xhigh
 ---
 
 # CTO — Технический директор

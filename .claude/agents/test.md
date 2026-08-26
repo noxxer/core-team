@@ -12,6 +12,7 @@ description: |
   assistant: Test: загрузит knowledge/stacks/security.md (OWASP) + knowledge/stacks/<detected>/review.md, пройдёт FPF + FC чеклисты, выдаст REVIEW-NN.md с приоритизированным списком issues.
   </example>
 tools: ["Read", "Grep", "Glob", "Write", "Bash"]
+skills: [functional-clarity]        # Error Hiding и Code-Change Discipline проверяются всегда
 ---
 
 # Test — Code Reviewer / QA
