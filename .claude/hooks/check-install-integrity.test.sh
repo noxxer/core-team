@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=24
+EXPECTED_CASES=29
 ran=0
 failed=0
 TRASH=()
@@ -28,7 +28,9 @@ make_copy() {  # печатает корень исправной копии
   chmod +x "$d/.claude/hooks/check-session-reflection.test.sh"
   printf '### Структура (Iceberg)\n### Ловушки сессии (Trap Scan)\n' > "$d/.claude/templates/project/session-template.md"
   mkdir -p "$d/.claude/agents" "$d/.claude/skills/навигатор"
-  printf -- '---\nname: dev\nskills: [навигатор]\n---\n' > "$d/.claude/agents/dev.md"
+  mkdir -p "$d/.claude/knowledge/dpf"
+  printf '# Ремесло\n' > "$d/.claude/knowledge/dpf/development.md"
+  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n' > "$d/.claude/agents/dev.md"
   printf '# Навык\n' > "$d/.claude/skills/навигатор/SKILL.md"
   mkdir -p "$d/.claude/rules" "$d/.claude/knowledge/stacks"
   printf 'ok\n' > "$d/.claude/knowledge/stacks/справочник.md"
@@ -104,6 +106,18 @@ C=$(make_copy)
 printf -- '---\npaths:\n  - ".claude/knowledge/**"\n  - ".claude/skills/**"\n---\n\nТело без ссылок.\n' \
   > "$C/.claude/rules/глоб.md"
 check "глоб в шапке правила — не находка" 0 "$(run_code "$C")"
+
+# --- Ремесло роли не доехало -------------------------------------------------
+C=$(make_copy); rm -rf "$C/.claude/knowledge/dpf"
+check "слоя DPF нет вовсе" 1 "$(run_code "$C")"
+check "…и сказано про активационный ритуал" "да" "$(says "$(run_out "$C")" "слоя DPF нет вовсе")"
+
+C=$(make_copy); rm -f "$C/.claude/knowledge/dpf/development.md"
+check "роль ссылается на ремесло, файла нет" 1 "$(run_code "$C")"
+check "…названы роль и ремесло" "да" "$(says "$(run_out "$C")" "dev.md ссылается на ремесло development.md")"
+
+C=$(make_copy); printf -- '---\nname: dev\n---\n\nБез ссылки на ремесло.\n' > "$C/.claude/agents/dev.md"
+check "роль не называет свой DPF" 1 "$(run_code "$C")"
 
 # --- Отказ инструмента, а не чистая система ----------------------------------
 # Запасной путь отрезан: объявления хуков тоже сняты, иначе случай краснел бы
