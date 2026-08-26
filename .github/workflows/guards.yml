@@ -36,6 +36,10 @@ jobs:
       - name: версия согласована во всех объявлениях
         run: bash .claude/hooks/check-version-sync.sh
 
+      # «Файл лежит» ≠ «подключено». Проверяем копию, а не только скрипты.
+      - name: целостность развёрнутой копии
+        run: bash .claude/hooks/check-install-integrity.sh
+
       - name: Прогон гардов фреймворка
         shell: bash
         run: |
