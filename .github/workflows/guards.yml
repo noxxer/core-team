@@ -31,6 +31,11 @@ jobs:
       - name: shellcheck
         run: shellcheck --severity=warning .claude/hooks/*.sh
 
+      # Тест доказывает, что сверка работает; этот шаг проверяет сам репозиторий.
+      # Замер: plugin.json объявлял 4.5.0 при VERSION 5.0.0 — два релиза расхождения.
+      - name: версия согласована во всех объявлениях
+        run: bash .claude/hooks/check-version-sync.sh
+
       - name: Прогон гардов фреймворка
         shell: bash
         run: |

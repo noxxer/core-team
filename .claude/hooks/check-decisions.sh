@@ -1,14 +1,21 @@
 #!/bin/bash
-# Проверщик закрепления решений: у каждого решения должен быть назван адрес
-# проверки, делающей его нарушение красным (поле `enforced_by` в шапке файла).
+# Проверщик решений. Две работы над одним предметом:
+#   1) СУЩЕСТВОВАНИЕ: каждый DEC-NNN, упомянутый в ledger, имеет файл решения.
+#   2) ЗАКРЕПЛЕНИЕ: у каждого решения назван адрес проверки, делающей его
+#      нарушение красным (поле `enforced_by` в шапке файла).
 #
 # Замер, из которого выросла проверка: 113 решений в двух проектах, слова
 # «тест/гард/CI» — в 111, конкретный путь до проверки — в 8. При этом 75 записей
 # реестра дрейфа из 108 (69%) — класс «решение ↔ код».
 #
+# Второй замер: при переупаковке фреймворка v0 → v5 три решения остались
+# упомянутыми в ledger, а файлов не появилось — обоснование утрачено
+# безвозвратно. Гейт «DEC-NNN ⟹ файл» был правилом без проверки и срабатывал
+# только на новых решениях; импорт состояния при миграции не смотрел никто.
+#
 # ЗАПУСК: bash .claude/hooks/check-decisions.sh [каталог-решений]
-#   exit 0 — все решения после ENFORCED_SINCE закреплены (или честно помечены)
-#   exit 1 — есть решения без адреса, либо проверка не смогла отработать
+#   exit 0 — упомянутые решения существуют и закреплены (или честно помечены)
+#   exit 1 — есть осиротевшее упоминание, решение без адреса, либо отказ проверки
 #
 # Наследие: решения старше ENFORCED_SINCE перечисляются отдельно и НЕ роняют
 # проверку — они заполняются при первом касании (цитирование, пересмотр, дрейф).
@@ -50,13 +57,52 @@ field_of() {  # $1 = файл, $2 = имя поля шапки
   frontmatter_of "$1" | grep -m1 -E "^$2:" | sed -E "s/^$2:[[:space:]]*//; s/^\"//; s/\"[[:space:]]*$//"
 }
 
-[ -d "$DECISIONS_DIR" ] || { printf 'решений нет (%s отсутствует) — проверять нечего\n' "$DECISIONS_DIR"; exit 0; }
+LEDGER=${LEDGER_FILE:-project/ledger.md}
+
+# Номера существующих файлов решений, нормализованные: DEC-044 и DEC-44 —
+# одно решение, и расхождение в набивке нулями не должно рождать ложную сироту.
+decision_numbers() {
+  local file base
+  shopt -s nullglob
+  for file in "${DECISIONS_DIR}"/DEC-*.md; do
+    base=$(basename "${file}")
+    printf ' %s ' "$(printf '%s' "${base}" | sed -E 's/^DEC-0*([0-9]+).*/\1/')"
+  done
+}
+
+ledger_check() {
+  [ -f "${LEDGER}" ] || { printf 'ledger не найден (%s) — сверка упомянутых решений пропущена\n' "${LEDGER}"; return 0; }
+  local ids existing mentioned num orphans=() count=0
+  ids=$(grep -oE 'DEC-[0-9]+' "${LEDGER}" 2>/dev/null | sort -u)
+  if [ -z "${ids}" ]; then
+    printf 'В ledger не упомянуто ни одного решения — сверять нечего\n'
+    return 0
+  fi
+  existing=$(decision_numbers)
+  while IFS= read -r mentioned; do
+    [ -n "${mentioned}" ] || continue
+    count=$((count + 1))
+    num=$(printf '%s' "${mentioned}" | sed -E 's/^DEC-0*([0-9]+)$/\1/')
+    case "${existing}" in *" ${num} "*) ;; *) orphans+=("${mentioned}") ;; esac
+  done <<< "${ids}"
+  printf 'Упомянуто в ledger решений: %s. Без файла: %s.\n' "${count}" "${#orphans[@]}"
+  [ "${#orphans[@]}" -eq 0 ] && return 0
+  printf '\nУПОМЯНУТО В LEDGER, ФАЙЛА НЕТ (%s):\n' "${#orphans[@]}" >&2
+  printf '  %s\n' "${orphans[@]}" >&2
+  printf 'Сжатая строка ledger решением не является — обоснование теряется безвозвратно.\n' >&2
+  printf 'Либо заведи файл по adr-template.md, либо убери упоминание из ledger.\n' >&2
+  return 1
+}
+
+ledger_check; ledger_status=$?
+
+[ -d "$DECISIONS_DIR" ] || { printf 'решений нет (%s отсутствует) — файлы не проверяются\n' "$DECISIONS_DIR"; exit "$ledger_status"; }
 
 shopt -s nullglob
 files=("$DECISIONS_DIR"/*.md)
 if [ ${#files[@]} -eq 0 ]; then
-  printf 'решений пока нет — проверять нечего\n'
-  exit 0
+  printf 'решений пока нет — файлы не проверяются\n'
+  exit "$ledger_status"
 fi
 
 scanned=0; ok=0; legacy=(); missing=(); vague=(); headless=()
@@ -133,4 +179,5 @@ if [ "$status" -ne 0 ]; then
   printf '«гарда нет — держится на внимании роли <role>» или «неприменимо — <почему>».\n' >&2
   printf 'Пустое и расплывчатое («покрыто тестами») — не адрес.\n' >&2
 fi
+[ "$ledger_status" -eq 0 ] || status=1
 exit $status

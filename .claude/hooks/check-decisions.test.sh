@@ -13,7 +13,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decisions.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=14
+EXPECTED_CASES=22
 ran=0
 failed=0
 TRASH=()
@@ -39,12 +39,17 @@ add_decision() {  # $1 = каталог, $2 = id, $3 = дата, $4 = значе
 }
 
 run_checker() {  # $1 = каталог решений
-  ( DECISIONS_ENFORCED_SINCE=2026-08-25 bash "$CHECKER" "$1" >/dev/null 2>&1 )
+  ( DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" >/dev/null 2>&1 )
   printf '%s' "$?"
 }
 
 run_output() {  # $1 = каталог решений — печатает stdout+stderr
-  ( DECISIONS_ENFORCED_SINCE=2026-08-25 bash "$CHECKER" "$1" 2>&1 )
+  ( DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" 2>&1 )
+}
+
+make_ledger() {  # $1 = каталог, $2 = тело ledger — печатает путь
+  printf '%s\n' "$2" > "$1/ledger.md"
+  printf '%s/ledger.md' "$1"
 }
 
 check() {
@@ -113,6 +118,34 @@ check "поле из тела не считается шапкой" 1 "$(run_che
 # 14. Каталог решений есть, но пуст — законный тихий проход.
 D=$(make_dir)
 check "пустой каталог решений — тихо" 0 "$(run_checker "$D")"
+
+# --- Гейт «DEC-NNN ⟹ файл»: упоминание без файла --------------------------
+D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+LEDGER_OVERRIDE=$(make_ledger "$D" 'Ратифицированы DEC-044 и DEC-032.')
+check "упомянутое решение без файла" 1 "$(run_checker "$D")"
+check "…и назван осиротевший номер" "да" "$(says "$(run_output "$D")" "DEC-032")"
+check "…счётчик упомянутых печатается" "да" "$(says "$(run_output "$D")" "Упомянуто в ledger решений: 2. Без файла: 1.")"
+
+D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+LEDGER_OVERRIDE=$(make_ledger "$D" 'Ратифицировано DEC-044.')
+check "упомянутое решение с файлом" 0 "$(run_checker "$D")"
+
+# Набивка нулями не должна рождать ложную сироту.
+D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+LEDGER_OVERRIDE=$(make_ledger "$D" 'Ратифицировано DEC-44.')
+check "DEC-44 и DEC-044 — одно решение" 0 "$(run_checker "$D")"
+
+# Каталога решений нет вовсе — худший случай миграции, а не повод молчать.
+D=$(make_dir); LEDGER_OVERRIDE=$(make_ledger "$D" 'Опираемся на DEC-050.')
+check "решений нет, ledger упоминает" 1 "$(run_checker "$D/пусто")"
+
+# Законная тишина: ledger не найден либо решений в нём не упомянуто.
+D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+LEDGER_OVERRIDE="$D/-нет-такого-"
+check "ledger отсутствует — не роняет" 0 "$(run_checker "$D")"
+LEDGER_OVERRIDE=$(make_ledger "$D" 'Фаза: пилот. Решений пока не принимали.')
+check "в ledger нет упоминаний — тихо" 0 "$(run_checker "$D")"
+unset LEDGER_OVERRIDE
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"
