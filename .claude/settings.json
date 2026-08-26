@@ -13,6 +13,16 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/subagent-arrival.sh"
+          }
+        ]
+      }
     ]
   }
 }
