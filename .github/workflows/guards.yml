@@ -36,6 +36,27 @@ jobs:
       - name: версия согласована во всех объявлениях
         run: bash .claude/hooks/check-version-sync.sh
 
+      # Потребитель устанавливает фреймворк как `cp -r core-team/.claude .`, то есть
+      # получает ровно то, что лежит в git. Файл под .gitignore до него не доедет,
+      # и узнать об этом можно только у потребителя. Единственное законное
+      # исключение — личные настройки машины.
+      - name: ни один файл фреймворка не выпал из пакета
+        shell: bash
+        run: |
+          ignored=$(git ls-files --others --ignored --exclude-standard -- .claude/ \
+                    | grep -v '^\.claude/settings\.local\.json$' || true)
+          if [ -n "$ignored" ]; then
+            echo "под .gitignore и потому не доедут до потребителя:" >&2
+            echo "$ignored" >&2
+            exit 1
+          fi
+          tracked=$(git ls-files .claude/ | wc -l)
+          if [ "$tracked" -eq 0 ]; then
+            echo "в пакете ноль файлов .claude/ — перечисляющая проверка на пустом множестве не считается успехом" >&2
+            exit 1
+          fi
+          echo "в пакете $tracked файлов, выпавших нет"
+
       # «Файл лежит» ≠ «подключено». Проверяем копию, а не только скрипты.
       - name: целостность развёрнутой копии
         run: bash .claude/hooks/check-install-integrity.sh
