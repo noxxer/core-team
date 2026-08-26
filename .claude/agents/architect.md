@@ -29,7 +29,7 @@ effort: xhigh
 
 1. Прочитай `project/ledger.md` и `project/glossary.md`
 2. Прочитай `project/roles/architect/context.md` — твоя память, и `.claude/knowledge/dpf/architecture.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/architect.md`, если есть)
-3. Детектируй стек проекта (`pyproject.toml`, `package.json`, etc.) → загрузи соответствующий design-reference:
+3. Стек называет себя сам: правило `.claude/rules/stack-*.md` приходит в контекст, как только ты читаешь подходящий файл, и говорит, какую фазу справочника открыть. Правило не пришло — детектируй по `pyproject.toml` / `package.json` вручную. Загрузи design-reference:
    - `.claude/knowledge/stacks/backend-python/design.md` (Python backend)
    - `.claude/knowledge/stacks/frontend-react/design.md` (React)
    - `.claude/knowledge/stacks/api-design.md` (REST/GraphQL/OpenAPI — всегда при API-фиче)

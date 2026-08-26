@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=21
+EXPECTED_CASES=24
 ran=0
 failed=0
 TRASH=()
@@ -30,6 +30,9 @@ make_copy() {  # печатает корень исправной копии
   mkdir -p "$d/.claude/agents" "$d/.claude/skills/навигатор"
   printf -- '---\nname: dev\nskills: [навигатор]\n---\n' > "$d/.claude/agents/dev.md"
   printf '# Навык\n' > "$d/.claude/skills/навигатор/SKILL.md"
+  mkdir -p "$d/.claude/rules" "$d/.claude/knowledge/stacks"
+  printf 'ok\n' > "$d/.claude/knowledge/stacks/справочник.md"
+  printf -- '---\npaths:\n  - "**/*.py"\n---\n\nЧитай `.claude/knowledge/stacks/справочник.md`.\n' > "$d/.claude/rules/стек.md"
   printf 'Доказательство мутацией — `check-session-reflection.test.sh` (7 случаев).\n' > "$d/.claude/CLAUDE.md"
   cat > "$d/.claude/settings.json" <<'JSON'
 { "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": ".claude/hooks/session-start.sh" } ] } ] } }
@@ -90,6 +93,17 @@ check "…названы оба числа" "да" "$(says "$(run_out "$C")" "д
 C=$(make_copy); rm -rf "$C/.claude/skills/навигатор"
 check "объявленного навыка нет в копии" 1 "$(run_code "$C")"
 check "…названы роль и навык" "да" "$(says "$(run_out "$C")" 'dev.md объявляет навык «навигатор»')"
+
+# --- Правило ведёт в никуда --------------------------------------------------
+C=$(make_copy); rm -f "$C/.claude/knowledge/stacks/справочник.md"
+check "правило ведёт в несуществующий файл" 1 "$(run_code "$C")"
+check "…названы правило и путь" "да" "$(says "$(run_out "$C")" 'правило стек.md ведёт в несуществующий')"
+
+# Глоб в шапке `paths:` ссылкой не является — иначе гард ругается на сам себя.
+C=$(make_copy)
+printf -- '---\npaths:\n  - ".claude/knowledge/**"\n  - ".claude/skills/**"\n---\n\nТело без ссылок.\n' \
+  > "$C/.claude/rules/глоб.md"
+check "глоб в шапке правила — не находка" 0 "$(run_code "$C")"
 
 # --- Отказ инструмента, а не чистая система ----------------------------------
 # Запасной путь отрезан: объявления хуков тоже сняты, иначе случай краснел бы
