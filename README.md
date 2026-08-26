@@ -127,11 +127,20 @@ git switch -c update-core-team
 git clone --depth 1 https://github.com/noxxer/core-team.git
 rm -rf core-team/.git
 diff -rq .claude core-team/.claude   # сначала посмотри, что изменится
+
+cp .claude/settings.json settings.json.мой   # ← ОБЯЗАТЕЛЬНО: там твои ключи
+
 cp -r core-team/.claude .            # перезапись .claude/ (project/ не трогаем)
 rm -rf core-team
 ```
 
-⚠️ Копирование затрёт **твои правки внутри `.claude/`**, если ты их вносил. Сверься по `diff` до копирования и верни свои изменения после. Затем — промпт:
+⚠️ **`settings.json` затрётся гарантированно.** Это единственный файл `.claude/`, который тебя
+**просят** править: `/setup-project` (Шаг 5) кладёт туда `outputStyle`, `language` и
+`permissions.deny` под твой проект. После копирования верни свои ключи из `settings.json.мой`
+в новый `.claude/settings.json`, сохранив пришедшие сверху `hooks` и `env`.
+
+⚠️ Прочие правки внутри `.claude/` копирование тоже затрёт. Сверься по `diff` до копирования и
+верни свои изменения после. Затем — промпт:
 
 > Я обновил `.claude/` Core Team со старой версии. Прогони `/self-service` в режиме аудита: проверь связность, новые DPF-учебники ролей и совместимость моих `project/`-артефактов с новой структурой. Перечисли, что изменилось в контракте. В `project/` ничего не меняй без подтверждения.
 
