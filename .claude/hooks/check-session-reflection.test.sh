@@ -1,0 +1,93 @@
+#!/bin/bash
+# Доказательство мутацией для check-session-reflection.sh.
+# Мир с дефектом — проверщик, который говорит «годно» на любой сессии.
+# Именно так рефлексия и исчезала: анализ либо не писался, либо оставался
+# в файле, и заметить это было нечем.
+
+set -uo pipefail
+
+CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-session-reflection.sh"}
+[ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
+
+EXPECTED_CASES=10
+ran=0
+failed=0
+TRASH=()
+cleanup() { [ ${#TRASH[@]} -eq 0 ] || rm -rf "${TRASH[@]}"; }
+trap cleanup EXIT
+
+make_sessions() { local d; d=$(mktemp -d); TRASH+=("$d"); printf '%s' "$d"; }
+
+add_session() {  # $1 = каталог, $2 = имя сессии, $3 = тело session.md
+  mkdir -p "$1/$2"
+  printf '%s\n' "$3" > "$1/$2/session.md"
+}
+
+FILLED='# Сессия
+
+## Смыслы (Navigator)
+
+### Структура (Iceberg)
+Разовый сбой оказался следствием отсутствия гарда на классе.
+
+### Три «Почему»
+Чтобы не платить за тот же класс дважды.
+
+### Слепые зоны (System Operator)
+Надсистема «будет» не разобрана.
+
+### Ловушки сессии (Trap Scan)
+Не обнаружены.'
+
+run_code() { ( bash "$CHECKER" "$1" >/dev/null 2>&1 ); printf '%s' "$?"; }
+run_out()  { ( bash "$CHECKER" "$1" 2>&1 ); }
+
+check() {
+  ran=$((ran + 1))
+  if [ "$3" = "$2" ]; then printf 'PASS  %-46s ожидание %s\n' "$1" "$2"
+  else printf 'FAIL  %-46s ожидание %s, получено %s\n' "$1" "$2" "$3"; failed=$((failed + 1)); fi
+}
+says() { case "$1" in *"$2"*) printf 'да' ;; *) printf 'нет' ;; esac; }
+
+# --- Законный зелёный --------------------------------------------------------
+S=$(make_sessions); add_session "$S" 2026-09-01_тема "$FILLED"
+check "все слоты заполнены" 0 "$(run_code "$S")"
+check "«не обнаружены» — это заполнение" "да" "$(says "$(run_out "$S")" "Заполнено: 4")"
+check "имя проверенной сессии названо" "да" "$(says "$(run_out "$S")" "2026-09-01_тема")"
+
+# --- Миры с дефектом ---------------------------------------------------------
+S=$(make_sessions); add_session "$S" 2026-09-01_тема "# Сессия
+
+## Выводы
+сделали много"
+check "слотов нет вовсе" 1 "$(run_code "$S")"
+
+S=$(make_sessions)
+add_session "$S" 2026-09-01_тема "${FILLED/Не обнаружены./[Einstellung · Tunneling · заполни]}"
+check "слот с подсказкой шаблона — пуст" 1 "$(run_code "$S")"
+
+S=$(make_sessions)
+add_session "$S" 2026-09-01_тема "${FILLED/Не обнаружены./> пояснение к разделу}"
+check "слот с одной цитатой — пуст" 1 "$(run_code "$S")"
+
+# Берётся ПОСЛЕДНЯЯ сессия: заполненная старая не должна прикрывать пустую новую.
+S=$(make_sessions)
+add_session "$S" 2026-09-01_старая "$FILLED"
+add_session "$S" 2026-09-05_новая "# Сессия
+
+## Выводы
+без рефлексии"
+check "проверяется последняя, не первая" 1 "$(run_code "$S")"
+check "…и названа именно она" "да" "$(says "$(run_out "$S")" "2026-09-05_новая")"
+
+# --- Законная тишина ---------------------------------------------------------
+check "каталога сессий нет — тихо" 0 "$(run_code "/nonexistent-$$")"
+S=$(make_sessions)
+check "сессий ещё не записано — тихо" 0 "$(run_code "$S")"
+
+if [ "$ran" -lt "$EXPECTED_CASES" ]; then
+  printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"
+  failed=$((failed + 1))
+fi
+printf '\nпроверщик: %s\nслучаев: %s, провалено: %s\n' "$CHECKER" "$ran" "$failed"
+[ "$failed" -eq 0 ] || exit 1

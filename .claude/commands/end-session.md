@@ -28,6 +28,12 @@ allowed-tools: "Read,Write,Edit,Glob,Grep,Bash,TaskList,TaskUpdate,TaskCreate,Ta
 - Проверка вверх (видение) и вниз (реализуемость)? Нет tunneling/premature closure/goal displacement?
 
 ### 2e. Итоговая фиксация
+
+> **Анализ, оставшийся в файле, для Founder не существует.** Замер: Navigator-анализ есть в 68-75%
+> недавних сессий, а в итоговый отчёт попадает в **27%** (6 отчётов из 22). Работа делается и до
+> потребителя не доходит — класс дрейфа «построено ↔ подключено».
+> Выводы каждого инструмента идут **и** в `session.md` (слоты раздела «Смыслы»), **и** в отчёт в чат.
+
 Решения (DEC-NNN + "почему"), обновлённые артефакты, ключевые выводы (паттерны/структуры), слепые зоны, новые OQ-NNN.
 
 ### 2f. Конвертация находок в задачи — ОБЯЗАТЕЛЬНО
@@ -116,7 +122,8 @@ allowed-tools: "Read,Write,Edit,Glob,Grep,Bash,TaskList,TaskUpdate,TaskCreate,Ta
 1. `session.md` — по формату `.claude/templates/project/session-template.md`
 2. `handoff.md` — по формату `.claude/templates/project/handoff-template.md`
 3. Обнови `project/sessions/index.yaml`
-4. Обнови `project/ledger.md` (last_updated, фаза, задачи, артефакты, DEC)
+4. Обнови `project/ledger.md` (last_updated, фаза, задачи, артефакты, DEC) — включая секцию **«Зачем»**: миссия / цель фазы / ближайший шаг. Одна строка на уровень; события идут в `session.md`, не сюда.
+5. Прогони `bash .claude/hooks/check-session-reflection.sh` — слоты раздела «Смыслы» в записанной сессии не должны остаться пустыми. Нечего сказать по слоту — так и напиши («не обнаружены»): пустой слот неотличим от пропущенного шага.
 
 ## Шаг 8: Git sync
 1. `git add -A` → `git status` → проверь `git diff --cached` (нет секретов, бинарных файлов)
@@ -127,6 +134,11 @@ allowed-tools: "Read,Write,Edit,Glob,Grep,Bash,TaskList,TaskUpdate,TaskCreate,Ta
 ```
 ## Сессия зафиксирована: {session_id}
 ### Выводы — ...
+### Смыслы и ловушки — ОБЯЗАТЕЛЬНО, 4-6 строк в чат
+- Структура (Iceberg): что порождает увиденное
+- Почему сейчас (Три «Почему»)
+- Слепые зоны (System Operator)
+- Ловушки сессии: были/не обнаружены
 ### Задачи — Завершено: N | Удалено: N | Новых: N | Открытых: N
 ### Опыт — что в memory
 ### Промпты — что обновлено / "без изменений"
