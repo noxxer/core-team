@@ -11,7 +11,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-drift-closure.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=28
+EXPECTED_CASES=35
 ran=0
 failed=0
 TRASH=()
@@ -35,7 +35,7 @@ closed_head() {
     printf '|----|-------|----------|----------|-------------|\n'
   } >> "$1/drift-registry.md"
 }
-closed_row() { printf '| **%s** | **%s** | %s | было | закрыто |\n' "$2" "$3" "$4" >> "$1/drift-registry.md"; }
+closed_row() { printf '| **%s** | **%s** | %s | было | %s |\n' "$2" "$3" "$4" "${5:-закрыто}" >> "$1/drift-registry.md"; }
 dec() {  # $1=каталог $2=имя $3=enforced_by
   printf -- '---\ndecision_id: "%s"\nstatus: "accepted"\nenforced_by: "%s"\n---\n\n# %s\n' \
     "$2" "$3" "$2" > "$1/decisions/$2.md"
@@ -92,6 +92,29 @@ check "…и перечислены дешёвые формы" "да" "$(says "$
 D=$(new_case); reg_head "$D" 1; closed_head "$D"
 closed_row "$D" DR-18 A "DEC-005"; dec "$D" DEC-005 "<адрес>"
 check "подсказка формы адресом не считается" 1 "$(run_code "$D")"
+
+# --- Третий вид красного: долг с датой ---------------------------------------
+# Клапан, а не лазейка: закрыть без адреса можно, объявив долг с датой.
+export DRIFT_TODAY=2026-08-27
+
+D=$(new_case); reg_head "$D" 1; closed_head "$D"
+closed_row "$D" DR-19 A "DEC-006" "принято как долг до 2026-12-01, владелец cto"; dec "$D" DEC-006 ""
+check "долг с будущей датой закрывает запись" 0 "$(run_code "$D")"
+check "…и перечислен явно" "да" "$(says "$(run_out "$D")" "Принято как долг (1)")"
+
+D=$(new_case); reg_head "$D" 1; closed_head "$D"
+closed_row "$D" DR-21 A "DEC-007" "принято как долг до 2026-08-26, владелец cto"; dec "$D" DEC-007 ""
+check "долг с прошедшей датой — красное вернулось" 1 "$(run_code "$D")"
+check "…и названо продление с причиной" "да" "$(says "$(run_out "$D")" "ДОЛГ ПРОСРОЧЕН")"
+
+D=$(new_case); reg_head "$D" 1; closed_head "$D"
+closed_row "$D" DR-22 A "DEC-008" "принято как долг, владелец cto"; dec "$D" DEC-008 ""
+check "долг без даты долгом не считается" 1 "$(run_code "$D")"
+check "…и предложен способ объявить долг" "да" "$(says "$(run_out "$D")" "принято как долг до")"
+
+D=$(new_case); reg_head "$D" 1; closed_head "$D"
+closed_row "$D" DR-23 A "DEC-009" "принято как долг до 2026-12-01"; dec "$D" DEC-009 "tests/x.py::y"
+check "адрес проверки важнее долга" 0 "$(run_code "$D")"
 
 # --- Граница по номеру: очередь конечна и объявлена --------------------------
 D=$(new_case); reg_head "$D" 50; closed_head "$D"; closed_row "$D" DR-17 A ""

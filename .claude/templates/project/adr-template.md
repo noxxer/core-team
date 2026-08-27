@@ -8,6 +8,10 @@ decided_in_session: "session_id"
 reversibility: "two-way-door"  # one-way-door | two-way-door
 kill_criteria: "Условие, при котором решение отменяется (DRR — FPF decay)"
 review_due: "YYYY-MM-DD"  # дата следующей проверки релевантности (FPF DRR)
+accepted_until: ""        # ТРЕТИЙ ВИД КРАСНОГО. Заполняется, если решение принято
+                          # КАК ДОЛГ: знаем, что оно не лучшее, и живём с ним до даты.
+                          # Дата прошла — решение обязано быть пересмотрено, прогон краснеет.
+                          # Долг без даты долгом не является: это забывание с красивым именем.
 supersedes: ""  # DEC-NNN если этот ADR заменяет другой (полная замена)
 superseded_by: ""  # DEC-NNN если этот ADR был заменён
 parent_decision_id: ""  # DEC-NNN если это эволюция (sub-DEC: 007 → 007A → 007B)

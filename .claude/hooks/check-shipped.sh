@@ -1,0 +1,105 @@
+#!/bin/bash
+# Построенное доехало до отгрузки. Класс дрейфа B: «построено ↔ отгружено».
+#
+# Замер (боевой проект, 2026-08-27): **196 коммитов не отгружено**, последний
+# отгруженный — 2026-06-18, то есть **70 дней назад**. Аудит по рабочему дереву
+# показывал защищённость, которой в отгруженном коде нет: `DR-01` и `DR-02`
+# обнаружились только при явной сверке с отгруженной ветвью.
+#
+# ЧЕСТНАЯ ГРАНИЦА ИЗМЕРЕНИЯ. Git знает «не запушено», а не «не в проде»: между
+# отгрузкой и продом стоит развёртывание, о котором ядро ничего не знает и знать
+# не должно. Поэтому прибор даёт **нижнюю границу** класса B — но нижняя граница
+# здесь и есть находка: то, чего нет в отгруженной ветви, в проде тем более нет.
+#
+# Один предмет — «разрыв между построенным и отгруженным виден». Три отказа:
+#   1) НЕ ОТГРУЖЕНО СЛИШКОМ МНОГО — коммитов впереди больше порога;
+#   2) ОТГРУЗКА ОТСТАЛА — последний отгруженный коммит старше порога дней;
+#   3) ОТГРУЖАТЬ НЕКУДА — у ветви нет upstream, хотя удалённые есть.
+#
+# Пороги объявляет проект: `ship_max_ahead:` и `ship_max_days:` в шапке
+# `project/ledger.md` (умолчания 20 и 14). Темп отгрузки — свойство проекта.
+#
+# ЗАПУСК: bash .claude/hooks/check-shipped.sh [каталог-репозитория] [файл-ledger]
+#   exit 0 — разрыв в пределах порогов (или мерить нечего)
+#   exit 1 — есть отказ, либо разобрать репозиторий не удалось
+#
+# Доказательство мутацией: .claude/hooks/check-shipped.test.sh
+
+set -uo pipefail
+
+LEDGER=${2:-${LEDGER_FILE:-project/ledger.md}}
+
+header() { [ -f "$1" ] && awk 'NR==1 && $0!="---" {exit} NR==1 {next} /^---[[:space:]]*$/ {exit} {print}' "$1"; }
+field() { header "${LEDGER}" | grep -m1 -E "^$1:" | sed -E "s/^$1:[[:space:]]*//" | tr -d '"'"'" | sed 's/#.*//; s/[[:space:]]*$//'; }
+
+# Путь к коду: аргумент → поле ledger → текущий каталог. Раскладка «команда
+# отдельно, код отдельно» встречается в трёх проектах из четырёх.
+REPO=${1:-}
+[ -n "${REPO}" ] || REPO=$(field code_path)
+[ -n "${REPO}" ] || REPO=.
+
+max_ahead=$(field ship_max_ahead | sed -E 's/[^0-9].*$//')
+max_days=$(field ship_max_days | sed -E 's/[^0-9].*$//')
+case "${max_ahead}" in ''|*[!0-9]*) max_ahead=${SHIP_MAX_AHEAD:-20} ;; esac
+case "${max_days}" in ''|*[!0-9]*) max_days=${SHIP_MAX_DAYS:-14} ;; esac
+TODAY=${SHIP_TODAY:-$(date +%F)}
+
+if [ ! -d "${REPO}" ]; then
+  printf 'каталога кода нет (%s) — проверять нечего\n' "${REPO}"
+  exit 0
+fi
+
+if ! git -C "${REPO}" rev-parse --git-dir >/dev/null 2>&1; then
+  printf 'ОШИБКА: %s не является git-репозиторием — разрыв посчитать нечем.\n' "${REPO}" >&2
+  printf 'Укажи путь полем `code_path:` в шапке ledger либо аргументом прибора.\n' >&2
+  exit 1
+fi
+
+remotes=$(git -C "${REPO}" remote 2>/dev/null | grep -c . || true)
+if [ "${remotes}" -eq 0 ]; then
+  printf 'Репозиторий %s без удалённых — отгрузка через git не ведётся, мерить нечего.\n' "${REPO}"
+  exit 0
+fi
+
+upstream=$(git -C "${REPO}" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || true)
+if [ -z "${upstream}" ]; then
+  branch=$(git -C "${REPO}" rev-parse --abbrev-ref HEAD 2>/dev/null || printf '?')
+  printf 'Отгрузка %s: удалённых %s, upstream у ветви «%s» нет.\n' "${REPO}" "${remotes}" "${branch}"
+  printf '\nОТГРУЖАТЬ НЕКУДА: у ветви «%s» нет upstream, хотя удалённые есть.\n' "${branch}" >&2
+  printf 'Работа, которую физически некуда отгрузить, — это класс B в чистом виде:\n' >&2
+  printf 'она построена и не доедет, а заметить это по рабочему дереву нельзя.\n' >&2
+  exit 1
+fi
+
+ahead=$(git -C "${REPO}" rev-list --count "${upstream}"..HEAD 2>/dev/null || printf '0')
+shipped_date=$(git -C "${REPO}" log -1 --format=%cd --date=short "${upstream}" 2>/dev/null || printf '')
+
+days=0
+if [ -n "${shipped_date}" ]; then
+  a=$(date -j -f '%Y-%m-%d' "${TODAY}" +%s 2>/dev/null || date -d "${TODAY}" +%s 2>/dev/null || printf '0')
+  b=$(date -j -f '%Y-%m-%d' "${shipped_date}" +%s 2>/dev/null || date -d "${shipped_date}" +%s 2>/dev/null || printf '0')
+  [ "${a}" -gt 0 ] && [ "${b}" -gt 0 ] && days=$(( (a - b) / 86400 ))
+fi
+
+printf 'Отгрузка %s: не отгружено %s коммитов (порог %s), последний отгружен %s — %s дн. назад (порог %s).\n' \
+  "${REPO}" "${ahead}" "${max_ahead}" "${shipped_date:-неизвестно}" "${days}" "${max_days}"
+
+failed=0
+
+if [ "${ahead}" -gt "${max_ahead}" ]; then
+  printf '\nНЕ ОТГРУЖЕНО СЛИШКОМ МНОГО: %s коммитов при пороге %s.\n' "${ahead}" "${max_ahead}" >&2
+  printf 'Аудит по рабочему дереву показывает защищённость, которой в отгруженном коде нет.\n' >&2
+  printf 'Замер: 196 коммитов не отгружено — и два дефекта класса B нашлись только при\n' >&2
+  printf 'явной сверке с отгруженной ветвью. Отгрузить либо поднять `ship_max_ahead:` с причиной.\n' >&2
+  failed=1
+fi
+
+if [ "${days}" -gt "${max_days}" ]; then
+  printf '\nОТГРУЗКА ОТСТАЛА: последний отгруженный коммит %s дн. назад при пороге %s.\n' "${days}" "${max_days}" >&2
+  printf 'Чем длиннее разрыв, тем дороже отгрузка и тем меньше про неё известно.\n' >&2
+  printf 'Замер: 70 дней. Отгрузить либо поднять `ship_max_days:` с причиной в этой же строке.\n' >&2
+  failed=1
+fi
+
+[ "${failed}" -eq 0 ] || exit 1
+exit 0

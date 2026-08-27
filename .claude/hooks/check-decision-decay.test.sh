@@ -11,7 +11,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decision-decay.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=26
+EXPECTED_CASES=30
 ran=0
 failed=0
 TRASH=()
@@ -85,6 +85,19 @@ check "порог из шаблона порогом не считается" 0 
 
 D=$(new_dir); add_dec "$D" DEC-010 accepted 2026-08-26 2026-12-01 "отток выше 20%" "<метрика>"
 check "метрика-подсказка прибором не считается" 1 "$(run_code "$D")"
+
+# --- Третий вид красного: долг с датой ---------------------------------------
+add_debt() { printf 'accepted_until: "%s"\n' "$2" >> "$1"; }
+
+D=$(new_dir); add_dec "$D" DEC-020 accepted 2026-08-26 2026-12-01 "" ""
+sed -i.bak "s/^review_due:/accepted_until: \"2026-12-01\"\nreview_due:/" "$D/DEC-020.md" && rm -f "$D/DEC-020.md.bak"
+check "долг с будущей датой не роняет" 0 "$(run_code "$D")"
+
+D=$(new_dir); add_dec "$D" DEC-021 accepted 2026-08-26 2026-12-01 "" ""
+sed -i.bak "s/^review_due:/accepted_until: \"2026-08-25\"\nreview_due:/" "$D/DEC-021.md" && rm -f "$D/DEC-021.md.bak"
+check "долг с прошедшей датой роняет" 1 "$(run_code "$D")"
+check "…и назван как долг" "да" "$(says "$(run_out "$D")" "ДОЛГ ПРОСРОЧЕН")"
+check "…и названа дата" "да" "$(says "$(run_out "$D")" "DEC-021 (2026-08-25)")"
 
 # --- Нет даты принятия: обходной путь закрыт ---------------------------------
 D=$(new_dir); add_dec "$D" DEC-011 accepted "" "" "" ""

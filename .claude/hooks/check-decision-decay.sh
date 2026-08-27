@@ -9,6 +9,11 @@
 #   · 45 назвали `kill_criteria` и не назвали `metric_for_revisit` — порог отмены
 #     объявлен, а мерить его нечем (healthstat 28, wushu 13).
 #
+# ТРЕТИЙ ВИД КРАСНОГО. Красное бывает трёх видов: снимается прогоном · требует
+# правки · **принято как долг человеком, с датой**. Поле `accepted_until` — форма
+# третьего: решение признано не лучшим и принято до названной даты. Дата прошла —
+# красное вернулось. Долг без даты долгом не является.
+#
 # Эту работу до 5.2 делал `artifacts/scorecard.md` — таблица порогов, ведомая
 # вручную. Он существовал в 2 проектах из 4 и устарел на 30 и 98 дней, потому что
 # дублировал поля, которые уже лежат в самих файлах решений. Обход дешевле копии.
@@ -58,6 +63,7 @@ join_list() { printf '%s, ' "$@" | sed 's/, $//'; }
 examined=0
 overdue=()
 no_review=()
+expired_debt=()
 threshold_blind=()
 undated_list=()
 inherited=()
@@ -84,6 +90,7 @@ for file in "${DECISIONS_DIR}"/*.md; do
   fi
 
   due=$(field "${file}" review_due)
+  debt=$(field "${file}" accepted_until)
   kill_cond=$(field "${file}" kill_criteria)
   metric=$(field "${file}" metric_for_revisit)
 
@@ -99,6 +106,9 @@ for file in "${DECISIONS_DIR}"/*.md; do
   if ! is_placeholder "${kill_cond}" && is_placeholder "${metric}"; then
     findings+=("порог отмены назван, метрика — нет")
   fi
+  if ! is_placeholder "${debt}" && [[ "${debt}" < "${TODAY}" ]]; then
+    findings+=("долг просрочен с ${debt}")
+  fi
 
   [ ${#findings[@]} -eq 0 ] && continue
 
@@ -111,6 +121,7 @@ for file in "${DECISIONS_DIR}"/*.md; do
     case "${f}" in
       'нет даты проверки')            no_review+=("${name}") ;;
       'нет даты принятия')            undated_list+=("${name}") ;;
+      'долг просрочен'*)              expired_debt+=("${name} (${f#долг просрочен с })") ;;
       'проверка просрочена'*)         overdue+=("${name} (${f#проверка просрочена с })") ;;
       *)                              threshold_blind+=("${name}") ;;
     esac
@@ -147,6 +158,13 @@ if [ ${#no_review[@]} -gt 0 ]; then
   printf '\nНЕТ ДАТЫ ПРОВЕРКИ (%s): %s.\n' "${#no_review[@]}" "$(join_list "${no_review[@]}")" >&2
   printf 'Решение без `review_due` действует вечно: механизма распада (FPF DRR) у него нет.\n' >&2
   printf 'Замер: 85 решений из 177 в четырёх проектах — то есть почти половина.\n' >&2
+  failed=1
+fi
+
+if [ ${#expired_debt[@]} -gt 0 ]; then
+  printf '\nДОЛГ ПРОСРОЧЕН (%s): %s.\n' "${#expired_debt[@]}" "$(join_list "${expired_debt[@]}")" >&2
+  printf 'Решение было принято как долг до названной даты, и дата прошла — красное\n' >&2
+  printf 'вернулось. Пересмотреть решение либо продлить `accepted_until` с причиной.\n' >&2
   failed=1
 fi
 
