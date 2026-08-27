@@ -14,7 +14,7 @@ set -uo pipefail
 HOOK=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/session-start.sh"}
 [ -f "$HOOK" ] || { printf 'нет файла хука: %s\n' "$HOOK" >&2; exit 1; }
 
-EXPECTED_CASES=20
+EXPECTED_CASES=22
 ran=0
 failed=0
 TRASH=()
@@ -199,6 +199,27 @@ check "далёкий срок молчит" "нет" "$(says "$(run_with_assets
 # Безвредность: файла активов нет вовсе — хук молчит и не падает.
 OUT=$(run_with_assets "/nonexistent-assets-$$"); code=$?
 check "реестра активов нет — тихо и без падения" "0/нет" "$code/$(says "$OUT" "**Активы.**")"
+
+# --- Порядок вывода: переменное выше постоянного ------------------------------
+# Замер: хук печатал 61 строку и 14 блоков, протокол занимал первые восемь, а
+# находки про ЭТОТ проект шли последними — их читали после того, что не менялось.
+first_line_of() { printf '%s\n' "$1" | grep -nF "$2" | head -1 | cut -d: -f1; }
+
+R=$(make_roles); add_role "$R" dev "$(days_ago 0)"; inflate_role "$R" dev 310778
+OUT=$(run_hook "$R")
+pos_finding=$(first_line_of "$OUT" "ПАМЯТЬ НЕ ЧИТАЕТСЯ")
+pos_protocol=$(first_line_of "$OUT" "**Идентичность.**")
+check "находка напечатана выше протокола" "да" \
+  "$( [ -n "$pos_finding" ] && [ -n "$pos_protocol" ] && [ "$pos_finding" -lt "$pos_protocol" ] && printf 'да' || printf 'нет' )"
+
+# Объём памяти — выше возраста: возрастной прибор печатал наименее нагруженные роли.
+R=$(make_roles); add_role "$R" dev "$(days_ago 0)"; inflate_role "$R" dev 310778
+add_role "$R" keeper "$(days_ago 30)"
+OUT=$(run_hook "$R")
+pos_volume=$(first_line_of "$OUT" "Объём памяти ролей")
+pos_age=$(first_line_of "$OUT" "Здоровье памяти ролей")
+check "объём напечатан выше возраста" "да" \
+  "$( [ -n "$pos_volume" ] && [ -n "$pos_age" ] && [ "$pos_volume" -lt "$pos_age" ] && printf 'да' || printf 'нет' )"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"
