@@ -87,6 +87,7 @@ project/
 ├── inbox.md             ← templates/project/inbox.md (сырой вход Founder + триаж)
 ├── backlog.md           ← templates/project/backlog.md
 ├── values.md            ← настроенный на шаге 3
+├── artifacts/README.md  ← templates/project/artifacts-readme.md (правило деления каталога + потолок)
 ├── requirements.md      ← templates/project/requirements.md (обязательства: FR-NN/NFR-NN, исполнитель, проверка)
 ├── glossary.md          ← templates/project/glossary.md (RU/EN/определение/«не является»)
 ├── domain.md            ← templates/project/domain.md (факты о реальности, по bounded contexts)
