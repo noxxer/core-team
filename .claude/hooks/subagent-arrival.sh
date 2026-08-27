@@ -1,6 +1,8 @@
 #!/bin/bash
 # Гард завершения роли: работа роли обязана доехать.
 #
+# ТИР: стоп — хук: не отпускает роль
+#
 # Событие SubagentStop замерено на Claude Code 2.1.246 (проба 2026-08-26):
 # приходит с `agent_type`, `last_assistant_message`, `agent_transcript_path`
 # и `stop_hook_active`. Матчер по типу агента фильтрует верно.

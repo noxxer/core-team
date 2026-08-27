@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=46
+EXPECTED_CASES=52
 ran=0
 failed=0
 TRASH=()
@@ -20,9 +20,9 @@ make_copy() {  # печатает корень исправной копии
   local d; d=$(mktemp -d); TRASH+=("$d")
   mkdir -p "$d/.claude/hooks" "$d/.claude/templates/project"
   printf '5.0.0\n' > "$d/.claude/VERSION"
-  printf '#!/bin/bash\nexit 0\n' > "$d/.claude/hooks/session-start.sh"
+  printf '#!/bin/bash\n#\n# ТИР: показ — пояснение\nexit 0\n' > "$d/.claude/hooks/session-start.sh"
   chmod +x "$d/.claude/hooks/session-start.sh"
-  printf 'SLOTS=(%s)\nEXPECTED_CASES=7\n' "'Структура (Iceberg)' 'Ловушки сессии'" > "$d/.claude/hooks/check-session-reflection.sh"
+  printf '# ТИР: стоп — пояснение\nSLOTS=(%s)\nEXPECTED_CASES=7\n' "'Структура (Iceberg)' 'Ловушки сессии'" > "$d/.claude/hooks/check-session-reflection.sh"
   chmod +x "$d/.claude/hooks/check-session-reflection.sh"
   printf 'EXPECTED_CASES=7\n' > "$d/.claude/hooks/check-session-reflection.test.sh"
   chmod +x "$d/.claude/hooks/check-session-reflection.test.sh"
@@ -208,6 +208,30 @@ check "…и сказано, чем это плохо" "да" "$(says "$(run_out
 D=$(make_copy); role_spec "$D" 0 2
 check "ни одной спецификации блока памяти" 1 "$(run_code "$D")"
 check "…и это названо отказом" "да" "$(says "$(run_out "$D")" "нет ни в одном")"
+
+# --- 11. Каждый прибор объявляет свой тир ------------------------------------
+# Класс: 19 приборов под одним словом «ОБЯЗАТЕЛЬНО». Прибор без тира выпадает из
+# сводки находок молча — его находки исчезают из порядка по ставке.
+D=$(make_copy)
+check "исправная копия: тиры объявлены" 0 "$(run_code "$D")"
+
+D=$(make_copy); printf '#!/bin/bash\nexit 0\n' > "$D/.claude/hooks/check-безтира.sh"
+chmod +x "$D/.claude/hooks/check-безтира.sh"
+check "прибор без тира — находка" 1 "$(run_code "$D")"
+check "…и сказано, что находки выпадут" "да" "$(says "$(run_out "$D")" "выпадут из сводки молча")"
+
+D=$(make_copy); printf '#!/bin/bash\n#\n# ТИР: важное — пояснение\nexit 0\n' > "$D/.claude/hooks/check-чужойтир.sh"
+chmod +x "$D/.claude/hooks/check-чужойтир.sh"
+check "тир не из набора — находка" 1 "$(run_code "$D")"
+check "…и назван допустимый набор" "да" "$(says "$(run_out "$D")" "стоп/счёт/копия/волна/показ/сводка")"
+
+# Половина «найдено не ноль»: приборы есть, тира нет ни у одного.
+D=$(make_copy)
+for f in "$D/.claude/hooks"/*.sh; do
+  case "$f" in *.test.sh) continue ;; esac
+  grep -v '^# ТИР:' "$f" > "$f.tmp" && mv "$f.tmp" "$f" && chmod +x "$f"
+done
+check "…и это названо пустой сводкой" "да" "$(says "$(run_out "$D")" "сводка находок пуста")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

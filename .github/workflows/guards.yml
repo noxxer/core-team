@@ -45,6 +45,20 @@ jobs:
             exit 1
           fi
 
+      # Класс, пойманный на собственной пробе 5.2: `match(str, re, arr)` — расширение
+      # GNU awk. На BSD (macOS у разработчика) третий аргумент молча игнорируется,
+      # ветка не берётся, и прибор считает неверно, оставаясь зелёным.
+      - name: нет gawk-специфичного match с тремя аргументами
+        shell: bash
+        run: |
+          hits=$(grep -rnE 'match\([^)]+,[^)]+,[^)]+\)' .claude/hooks/ 2>/dev/null \
+                 | grep -v ':[[:space:]]*#' || true)
+          if [ -n "$hits" ]; then
+            echo "$hits" >&2
+            echo "^ третий аргумент match() есть только в GNU awk: на BSD ветка молча не берётся" >&2
+            exit 1
+          fi
+
       - name: shellcheck
         run: shellcheck --severity=warning .claude/hooks/*.sh
 
