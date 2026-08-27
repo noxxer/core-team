@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-portability.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=19
+EXPECTED_CASES=24
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=7
+MUTATIONS=8
 ran=0
 failed=0
 TRASH=()
@@ -84,6 +84,21 @@ check "…и назван самый дорогой класс" "да" "$(says "
 
 D=$(new_dir); put "$D" bad.sh "awk '{ if (${G_MATCH}) print m[1] }' f"
 check "match с тремя аргументами — только GNU awk" 1 "$(run_code "$D")"
+
+# --- Класс символов, зависящий от локали ---------------------------------------
+# Класс, пойманный первым же прогоном CI: 13 провалов в двух наборах, локально
+# невоспроизводимых. В локали C GNU трактует кириллический диапазон побайтово.
+BR_OPEN='['; BR_CLOSE=']'
+D=$(new_dir); put "$D" bad.sh "grep -E \"^${BR_OPEN}А-ЯЁ${BR_CLOSE}{2,}\" f"
+check "кириллический диапазон в регулярке" 1 "$(run_code "$D")"
+check "…и назван побайтовый разбор" "да" "$(says "$(run_out "$D")" "побайтово")"
+check "…и назван выход через альтернативу" "да" "$(says "$(run_out "$D")" "через альтернативу")"
+
+D=$(new_dir); put "$D" ok.sh 'grep -E "(Сесси|сесси)" f'
+check "литералы через альтернативу — переносимо" 0 "$(run_code "$D")"
+
+D=$(new_dir); put "$D" ok.sh 'printf "ПАМЯТЬ НЕ ЧИТАЕТСЯ: %s\n" "$x"'
+check "кириллица вне скобок — не находка" 0 "$(run_code "$D")"
 
 # --- Половина «найдено не ноль» -----------------------------------------------
 D=$(new_dir)
