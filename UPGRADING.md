@@ -71,8 +71,27 @@ diff -rq .claude core-team/.claude | head -40
 
 ```bash
 cp -r core-team/.claude .
+```
+
+**Наложение НИКОГДА не удаляет.** Файл, убранный из фреймворка, остаётся у тебя навсегда —
+и продолжает выглядеть частью инструмента. Замер: проба обновления живой копии 5.1.1 → 5.2.0
+оставила `hooks/verify-task.sh`, удалённый ещё в 5.1, и проверка целостности честно нашла его
+как прибор без объявленного тира. Вместе с ним остались бы три шаблона, удалённые в 5.2.
+
+Сравни, пока клон ещё на месте, и убери лишнее:
+
+```bash
+diff <(ls .claude/hooks) <(ls core-team/.claude/hooks)                 # лишние приборы
+diff <(ls .claude/templates/project) <(ls core-team/.claude/templates/project)   # лишние шаблоны
+
+rm -f .claude/hooks/verify-task.sh                                     # удалён в 5.1
+rm -f .claude/templates/project/scorecard-template.md \
+      .claude/templates/project/experiment-board-template.md \
+      .claude/templates/project/assumptions-template.md                # удалены в 5.2
 rm -rf core-team
 ```
+
+> Твои `project/**` эти команды не трогают: удаляются только файлы инструмента.
 
 ## Шаг 5. Верни свои ключи
 

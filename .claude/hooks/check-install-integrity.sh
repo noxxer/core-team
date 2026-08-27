@@ -267,7 +267,7 @@ if [ -d "${CLAUDE_DIR}/hooks" ]; then
     checked=$((checked + 1))
     declared=$(grep -m1 '^# ТИР:' "${tool}" | sed -E 's/^# ТИР:[[:space:]]*//; s/[[:space:]]*—.*$//')
     if [ -z "${declared}" ]; then
-      note "$(basename "${tool}"): тир не объявлен — находки прибора выпадут из сводки молча"
+      note "$(basename "${tool}"): тир не объявлен — находки выпадут из сводки молча; если это остаток прежней версии (наложение не удаляет), файл надо убрать"
     else
       tiered=$((tiered + 1))
       case "${declared}" in
