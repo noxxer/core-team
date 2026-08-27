@@ -76,11 +76,19 @@ fi
 ahead=$(git -C "${REPO}" rev-list --count "${upstream}"..HEAD 2>/dev/null || printf '0')
 shipped_date=$(git -C "${REPO}" log -1 --format=%cd --date=short "${upstream}" 2>/dev/null || printf '')
 
+# Возраст считаем в секундах эпохи: обе формы `date` платформенно-зависимы, и
+# отказ обеих означает «не измерено», а не «свежо». Молчаливый ноль читался бы
+# как отсутствие находки — тот же класс, что зелёный гард на сломанном приборе.
 days=0
+age_unmeasured=0
 if [ -n "${shipped_date}" ]; then
   a=$(date -j -f '%Y-%m-%d' "${TODAY}" +%s 2>/dev/null || date -d "${TODAY}" +%s 2>/dev/null || printf '0')
   b=$(date -j -f '%Y-%m-%d' "${shipped_date}" +%s 2>/dev/null || date -d "${shipped_date}" +%s 2>/dev/null || printf '0')
-  [ "${a}" -gt 0 ] && [ "${b}" -gt 0 ] && days=$(( (a - b) / 86400 ))
+  if [ "${a}" -gt 0 ] && [ "${b}" -gt 0 ]; then
+    days=$(( (a - b) / 86400 ))
+  else
+    age_unmeasured=1
+  fi
 fi
 
 printf 'Отгрузка %s: не отгружено %s коммитов (порог %s), последний отгружен %s — %s дн. назад (порог %s).\n' \
@@ -93,6 +101,13 @@ if [ "${ahead}" -gt "${max_ahead}" ]; then
   printf 'Аудит по рабочему дереву показывает защищённость, которой в отгруженном коде нет.\n' >&2
   printf 'Замер: 196 коммитов не отгружено — и два дефекта класса B нашлись только при\n' >&2
   printf 'явной сверке с отгруженной ветвью. Отгрузить либо поднять `ship_max_ahead:` с причиной.\n' >&2
+  failed=1
+fi
+
+if [ "${age_unmeasured}" -eq 1 ]; then
+  printf '\nВОЗРАСТ ОТГРУЗКИ ИЗМЕРИТЬ НЕ УДАЛОСЬ: ни BSD-, ни GNU-форма `date` не сработала.\n' >&2
+  printf 'Разрыв по числу коммитов проверен, разрыв по дням — нет. Это отказ прибора,\n' >&2
+  printf 'а не отсутствие находки.\n' >&2
   failed=1
 fi
 
