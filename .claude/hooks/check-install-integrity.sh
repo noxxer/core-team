@@ -26,6 +26,18 @@ CLAUDE_DIR="${ROOT}/.claude"
 problems=()
 checked=0
 
+word_to_number() {  # $1 = числительное словом; печатает 0, если слово незнакомо
+  case "$1" in
+    один|одна) printf '1' ;; два|две) printf '2' ;; три) printf '3' ;; четыре) printf '4' ;;
+    пять) printf '5' ;; шесть) printf '6' ;; семь) printf '7' ;; восемь) printf '8' ;;
+    девять) printf '9' ;; десять) printf '10' ;; одиннадцать) printf '11' ;;
+    двенадцать) printf '12' ;; тринадцать) printf '13' ;; четырнадцать) printf '14' ;;
+    пятнадцать) printf '15' ;; шестнадцать) printf '16' ;; семнадцать) printf '17' ;;
+    восемнадцать) printf '18' ;; девятнадцать) printf '19' ;; двадцать) printf '20' ;;
+    *) printf '0' ;;
+  esac
+}
+
 note() { problems+=("$1"); }
 
 [ -d "${CLAUDE_DIR}" ] || { printf 'ОШИБКА: нет %s — это не развёрнутая копия фреймворка.\n' "${CLAUDE_DIR}" >&2; exit 1; }
@@ -163,6 +175,31 @@ if [ -f "${claude_md}" ]; then
     fi
   done < <(grep -oE '`[a-z-]+\.test\.sh` \([0-9]+ случа' "${claude_md}" \
            | sed -E 's/`([a-z-]+\.test\.sh)` \(([0-9]+) случа/\1|\2/')
+
+  # Числа МУТАЦИЙ доказательством не являются — их нельзя пересчитать прогоном.
+  # Но расходиться с записью автора они не должны: класс «набор вырос, число
+  # в документации нет» случился трижды за один MR именно на числах случаев.
+  # Поэтому набор объявляет `MUTATIONS=` рядом с `EXPECTED_CASES=`, а здесь сверяется.
+  while IFS='|' read -r suite claimed_m; do
+    [ -n "${suite}" ] || continue
+    checked=$((checked + 1))
+    actual_m=$(grep -m1 '^MUTATIONS=' "${CLAUDE_DIR}/hooks/${suite}" 2>/dev/null | cut -d= -f2 | tr -cd '0-9')
+    if [ -z "${actual_m}" ]; then
+      note "набор ${suite} не объявляет MUTATIONS, а документация называет число"
+    elif [ "${actual_m}" != "${claimed_m}" ]; then
+      note "${suite}: документация говорит ${claimed_m} мутаций, в наборе объявлено ${actual_m}"
+    fi
+  done < <(
+    # Без awk: линт CI запрещает трёхаргументный match(), а regex с запятой внутри
+    # ловится и двухаргументный — прибор не должен спотыкаться о собственный линт.
+    grep -oE '`[a-z-]+\.test\.sh` \([0-9]+ случа[а-я]*, [а-я]+ мутаци' "${claude_md}" 2>/dev/null \
+    | while IFS= read -r chunk; do
+        suite=$(printf '%s' "${chunk}" | sed -E 's/^`([a-z-]+\.test\.sh)`.*/\1/')
+        word=$(printf '%s' "${chunk}" | sed -E 's/.*, ([а-я]+) мутаци.*/\1/')
+        num=$(word_to_number "${word}")
+        [ "${num}" -gt 0 ] && printf '%s|%s\n' "${suite}" "${num}"
+      done
+  )
 fi
 
 # --- 9. Сущности, названные в CLAUDE.md, определены в словаре ----------------

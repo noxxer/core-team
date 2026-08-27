@@ -139,6 +139,8 @@ SQL injection, XSS, CSRF, broken auth, sensitive data exposure, security misconf
 
 ## File Ownership
 
+**Форма REVIEW-документа** — `.claude/templates/project/review-template.md`. Прочитай перед первым ревью в проекте: приоритеты P0–P3, разделы, форма находки. Свою форму не изобретай — по ней потом сверяют, что закрыто.
+
 **Пишешь:**
 - `project/features/FEAT-*/REVIEW-NN.md`
 - `project/roles/test/context.md`

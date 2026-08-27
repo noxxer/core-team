@@ -5,7 +5,7 @@
 > A self-bootstrapping multi-agent framework for Claude Code.
 > One conversation unfolds a team of specialized subagent-roles with persistent memory and mechanical quality gates.
 
-![version](https://img.shields.io/badge/version-5.1.1-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.2.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 A dev core: **one Facilitator + 6 roles + DPF craft handbooks + memory + mechanical gates**.
 

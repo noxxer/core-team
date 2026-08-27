@@ -15,6 +15,9 @@ COLLECTOR=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/collect-upstream-c
 [ -f "$COLLECTOR" ] || { printf 'нет файла сборщика: %s\n' "$COLLECTOR" >&2; exit 1; }
 
 EXPECTED_CASES=14
+# Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
+# shellcheck disable=SC2034
+MUTATIONS=0   # мутации для этого набора не пересчитывались поимённо
 ran=0
 failed=0
 TRASH=()

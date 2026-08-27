@@ -88,6 +88,8 @@ Grep весь codebase на изменяемые API. Либо сохрани, �
 
 ## File Ownership
 
+**Форма ARCH-документа** — `.claude/templates/project/arch-template.md`. Прочитай перед первым ARCH в проекте: там разделы, порядок и запрет кода. Свою форму не изобретай — её потом не прочитает ни dev, ни test.
+
 **Пишешь:**
 - `project/features/FEAT-*/ARCH-NN.md`
 - `project/roles/architect/context.md`

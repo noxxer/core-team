@@ -88,6 +88,7 @@ project/
 ├── backlog.md           ← templates/project/backlog.md
 ├── values.md            ← настроенный на шаге 3
 ├── artifacts/README.md  ← templates/project/artifacts-readme.md (правило деления каталога + потолок)
+├── artifacts/drift-registry.md ← templates/project/drift-registry-template.md (где решение разошлось с реальностью)
 ├── requirements.md      ← templates/project/requirements.md (обязательства: FR-NN/NFR-NN, исполнитель, проверка)
 ├── glossary.md          ← templates/project/glossary.md (RU/EN/определение/«не является»)
 ├── domain.md            ← templates/project/domain.md (факты о реальности, по bounded contexts)
@@ -173,7 +174,6 @@ generic role-DPF достаточно для старта; зафиксируй 
       "Edit(.claude/skills/**)",     "Write(.claude/skills/**)",
       "Edit(.claude/hooks/**)",      "Write(.claude/hooks/**)",
       "Edit(.claude/output-styles/**)",
-      "Edit(project/decisions/**)",
       "Write(project/roles/*/context.md)",
       "Edit(project/values.md)",     "Write(project/values.md)"
     ]
@@ -192,8 +192,13 @@ generic role-DPF достаточно для старта; зафиксируй 
 
 Четыре границы, названные явно:
 
-- **`project/decisions/**` — только `Edit`.** Append-only означает «новые файлы можно, старые не
-  править»: `Write` создаёт, `Edit` меняет. Запрещаем ровно `Edit`.
+- **`project/decisions/**` — запрета НЕТ, и это осознанно.** Append-only защищает **содержание**
+  решения, а не его шапку. Фреймворк сам требует дозаполнять три поля после ратификации:
+  `status` и `superseded_by` (когда решение вытесняется) и `enforced_by` (когда запись дрейфа
+  класса A называет адрес проверки). Запрет `Edit` делал эти требования **неисполнимыми**.
+  Замер, закрывший вопрос: в боевом проекте `superseded_by` у `DEC-044` **заполнен** — решение
+  правили вопреки запрету, потому что иначе было нельзя. Правило, которое нельзя исполнить,
+  исполняться не будет; append-only держится ревью и гардами, а не запретом на инструмент.
 - **`project/roles/*/context.md` — только `Write`.** Зеркальный случай: память роли правится
   точечно (`Edit`), но не перезаписывается целиком. Замер (2026-08-26): `Write` **не требует
   предварительного `Read`** и **не упирается в предел 256 КБ**, при котором `Read` уже отказывает.

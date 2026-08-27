@@ -9,7 +9,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=52
+EXPECTED_CASES=57
+# Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
+# shellcheck disable=SC2034
+MUTATIONS=20
 ran=0
 failed=0
 TRASH=()
@@ -24,7 +27,7 @@ make_copy() {  # печатает корень исправной копии
   chmod +x "$d/.claude/hooks/session-start.sh"
   printf '# ТИР: стоп — пояснение\nSLOTS=(%s)\nEXPECTED_CASES=7\n' "'Структура (Iceberg)' 'Ловушки сессии'" > "$d/.claude/hooks/check-session-reflection.sh"
   chmod +x "$d/.claude/hooks/check-session-reflection.sh"
-  printf 'EXPECTED_CASES=7\n' > "$d/.claude/hooks/check-session-reflection.test.sh"
+  printf 'EXPECTED_CASES=7\nMUTATIONS=3\n' > "$d/.claude/hooks/check-session-reflection.test.sh"
   chmod +x "$d/.claude/hooks/check-session-reflection.test.sh"
   printf '### Структура (Iceberg)\n### Ловушки сессии (Trap Scan)\n' > "$d/.claude/templates/project/session-template.md"
   mkdir -p "$d/.claude/agents" "$d/.claude/skills/навигатор"
@@ -35,7 +38,7 @@ make_copy() {  # печатает корень исправной копии
   mkdir -p "$d/.claude/rules" "$d/.claude/knowledge/stacks"
   printf 'ok\n' > "$d/.claude/knowledge/stacks/справочник.md"
   printf -- '---\npaths:\n  - "**/*.py"\n---\n\nЧитай `.claude/knowledge/stacks/справочник.md`.\n' > "$d/.claude/rules/стек.md"
-  printf 'Доказательство мутацией — `check-session-reflection.test.sh` (7 случаев).\n' > "$d/.claude/CLAUDE.md"
+  printf 'Доказательство мутацией — `check-session-reflection.test.sh` (7 случаев, три мутации).\n' > "$d/.claude/CLAUDE.md"
   cat > "$d/.claude/settings.json" <<'JSON'
 { "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": ".claude/hooks/session-start.sh" } ] } ] } }
 JSON
@@ -232,6 +235,22 @@ for f in "$D/.claude/hooks"/*.sh; do
   grep -v '^# ТИР:' "$f" > "$f.tmp" && mv "$f.tmp" "$f" && chmod +x "$f"
 done
 check "…и это названо пустой сводкой" "да" "$(says "$(run_out "$D")" "сводка находок пуста")"
+
+# --- 8b. Числа мутаций: документация ↔ объявление набора ---------------------
+# Числа мутаций прогоном не пересчитать — но расходиться с записью автора они не
+# должны. Класс «набор вырос, число в документации нет» случился трижды за один MR.
+D=$(make_copy)
+check "числа мутаций совпадают" 0 "$(run_code "$D")"
+
+D=$(make_copy)
+sed -i.bak 's/три мутации/семь мутаций/' "$D/.claude/CLAUDE.md" && rm -f "$D/.claude/CLAUDE.md.bak"
+check "документация разошлась с набором" 1 "$(run_code "$D")"
+check "…и названы оба числа" "да" "$(says "$(run_out "$D")" "документация говорит 7 мутаций, в наборе объявлено 3")"
+
+D=$(make_copy)
+sed -i.bak '/^MUTATIONS=/d' "$D/.claude/hooks/check-session-reflection.test.sh" && rm -f "$D/.claude/hooks/check-session-reflection.test.sh.bak"
+check "набор не объявляет MUTATIONS" 1 "$(run_code "$D")"
+check "…и это названо" "да" "$(says "$(run_out "$D")" "не объявляет MUTATIONS")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

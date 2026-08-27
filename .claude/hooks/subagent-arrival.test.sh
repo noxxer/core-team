@@ -10,6 +10,9 @@ GUARD=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/subagent-arrival.sh"}
 LANE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-lane-acceptance.sh
 
 EXPECTED_CASES=26
+# Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
+# shellcheck disable=SC2034
+MUTATIONS=7
 ran=0
 failed=0
 TRASH=()

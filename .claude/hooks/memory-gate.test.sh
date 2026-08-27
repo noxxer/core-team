@@ -15,6 +15,9 @@ HOOK=${1:-"${HERE}/memory-gate.sh"}
 export MEMORY_CHECK="${HERE}/check-role-memory.sh"
 
 EXPECTED_CASES=30
+# Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
+# shellcheck disable=SC2034
+MUTATIONS=8
 ran=0
 failed=0
 TRASH=()

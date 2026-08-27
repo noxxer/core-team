@@ -9,6 +9,9 @@ CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-registry-ceili
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
 EXPECTED_CASES=15
+# Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
+# shellcheck disable=SC2034
+MUTATIONS=4
 ran=0
 failed=0
 TRASH=()

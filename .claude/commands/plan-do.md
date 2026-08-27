@@ -41,7 +41,7 @@ Planner — оптимизатор, **не обязательный гейт**.
 - Детектирует стек → загружает `knowledge/stacks/<stack>/design.md`
 - Применяет FPF-чеклист (A.7/A.10/A.11/A.1.1/A.15) — обязательно
 - NQD: ≥3 альтернативы для complicated/complex
-- Создаёт `<feature-dir>/ARCH-NN.md`
+- Создаёт `<feature-dir>/ARCH-NN.md` по форме `templates/project/arch-template.md`
 - Эскалация при breaking change → fasilitator → AskUserQuestion
 
 ### Stage 3 — Dev (имплементация)
@@ -62,7 +62,7 @@ Planner — оптимизатор, **не обязательный гейт**.
 - **Всегда** загружает `knowledge/stacks/security.md` (OWASP Top 10)
 - Загружает `knowledge/stacks/<stack>/review.md`
 - Применяет FPF (A.7/A.10/A.11/A.1.1) + functional-clarity (Error Hiding) + Code-Change Discipline
-- Создаёт `<feature-dir>/REVIEW-NN.md` с приоритизированными issues (P0/P1/P2/P3)
+- Создаёт `<feature-dir>/REVIEW-NN.md` по форме `templates/project/review-template.md`, с приоритизированными issues (P0/P1/P2/P3)
 - **Не правит код** — только документирует
 
 ### Stage 4a — Architect drift-sweep (только для M/L фич)
