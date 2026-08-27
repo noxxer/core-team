@@ -14,7 +14,7 @@ set -uo pipefail
 HOOK=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/session-start.sh"}
 [ -f "$HOOK" ] || { printf 'нет файла хука: %s\n' "$HOOK" >&2; exit 1; }
 
-EXPECTED_CASES=22
+EXPECTED_CASES=23
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=0   # мутации для этого набора не пересчитывались поимённо
@@ -223,6 +223,12 @@ pos_volume=$(first_line_of "$OUT" "Объём памяти ролей")
 pos_age=$(first_line_of "$OUT" "Здоровье памяти ролей")
 check "объём напечатан выше возраста" "да" \
   "$( [ -n "$pos_volume" ] && [ -n "$pos_age" ] && [ "$pos_volume" -lt "$pos_age" ] && printf 'да' || printf 'нет' )"
+
+# Пустой реестр активов не находка: прибор-паникёр перестают читать.
+# Замер: прогон /setup-project на свежем проекте печатал блок «Активы» с текстом
+# «Записей ноль» — потому что хук сливал оба потока прибора целиком.
+A=$(make_assets "—" founder)
+check "пустой реестр активов молчит" "нет" "$(says "$(run_with_assets "$A")" "**Активы.**")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"
