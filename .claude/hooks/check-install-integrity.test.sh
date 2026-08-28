@@ -9,10 +9,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=62
+EXPECTED_CASES=65
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=20
+MUTATIONS=22
 ran=0
 failed=0
 TRASH=()
@@ -122,6 +122,27 @@ printf 'EXPECTED_CASES=31\nMUTATIONS=8\n' > "$C/plugins/some-plugin/scripts/chec
 check "число набора плагина разошлось" 1 "$(run_code "$C")"
 check "…и названы оба числа" "да" \
   "$(says "$(run_out "$C")" "документация говорит 25 случаев, в наборе 31")"
+
+# --- Плагин не установлен: ядро рассказывает о нём, но не обязано его иметь ---
+# Мир с дефектом: ядро описывает приборы плагинов в своей документации, а сверка
+# требует эти файлы на месте. Чистая установка ядра без плагинов объявлялась
+# неработоспособной. Замер: свежая копия дала «КОПИЯ НЕ РАБОТОСПОСОБНА (2)»,
+# и оба пункта — про набор, приезжающий с плагином `product-loop`.
+C=$(make_copy)
+printf 'Доказательство мутацией — `check-uninstalled-tool.test.sh` (25 случаев, восемь мутаций).\n' \
+  >> "$C/.claude/CLAUDE.md"
+check "набор неустановленного плагина не роняет копию" 0 "$(run_code "$C")"
+
+# Граница: набор ЯДРА узнаётся по своему прибору рядом. Потерянный набор ядра
+# прибор переживёт — и остаётся находкой, иначе правило стало бы лазейкой,
+# через которую пропадает любой набор.
+C=$(make_copy)
+printf '#!/bin/bash\n# ТИР: стоп — пояснение\nexit 0\n' > "$C/.claude/hooks/check-core-own.sh"
+chmod +x "$C/.claude/hooks/check-core-own.sh"
+printf 'Доказательство мутацией — `check-core-own.test.sh` (12 случаев, две мутации).\n' \
+  >> "$C/.claude/CLAUDE.md"
+check "набор ядра пропал, прибор остался — находка" 1 "$(run_code "$C")"
+check "…и он назван поимённо" "да" "$(says "$(run_out "$C")" "check-core-own.test.sh")"
 
 # --- Роль объявляет навык, которого нет --------------------------------------
 C=$(make_copy); rm -rf "$C/.claude/skills/навигатор"

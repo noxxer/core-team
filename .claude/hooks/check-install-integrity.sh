@@ -176,11 +176,30 @@ suite_path() {  # $1 = имя файла набора → путь или пус
   done
   return 0
 }
+
+# Ядро рассказывает и о плагинах — их приборы и наборы описаны здесь же. Но в
+# копии потребителя плагинов может не быть: они ставятся отдельно и живут вне
+# `.claude/`. Требовать их файлы значит объявлять исправную копию неработоспособной.
+# Замер: чистая установка ядра без плагинов дала «КОПИЯ НЕ РАБОТОСПОСОБНА (2)» —
+# оба пункта про `check-scenario-coverage.test.sh`, который приезжает с `product-loop`.
+#
+# Признак принадлежности — не имя и не место упоминания, а СВОЙ ПРИБОР рядом:
+# у набора ядра он лежит в `hooks/`. Потерянный набор ядра прибор переживёт и
+# останется находкой; отсутствующий плагин не оставляет ни того, ни другого.
+suite_is_core() {  # $1 = имя файла набора
+  [ -f "${CLAUDE_DIR}/hooks/${1%.test.sh}.sh" ]
+}
 if [ -f "${claude_md}" ]; then
   while IFS='|' read -r suite claimed; do
     [ -n "${suite}" ] || continue
     checked=$((checked + 1))
-    actual=$(grep -m1 '^EXPECTED_CASES=' "$(suite_path "${suite}")" 2>/dev/null | cut -d= -f2)
+    path=$(suite_path "${suite}")
+    if [ -z "${path}" ] && ! suite_is_core "${suite}"; then
+      # Инструмент со стороны, в этой копии не установлен — не предмет ядра.
+      checked=$((checked - 1))
+      continue
+    fi
+    actual=$(grep -m1 '^EXPECTED_CASES=' "${path}" 2>/dev/null | cut -d= -f2)
     if [ -z "${actual}" ]; then
       note "в документации назван набор ${suite}, а файла или его счётчика нет"
     elif [ "${actual}" != "${claimed}" ]; then
@@ -196,7 +215,12 @@ if [ -f "${claude_md}" ]; then
   while IFS='|' read -r suite claimed_m; do
     [ -n "${suite}" ] || continue
     checked=$((checked + 1))
-    actual_m=$(grep -m1 '^MUTATIONS=' "$(suite_path "${suite}")" 2>/dev/null | cut -d= -f2 | tr -cd '0-9')
+    path=$(suite_path "${suite}")
+    if [ -z "${path}" ] && ! suite_is_core "${suite}"; then
+      checked=$((checked - 1))
+      continue
+    fi
+    actual_m=$(grep -m1 '^MUTATIONS=' "${path}" 2>/dev/null | cut -d= -f2 | tr -cd '0-9')
     if [ -z "${actual_m}" ]; then
       note "набор ${suite} не объявляет MUTATIONS, а документация называет число"
     elif [ "${actual_m}" != "${claimed_m}" ]; then
