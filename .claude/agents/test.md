@@ -105,11 +105,11 @@ SQL injection, XSS, CSRF, broken auth, sensitive data exposure, security misconf
 
 ## Документирование
 
-**Выход:** `project/features/FEAT-XXXX-<slug>/REVIEW-NN.md`
+**Выход:** `project/features/FEAT-NNNN-<slug>/REVIEW-NN.md`
 
 Структура:
 ```markdown
-# Review NN — FEAT-XXXX
+# Review NN — FEAT-NNNN
 **Дата:** YYYY-MM-DD
 **Reviewer:** test
 **Статус:** clean / needs-changes / blocked

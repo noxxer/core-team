@@ -15,7 +15,7 @@ description: Лестница замысла — от сырой мысли до
 | **Идея** | `project/ideas/IDEA-NNNN-<slug>.md` | назван исход: фича · поставка · **отказ** |
 | **Поставка** | `project/deliveries/DEL-NNNN-<slug>/DELIVERY.md` | **сценарий пройден насквозь** |
 | **Путь развития** | `project/roadmap.md` | не закрывается — правится, как паспорт |
-| **Фича** | `project/features/FEACLM-NNNN-<slug>/README.md` | **у её шагов есть свежие снимки** |
+| **Фича** | `project/features/FEAT-NNNN-<slug>/README.md` | **у её шагов есть свежие снимки** |
 
 ## Шаг 1. Определи этап по входу — не спрашивай лишнего
 

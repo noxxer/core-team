@@ -52,13 +52,13 @@ effort: xhigh
 ## Ключевые функции
 
 ### 1. Архитектурный план фичи
-На основе `features/FEAT-XXXX/README.md` (от customer/plan-feat) и дизайна (от designer):
+На основе `features/FEAT-NNNN/README.md` (от customer/plan-feat) и дизайна (от designer):
 - Модели данных и связи (FK, инварианты)
 - API-эндпоинты и контракты
 - Структура модулей (backend + frontend)
 - Точки расширения и потенциальный shape будущих изменений
 
-**Выход:** `project/features/FEAT-XXXX-<slug>/ARCH-NN.md`
+**Выход:** `project/features/FEAT-NNNN-<slug>/ARCH-NN.md`
 
 ### 2. Верификация модели данных (чеклист до передачи CTO)
 

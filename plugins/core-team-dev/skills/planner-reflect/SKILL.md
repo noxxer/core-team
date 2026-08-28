@@ -45,7 +45,7 @@ Each update type has a trigger (when the skill should produce it), a recording f
 ### 4.1 gap-fill
 
 - **Trigger** — the orchestrator used `general-purpose` where `planner-context.md` §1 had a `❌ GAP` flag for the relevant stack, OR a stack appeared during the session that was not even flagged in the catalog.
-- **Record** — for an existing flag, append `<!-- gap-confirmed YYYY-MM-DD from FEAT-XXXX -->` to the gap row. For a newly discovered stack, add a new gap row in the format `❌ GAP (<stack>, <variant>) — fallback: general-purpose <!-- discovered YYYY-MM-DD from FEAT-XXXX -->`.
+- **Record** — for an existing flag, append `<!-- gap-confirmed YYYY-MM-DD from FEAT-NNNN -->` to the gap row. For a newly discovered stack, add a new gap row in the format `❌ GAP (<stack>, <variant>) — fallback: general-purpose <!-- discovered YYYY-MM-DD from FEAT-NNNN -->`.
 - **Destination** — §1 of `planner-context.md` (Каталог агентов).
 - **Tone** — neutral and factual: describe the missing role, do not blame the orchestrator. The gap is a property of the catalog, not a failure of the run.
 
@@ -59,25 +59,25 @@ Each update type has a trigger (when the skill should produce it), a recording f
 ### 4.3 user-corrections
 
 - **Trigger** — explicit user pushback in the session: «не делай сам», «это неправильно», «переделай», «не лезь в код», «верни как было» — pulled from the session messages source (input #5).
-- **Record** — a one-line guard-rail, format `avoid <pattern> — learned from FEAT-XXXX`. Extract the *pattern* of the mistake (e.g. «orchestrator wrote code instead of dispatching»), not the verbatim rebuke.
+- **Record** — a one-line guard-rail, format `avoid <pattern> — learned from FEAT-NNNN`. Extract the *pattern* of the mistake (e.g. «orchestrator wrote code instead of dispatching»), not the verbatim rebuke.
 - **Destination** — §6 of `planner-context.md` (Соглашения именования / lessons).
 - **Tone** — descriptive, not accusatory. Capture the pattern, not the wording of the rebuke; the file is read by future sessions and emotional residue distorts decisions.
 
 ### 4.4 cost-calibration
 
 - **Trigger** — delta between planned tokens/wall-clock (from `PLANNER_OUTPUT.md` § "Cost estimate") and actual usage exceeds ±30% in either direction.
-- **Record** — `estimate adjustment: <task-type> takes ~Nx more/less than planned (FEAT-XXXX)`. Token counts come from session metadata; wall-clock from commit timestamps via `git log`.
+- **Record** — `estimate adjustment: <task-type> takes ~Nx more/less than planned (FEAT-NNNN)`. Token counts come from session metadata; wall-clock from commit timestamps via `git log`.
 - **Destination** — §4 of `planner-context.md` (alongside model notes — costs and model picks are tightly coupled).
 - **Tone** — numeric and factual; do not infer cause unless evidence is direct. A 2x overshoot might be model weakness, scope creep, or a flaky test — name only what the evidence supports.
 
 ## Always-emit "Lessons learned" section
 
-Every `/plan-reflect` run produces a `## Lessons learned (FEAT-XXXX, YYYY-MM-DD)` block in the chat output, even when nothing new was found. The block has two valid shapes — populated or explicitly empty — and the choice depends only on what the evidence actually supports.
+Every `/plan-reflect` run produces a `## Lessons learned (FEAT-NNNN, YYYY-MM-DD)` block in the chat output, even when nothing new was found. The block has two valid shapes — populated or explicitly empty — and the choice depends only on what the evidence actually supports.
 
 The **empty** case shows exactly this — and only this:
 
 ```
-## Lessons learned (FEAT-XXXX, YYYY-MM-DD)
+## Lessons learned (FEAT-NNNN, YYYY-MM-DD)
 _no actionable lessons this session_
 ```
 
@@ -95,7 +95,7 @@ The always-on rule is a deliberate force-function (README §89). The user sees t
 
 The skill produces output in a fixed four-step order. Steps run sequentially; do not interleave or reorder.
 
-1. **Write target** — the only file modified is `<project-root>/.claude/planner-context.md`. Use `Write` to create it on first run, or read-modify-write to extend it on subsequent runs. Every new line carries `<!-- learned YYYY-MM-DD from FEAT-XXXX -->` at the end, per README §43; this turns the file into a dated audit log of what the planner has learned about this project, queryable by date or by FEAT-id.
+1. **Write target** — the only file modified is `<project-root>/.claude/planner-context.md`. Use `Write` to create it on first run, or read-modify-write to extend it on subsequent runs. Every new line carries `<!-- learned YYYY-MM-DD from FEAT-NNNN -->` at the end, per README §43; this turns the file into a dated audit log of what the planner has learned about this project, queryable by date or by FEAT-id.
 2. **Chat summary** — emit a short bullet list of what changed: which sections were touched, how many lines were added, which evidence sources were used, and which were unavailable. Then render the always-present "Lessons learned" block per the section above. The summary should fit in the user's screen without scrolling — terse beats exhaustive. A typical summary looks like:
 
    ```

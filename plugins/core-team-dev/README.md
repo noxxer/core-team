@@ -43,7 +43,7 @@
 | **Идея** | idea | `ideas/IDEA-NNNN.md` | назван исход: фича · поставка · **отказ** |
 | **Поставка** | delivery | `deliveries/DEL-NNNN/` | **сценарий пройден насквозь** |
 | **Путь развития** | roadmap | `roadmap.md` | не закрывается — правится, как паспорт |
-| **Фича** | feature | `features/FEACLM-NNNN/README.md` | **у её шагов есть свежие снимки** |
+| **Фича** | feature | `features/FEAT-NNNN/README.md` | **у её шагов есть свежие снимки** |
 | **Проект** | architecture | `…/ARCHITECTURE.md` | живёт одно изменение и умирает |
 | **План выполнения** | execution | `…/EXECUTION.md` | теряет подтверждение, когда Проект сдвинулся |
 | **Отчёт** | report | `…/IMPLEMENTATION-NN.md` | фаза закрыта чистой проверкой |

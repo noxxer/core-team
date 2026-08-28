@@ -36,7 +36,7 @@ description: >
 
 ## Mode 1 — architecture planning (краткое)
 
-Вход: `features/FEAT-XXXX/README.md`. Вопрос: как эффективно провести архитектурную фазу? 4 опции:
+Вход: `features/FEAT-NNNN/README.md`. Вопрос: как эффективно провести архитектурную фазу? 4 опции:
 - Single Opus architect (монолитная фича)
 - N параллельных Sonnet sub-architects (слабо связанные домены, N ≤ 4)
 - Single Haiku quick-pass (<200 LOC, один модуль, нет миграций)

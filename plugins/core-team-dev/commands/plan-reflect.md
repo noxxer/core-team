@@ -47,5 +47,5 @@ Skill выполняется один проход:
 Верни Founder:
 - Какие секции `planner-context.md` обновлены (с числом строк)
 - Какие evidence sources были доступны / недоступны
-- Блок "Lessons learned (FEAT-XXXX, YYYY-MM-DD)" — populated или empty
+- Блок "Lessons learned (FEAT-NNNN, YYYY-MM-DD)" — populated или empty
 - Если есть HITL-suggest для memory — задавай через AskUserQuestion

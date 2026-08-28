@@ -63,7 +63,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 2. Выяви боль (что больно сейчас?)
 3. Опиши User Journey (шаги от точки входа до результата)
 4. Сформулируй **DoD (Definition of Done)** — критерии приёмки в терминах пользователя, не разработчика
-5. Передай результат facilitator-у для записи в `features/FEAT-XXXX-<slug>/README.md`
+5. Передай результат facilitator-у для записи в `features/FEAT-NNNN-<slug>/README.md`
 
 ### 5. Метрики (если применимо)
 - NPS / CSAT — удовлетворённость

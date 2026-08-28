@@ -18,7 +18,7 @@ Three meta-rules govern every edit of this file:
 
 These rules come from the legacy planner (`~/.claude/agents/planner.md` lines 109-113) plus the FEAT-0001 edge-case requirements (rows 3-4 of the README table).
 
-The `/plan-reflect` skill writes its findings with the marker `<!-- learned YYYY-MM-DD from FEAT-XXXX -->` so lessons are auditable and traceable to the session that produced them.
+The `/plan-reflect` skill writes its findings with the marker `<!-- learned YYYY-MM-DD from FEAT-NNNN -->` so lessons are auditable and traceable to the session that produced them.
 
 ## 3. The template
 
@@ -35,7 +35,7 @@ Copy the content of the fenced block below verbatim into `<project-root>/.claude
 > перезаписывает ручные правки, только дополняет новыми автосканированными
 > строками с меткой `<!-- auto-added YYYY-MM-DD -->` и помечает исчезнувшие
 > элементы `<!-- stale, last seen YYYY-MM-DD -->`. Уроки из `/plan-reflect`
-> приходят с меткой `<!-- learned YYYY-MM-DD from FEAT-XXXX -->`.
+> приходят с меткой `<!-- learned YYYY-MM-DD from FEAT-NNNN -->`.
 
 ## 1. Каталог агентов
 
@@ -67,13 +67,13 @@ Copy the content of the fenced block below verbatim into `<project-root>/.claude
 ## 5. Хранение артефактов фич
 
 - **Корень фич:** `<обнаруженный-путь>` (например `agents/features/` или `features/`)
-- **Паттерн имени:** `FEAT-XXXX-<slug>/` (уточни по факту)
+- **Паттерн имени:** `FEAT-NNNN-<slug>/` (уточни по факту)
 - **Артефакты внутри фичи:**
   - `README.md` — требования
-  - `FEAT-XXXX-DESIGN-0N.md` — UI/UX (если применимо)
-  - `FEAT-XXXX-PLAN-0N.md` — архитектурный план
+  - `FEAT-NNNN-DESIGN-0N.md` — UI/UX (если применимо)
+  - `FEAT-NNNN-PLAN-0N.md` — архитектурный план
   - `PLANNER_OUTPUT.md` — вывод планнера
-  - `review-request-changes/FEAT-XXXX-ISSUE-0NN.md` — находки review
+  - `review-request-changes/FEAT-NNNN-ISSUE-0NN.md` — находки review
   - `screenshots/`, `test_cases/`
 - **Контекстные файлы проекта** (если есть):
   - `<путь-или-пусто>` — UI guidelines

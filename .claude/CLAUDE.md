@@ -256,7 +256,7 @@ FPF-guards: A.7 (Strict Distinction), A.10 (Evidence Graph), A.11 (Parsimony), A
 
 | Команда | Назначение |
 |---------|------------|
-| `/plan-feat` | **Discovery.** customer + facilitator через Clarity Protocol → `project/features/FEACLM-NNNN-<slug>/README.md` |
+| `/plan-feat` | **Discovery.** customer + facilitator через Clarity Protocol → `project/features/FEAT-NNNN-<slug>/README.md` |
 | `/plan` | **Planning.** Активирует навык `core-team-dev:planner` в architecture-mode (на README) или execution-mode (на ARCH). Эмитит `PLANNER_OUTPUT.md`. NQD-гейт ≥3 альтернативы для complicated/complex |
 | `/plan-do` | **Orchestration.** Конвейер subagent-ов: designer (опц.) → architect (opus) → dev (TDD) → test (review) → keeper. Loop до "review clean" |
 | `/plan-reflect` | **Learning.** Активирует навык `core-team-dev:planner-reflect`. Сравнивает план vs реальность, обновляет `planner-context.md` (gap-fill / model-strength / user-corrections / cost-calibration) |
@@ -459,9 +459,9 @@ FPF-guards: A.7 (Strict Distinction), A.10 (Evidence Graph), A.11 (Parsimony), A
 | `.claude/templates/project/session-template.md` | Запись сессии |
 | `.claude/templates/project/role-context-template.md` | Память роли (`roles/<role>/context.md`) — **состояние, не журнал**; шапка несёт `max_lines` |
 | `.claude/templates/project/artifact-template.md` | Произвольный артефакт |
-| `.claude/templates/project/feature-template.md` | `features/FEACLM-NNNN/README.md` (от /plan-feat) |
-| `.claude/templates/project/arch-template.md` | `features/FEACLM-NNNN/ARCH-NN.md` (от architect) |
-| `.claude/templates/project/review-template.md` | `features/FEACLM-NNNN/REVIEW-NN.md` (от test) |
+| `.claude/templates/project/feature-template.md` | `features/FEAT-NNNN/README.md` (от /plan-feat) |
+| `.claude/templates/project/arch-template.md` | `features/FEAT-NNNN/ARCH-NN.md` (от architect) |
+| `.claude/templates/project/review-template.md` | `features/FEAT-NNNN/REVIEW-NN.md` (от test) |
 
 | `.claude/templates/project/requirements.md` | `requirements.md` — требования (`FR-NN`/`NFR-NN`): обязательство с исполнителем и проверкой |
 | `.claude/templates/project/connection-points.md` | `connection-points.md` — чем закрыт каждый слой работы; незакрытая точка объявляет деградацию |
