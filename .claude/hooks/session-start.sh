@@ -115,6 +115,25 @@ assets_expiry() {
   return 0
 }
 
+# Содержание проверки живёт в check-connection-points.sh — здесь только показ.
+# Проект без файла точек не платит ничего: прибор не зовётся, а с ним не зовётся
+# и `claude plugin list` (замер: 0,3 с против 0,01 с у всего остального хука).
+connection_points() {
+  local file=${CONNECTION_POINTS_FILE:-project/connection-points.md} checker findings
+  checker="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/check-connection-points.sh"
+  [ -f "${checker}" ] || return 0
+  [ -f "${file}" ] || return 0
+
+  # Только поток находок: в тишине прибор молчит. Отчёт «разобрано N» находкой
+  # не является — блок, печатающийся на здоровом проекте, перестают читать.
+  findings=$(bash "${checker}" "${file}" 2>&1 >/dev/null || true)
+  findings=$(printf '%s' "${findings}" | sed '/^[[:space:]]*$/d')
+  [ -n "${findings}" ] || return 0
+
+  printf '\n**Точки подключения.**\n%s\n' "${findings}"
+  return 0
+}
+
 memory_volume() {
   local roles_dir=${ROLES_DIR:-project/roles} checker findings
   checker="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/check-role-memory.sh"
@@ -152,6 +171,7 @@ meaning_ladder
 memory_volume
 memory_health
 assets_expiry
+connection_points
 
 cat <<'EOF'
 ## Core Team Framework активен
@@ -169,7 +189,7 @@ cat <<'EOF'
 - Никаких `except Exception: pass`, никаких `return None` при ошибке.
 - Custom exceptions с информативными сообщениями.
 - Каждая функция — одна задача, 20-30 строк.
-- При правке существующего кода — 7-шаговая Code-Change Discipline (`.claude/skills/functional-clarity/references/code-change-discipline.md`): идея → допущения → evidence → ask human → no contract changes → no information loss.
+- При правке существующего кода — 7-шаговая Code-Change Discipline (`.claude/knowledge/code-change-discipline.md`): идея → допущения → evidence → ask human → no contract changes → no information loss.
 
 **FPF-гейты на архитектурных решениях:**
 - **NQD** — каждое решение требует минимум 3 альтернативы с trade-offs.

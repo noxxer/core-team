@@ -60,7 +60,7 @@ D=$(new_dir); add_dec "$D" DEC-002 accepted 2026-08-26 "$TODAY" "" ""
 check "срок ровно сегодня — не просрочен" 0 "$(run_code "$D")"
 
 D=$(new_dir); add_dec "$D" DEC-003 superseded 2026-08-26 "" "" ""
-check "вытесненное решение протухнуть не может" 0 "$(run_code "$D")"
+check "вытесненное решение устареть не может" 0 "$(run_code "$D")"
 D=$(new_dir); add_dec "$D" DEC-004 proposed 2026-08-26 "" "" ""
 check "предложенное ещё не действует" 0 "$(run_code "$D")"
 
