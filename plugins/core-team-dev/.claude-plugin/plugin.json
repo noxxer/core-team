@@ -1,0 +1,19 @@
+{
+  "name": "core-team-dev",
+  "version": "0.1.0",
+  "description": "Ремесло разработки для Core Team: TDD (Red-Green-Refactor), Функциональная ясность (22 принципа, fail-fast, запрет Error Hiding), планировщик (architecture и execution режимы) и стек-справочники по фазам (backend Python, frontend React, дизайн API, OWASP). Закрывает точки подключения `craft:tdd`, `craft:clarity`, `craft:review` и `planning`. Роли dev/test/architect живут в ядре — это их ремесло, а не они сами.",
+  "author": {
+    "name": "noxxer"
+  },
+  "homepage": "https://github.com/noxxer/core-team",
+  "repository": "https://github.com/noxxer/core-team",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "keywords": [
+    "tdd",
+    "functional-clarity",
+    "planner",
+    "code-review",
+    "core-team",
+    "connection-point"
+  ]
+}

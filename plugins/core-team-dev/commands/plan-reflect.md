@@ -6,7 +6,7 @@ allowed-tools: Read, Grep, Glob, Write, Bash
 
 # /plan-reflect — Post-task learning
 
-Активируй skill `planner-reflect` (`.claude/skills/planner-reflect/SKILL.md`) и следуй его workflow.
+Активируй навык `core-team-dev:planner-reflect` и следуй его порядку работы.
 
 ## Resolve feature-dir
 

@@ -31,7 +31,7 @@ Planner — оптимизатор, **не обязательный гейт**.
 ### Stage 1 — Designer (если фронтенд-фича)
 Запуск `Agent(subagent_type=designer)`:
 - Читает `<feature-dir>/README.md`
-- Прочитает `.claude/knowledge/stacks/frontend-react/design.md` (если react-проект)
+- Прочитает справочник проектирования фронтенда из навыка `core-team-dev:stacks` (если фронтенд на React)
 - Создаёт `<feature-dir>/UX-NN.md` со всеми 5 состояниями
 - Передаёт architect-у
 

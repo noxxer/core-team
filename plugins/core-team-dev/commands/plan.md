@@ -6,7 +6,7 @@ allowed-tools: Read, Grep, Glob, Write
 
 # /plan — Построение плана
 
-Активируй skill `planner` (`.claude/skills/planner/SKILL.md`) и следуй его workflow start-to-finish.
+Активируй навык `core-team-dev:planner` и пройди его порядок работы от начала до конца.
 
 ## Интерпретация $ARGUMENTS
 

@@ -7,15 +7,18 @@ paths:
 
 # Стек: React-фронтенд
 
-Ты работаешь с React-кодом. Стек-справочник загружается **по фазе**:
+Ты работаешь с фронтенд-кодом. Стек-справочник читается **по фазе**, а не целиком:
 
-| Фаза | Файл |
-|------|------|
-| Проектирование (architect) | `.claude/knowledge/stacks/frontend-react/design.md` |
-| Реализация (dev) | `.claude/knowledge/stacks/frontend-react/implement.md` |
-| Ревью (test) | `.claude/knowledge/stacks/frontend-react/review.md` + `.claude/knowledge/stacks/security.md` |
+| Фаза | Что читать |
+|------|-----------|
+| Проектирование (architect) | навык `core-team-dev:stacks`, `references/frontend-react/design.md` |
+| Реализация (dev) | тот же навык, `references/frontend-react/implement.md` |
+| Ревью (test) | `references/frontend-react/review.md` + `references/security.md` (OWASP) |
 
-Пять состояний интерфейса (loading / empty / error / success / partial) — обязательны,
-а не «если успеем».
+Пять состояний экрана — loading · empty · error · success · partial — проверяются всегда,
+на любой фазе: экран, у которого описано только успешное состояние, не спроектирован.
 
-> Правило — триггер, а не копия: содержание живёт в `knowledge/stacks/`.
+**Плагин ремесла не подключён** → общие принципы и `.claude/knowledge/security-rules.md`,
+и скажи об этом вслух.
+
+> Это правило — **триггер, а не копия**. Источник содержания — навык `core-team-dev:stacks`.
