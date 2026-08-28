@@ -10,7 +10,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-connection-points.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=36
+EXPECTED_CASES=37
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=9
@@ -48,6 +48,16 @@ make_points() {  # строки вида «точка|чем закрыта|де
       printf '| `%s` | обязательство слоя | %s | маркет | %s | %s |\n' \
         "$name" "$closed" "${where:-spec/result.md}" "$degr"
     done
+  } > "$f"
+  printf '%s' "$f"
+}
+
+make_canon_no_location() {  # точки канона, у которых результата-артефакта нет
+  local d f name; d=$(mktemp -d); TRASH+=("$d"); f="$d/canon.md"
+  {
+    printf '# Канон точек\n\n'
+    printf '| Точка | Обязательство | Чем закрывается | Источник | Где лежит | Деградация |\n|---|---|---|---|---|---|\n'
+    for name in "$@"; do printf '| `%s` | обязательство | плагин | — | — | проза |\n' "$name"; done
   } > "$f"
   printf '%s' "$f"
 }
@@ -129,13 +139,20 @@ check "деградация вопросительным знаком" 1 "$(run_
 # --- Мутация 3б: адрес результата не назван -----------------------------------
 # Замер боевого прогона: требования вёл сторонний инструмент, клал их в свой файл,
 # а проверка ядра искала в своём и сообщала «записей ноль» при восьми записях.
+# Адрес спрашивается у слоёв, у которых результат-артефакт есть по канону.
+CANON_LOC=$(make_canon "requirements")
 P=$(make_points "requirements|\`project-spec\`|проза|—")
-check "закрыта чужим, адрес не назван" 1 "$(run_code "$P" "" "$LIST_OK")"
+check "закрыта чужим, адрес не назван" 1 "$(run_code "$P" "$CANON_LOC" "$LIST_OK")"
 check "…и сказано, что пойдут не туда" "да" \
-  "$(says "$(run_out "$P" "" "$LIST_OK")" "не найдут того, что есть")"
+  "$(says "$(run_out "$P" "$CANON_LOC" "$LIST_OK")" "не найдут того, что есть")"
 
 P=$(make_points "requirements|\`project-spec\`|проза|spec/requirements.md")
-check "адрес назван — законно" 0 "$(run_code "$P" "" "$LIST_OK")"
+check "адрес назван — законно" 0 "$(run_code "$P" "$CANON_LOC" "$LIST_OK")"
+
+# У ремесла результата-артефакта нет: в каноне прочерк, адреса не спрашиваем.
+CANON_CRAFT=$(make_canon_no_location "craft:clarity")
+P=$(make_points "craft:clarity|\`core-team-dev\`|общие принципы|—")
+check "у слоя без артефакта адрес не нужен" 0 "$(run_code "$P" "$CANON_CRAFT" "$LIST_OK")"
 
 # Слой закрыт средствами фреймворка: свои пути ядро знает и без подсказки.
 P=$(make_points "drift-registry|ядро|—|—")
