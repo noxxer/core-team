@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-connection-points.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=32
+EXPECTED_CASES=36
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=8
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -36,15 +36,17 @@ make_list() {  # строки вида «имя:enabled» / «имя:disabled»
   printf '%s' "$f"
 }
 
-make_points() {  # строки вида «точка|чем закрыта|деградация»
-  local d f entry name closed degr; d=$(mktemp -d); TRASH+=("$d"); f="$d/points.md"
+make_points() {  # строки вида «точка|чем закрыта|деградация» либо «точка|чем|деградация|где»
+  local d f entry name closed degr where; d=$(mktemp -d); TRASH+=("$d"); f="$d/points.md"
   {
     printf -- '---\nartifact_id: "connection-points"\n---\n\n# Точки подключения\n\n'
-    printf '| Точка | Обязательство | Чем закрыта | Источник | Деградация |\n'
-    printf '|---|---|---|---|---|\n'
+    printf '| Точка | Обязательство | Чем закрыта | Источник | Где лежит | Деградация |\n'
+    printf '|---|---|---|---|---|---|\n'
     for entry in "$@"; do
-      IFS='|' read -r name closed degr <<< "$entry"
-      printf '| `%s` | обязательство слоя | %s | маркет | %s |\n' "$name" "$closed" "$degr"
+      IFS='|' read -r name closed degr where <<< "$entry"
+      # Адрес по умолчанию заполнен: его отсутствие — отдельный случай ниже.
+      printf '| `%s` | обязательство слоя | %s | маркет | %s | %s |\n' \
+        "$name" "$closed" "${where:-spec/result.md}" "$degr"
     done
   } > "$f"
   printf '%s' "$f"
@@ -54,8 +56,8 @@ make_canon() {  # имена точек, объявленных ядром
   local d f name; d=$(mktemp -d); TRASH+=("$d"); f="$d/canon.md"
   {
     printf '# Канон точек\n\n'
-    printf '| Точка | Обязательство | Чем закрывается | Источник | Деградация |\n|---|---|---|---|---|\n'
-    for name in "$@"; do printf '| `%s` | обязательство | плагин | — | проза |\n' "$name"; done
+    printf '| Точка | Обязательство | Чем закрывается | Источник | Где лежит | Деградация |\n|---|---|---|---|---|---|\n'
+    for name in "$@"; do printf '| `%s` | обязательство | плагин | — | путь | проза |\n' "$name"; done
   } > "$f"
   printf '%s' "$f"
 }
@@ -123,6 +125,21 @@ P=$(make_points "scenario-verification|—|")
 check "деградация пустой ячейкой" 1 "$(run_code "$P" "" "$LIST_OK")"
 P=$(make_points "scenario-verification|—|?")
 check "деградация вопросительным знаком" 1 "$(run_code "$P" "" "$LIST_OK")"
+
+# --- Мутация 3б: адрес результата не назван -----------------------------------
+# Замер боевого прогона: требования вёл сторонний инструмент, клал их в свой файл,
+# а проверка ядра искала в своём и сообщала «записей ноль» при восьми записях.
+P=$(make_points "requirements|\`project-spec\`|проза|—")
+check "закрыта чужим, адрес не назван" 1 "$(run_code "$P" "" "$LIST_OK")"
+check "…и сказано, что пойдут не туда" "да" \
+  "$(says "$(run_out "$P" "" "$LIST_OK")" "не найдут того, что есть")"
+
+P=$(make_points "requirements|\`project-spec\`|проза|spec/requirements.md")
+check "адрес назван — законно" 0 "$(run_code "$P" "" "$LIST_OK")"
+
+# Слой закрыт средствами фреймворка: свои пути ядро знает и без подсказки.
+P=$(make_points "drift-registry|ядро|—|—")
+check "ядро закрывает — адрес не нужен" 0 "$(run_code "$P" "" "$LIST_OK")"
 
 # --- Мутация 4: канон ядра не сверяется --------------------------------------
 CANON=$(make_canon "requirements" "scenario-verification")

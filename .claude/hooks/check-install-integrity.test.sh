@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=60
+EXPECTED_CASES=62
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=20
@@ -93,6 +93,19 @@ check "…и назван именно он" "да" "$(says "$(run_out "$C")" "�
 C=$(make_copy); printf 'EXPECTED_CASES=9\n' > "$C/.claude/hooks/check-session-reflection.test.sh"
 check "документация отстала от набора" 1 "$(run_code "$C")"
 check "…названы оба числа" "да" "$(says "$(run_out "$C")" "документация говорит 7 случаев, в наборе 9")"
+
+# --- Библиотека приборам не ровня ---------------------------------------------
+# Общий код, который подключают проверки, тира не объявляет: у него другой предмет.
+# Без этого правила первая же библиотека делает копию неработоспособной.
+C=$(make_copy)
+printf '#!/bin/bash\n# Общая функция\nhelper() { :; }\n' > "$C/.claude/hooks/lib-points.sh"
+chmod +x "$C/.claude/hooks/lib-points.sh"
+check "библиотека без тира не мешает" 0 "$(run_code "$C")"
+
+C=$(make_copy)
+printf '#!/bin/bash\n# Проверка без объявленного тира\n' > "$C/.claude/hooks/check-nechto.sh"
+chmod +x "$C/.claude/hooks/check-nechto.sh"
+check "проверка без тира — находка" 1 "$(run_code "$C")"
 
 # --- Набор живёт у плагина, а не у ядра ---------------------------------------
 # Мир с дефектом: сверка чисел ищет набор только в `hooks/`. Тогда числа,

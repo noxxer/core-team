@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-work-trail.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=16
+EXPECTED_CASES=19
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=5
+MUTATIONS=6
 ran=0
 failed=0
 TRASH=()
@@ -21,10 +21,11 @@ cleanup() { [ ${#TRASH[@]} -eq 0 ] || rm -rf "${TRASH[@]}"; }
 trap cleanup EXIT
 
 # Проект: код, ленты замысла, сессии, решения — каждое по требованию.
-make_project() {  # $1 = файлов кода, $2 = записей замысла, $3 = сессий, $4 = решений
+make_project() {  # $1 = файлов кода, $2 = записей замысла, $3 = сессий, $4 = решений, $5 = путей пользования
   local d i; d=$(mktemp -d); TRASH+=("$d")
   mkdir -p "$d/project/ideas" "$d/project/features" "$d/project/deliveries" \
-           "$d/project/sessions" "$d/project/decisions" "$d/backend"
+           "$d/project/sessions" "$d/project/decisions" "$d/project/scenarios" "$d/backend"
+  for ((i = 1; i <= ${5:-0}; i++)); do printf '# Путь %s\n' "$i" > "$d/project/scenarios/put$i.md"; done
   for ((i = 1; i <= $1; i++)); do printf 'print("код")\n' > "$d/backend/module$i.py"; done
   for ((i = 1; i <= $2; i++)); do printf '# Идея %s\n' "$i" > "$d/project/ideas/IDEA-000$i.md"; done
   for ((i = 1; i <= $3; i++)); do printf '# Сессия %s\n' "$i" > "$d/project/sessions/2026-08-2$i.md"; done
@@ -45,7 +46,7 @@ says() { case "$1" in *"$2"*) printf 'да' ;; *) printf 'нет' ;; esac; }
 # --- Здоровое ----------------------------------------------------------------
 P=$(make_project 3 2 1 1)
 check "код, замысел и сессия на месте" 0 "$(run_code "$P")"
-check "числа названы" "да" "$(says "$(run_out "$P")" "кода 3, замысел 2, сессий 1")"
+check "числа названы" "да" "$(says "$(run_out "$P")" "кода 3, замысел 2")"
 
 # --- Мутация 1: код без записанного замысла ----------------------------------
 P=$(make_project 3 0 1 0)
@@ -60,6 +61,24 @@ check "…и сказано про следующую сессию" "да" "$(sa
 
 P=$(make_project 0 0 0 2)
 check "кода нет, решения есть — прибор молчит" 0 "$(run_code "$P")"
+
+# --- Второй законный вход: продукт описан раньше кода -------------------------
+# Замер боевого прогона: работа шла от описания продукта — пути пользования,
+# требования, дерево обещаний, — а проверка требовала каталог идей и сообщала
+# «построено без записанного зачем» на здоровом проекте.
+P=$(make_project 3 0 1 0 2)
+check "путь пользования засчитан как замысел" 0 "$(run_code "$P")"
+check "…и число путей названо" "да" "$(says "$(run_out "$P")" "путей пользования 2")"
+
+# Пути живут там, куда их кладёт сторонний инструмент: адрес берётся из таблицы.
+P=$(make_project 3 0 1 0 0)
+mkdir -p "$P/scenarios"
+printf '# Путь\n' > "$P/scenarios/oplata.md"
+printf '| Точка | Обязательство | Чем закрыта | Источник | Где лежит | Деградация |\n' \
+  > "$P/project/connection-points.md"
+printf '|---|---|---|---|---|---|\n| `scenarios` | пути пользования | `project-spec` | маркет | scenarios/ | проза |\n' \
+  >> "$P/project/connection-points.md"
+check "путь у стороннего инструмента засчитан" 0 "$(run_code "$P")"
 
 # --- Мутация 3: проект без кода принят за нарушителя --------------------------
 P=$(make_project 0 0 0 0)

@@ -30,6 +30,30 @@
 set -uo pipefail
 
 REQUIREMENTS=${1:-${REQUIREMENTS_FILE:-project/requirements.md}}
+POINTS=${CONNECTION_POINTS_FILE:-project/connection-points.md}
+
+# Спрашиваем у таблицы подключений, кто ведёт слой требований. Если его ведёт
+# инструмент со стороны, разбирать его файл не наше дело: у чужого формата свои
+# правила, и ядро сломается на первом же расхождении. Честный ответ — назвать
+# инструмент и остановиться. Замер боевого прогона: восемь требований лежали
+# в файле дерева спецификации, а эта проверка сообщала «записей ноль».
+_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib-points.sh"
+if [ -f "${_lib}" ] && [ -f "${POINTS}" ]; then
+  # shellcheck source=/dev/null
+  . "${_lib}"
+  if point_is_external requirements "${POINTS}"; then
+    who=$(point_closed_by requirements "${POINTS}")
+    where=$(point_location requirements "${POINTS}")
+    printf 'Слой требований ведёт инструмент «%s» — содержание проверяется его средствами.\n' "${who}"
+    if [ -n "${where}" ]; then
+      printf 'Требования лежат в %s; ядро их не разбирает.\n' "${where}"
+    else
+      printf 'Где лежат требования, таблица подключений не говорит — впишите адрес в колонку «Где лежит».\n' >&2
+      exit 1
+    fi
+    exit 0
+  fi
+fi
 SECTION=${REQUIREMENTS_SECTION:-Действующие требования}
 
 [ -f "${REQUIREMENTS}" ] || { printf 'файла требований нет (%s) — проверять нечего\n' "${REQUIREMENTS}"; exit 0; }

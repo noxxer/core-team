@@ -278,7 +278,9 @@ fi
 tiered=0
 if [ -d "${CLAUDE_DIR}/hooks" ]; then
   for tool in "${CLAUDE_DIR}"/hooks/*.sh; do
-    case "$(basename "${tool}")" in *.test.sh) continue ;; esac
+    # Наборы проверок и библиотеки приборами не являются: у первых предмет —
+    # доказательство, у вторых — общий код, и тира ни у тех, ни у других нет.
+    case "$(basename "${tool}")" in *.test.sh|lib-*.sh) continue ;; esac
     [ -f "${tool}" ] || continue
     checked=$((checked + 1))
     declared=$(grep -m1 '^# ТИР:' "${tool}" | sed -E 's/^# ТИР:[[:space:]]*//; s/[[:space:]]*—.*$//')

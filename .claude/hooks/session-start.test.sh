@@ -210,9 +210,9 @@ check "реестра активов нет — тихо и без падени�
 make_points() {  # $1 = «чем закрыта», $2 = деградация
   local d f; d=$(mktemp -d); TRASH+=("$d"); f="$d/connection-points.md"
   { printf -- '---\nartifact_id: "connection-points"\n---\n\n# Точки\n\n'
-    printf '| Точка | Обязательство | Чем закрыта | Источник | Деградация |\n'
-    printf '|---|---|---|---|---|\n'
-    printf '| `scenario-verification` | доказательство прохождения | %s | маркет | %s |\n' "$1" "$2"
+    printf '| Точка | Обязательство | Чем закрыта | Источник | Где лежит | Деградация |\n'
+    printf '|---|---|---|---|---|---|\n'
+    printf '| `scenario-verification` | доказательство прохождения | %s | маркет | deck/output/ | %s |\n' "$1" "$2"
   } > "$f"
   printf '%s' "$f"
 }
