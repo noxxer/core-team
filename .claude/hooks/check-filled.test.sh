@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-filled.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=18
+EXPECTED_CASES=19
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=6
+MUTATIONS=7
 ran=0
 failed=0
 TRASH=()
@@ -99,6 +99,14 @@ printf '%b\n' "$FILLED_DOMAIN" > "$D/project/domain.md"
 OUT=$(run_out "$D")
 check "шаблонов нет — сказано «не сверено»" "да" "$(says "$OUT" "НЕ СВЕРЕНО")"
 check "…и это не «всё в порядке»" "да" "$(says "$OUT" "заполненность не измерена")"
+
+# --- Чекбокс из шаблона подсказкой не считается -------------------------------
+# Замер: чеклист первых шагов `- [ ] Провести первую сессию` краснел как
+# незаполненная подсказка, хотя его отмечают, а не заполняют.
+P=$(make_pair "ledger.md:$FILLED_LEDGER\n- [ ] Провести первую рабочую сессию" \
+              "values.md:$FILLED_VALUES" "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN")
+printf -- '- [ ] Провести первую рабочую сессию\n' >> "$P/templates/ledger.md"
+check "чекбокс шаблона не считается подсказкой" 0 "$(run_code "$P")"
 
 # --- Половина «найдено не ноль» ----------------------------------------------
 E=$(mktemp -d); TRASH+=("$E"); mkdir -p "$E/templates" "$E/project"

@@ -60,11 +60,20 @@ if [ ${#files[@]} -eq 0 ]; then
   exit 0
 fi
 
-# Последняя по имени каталога: каталоги именуются YYYY-MM-DD_тема.
+# Последняя сессия. Имя каталога — `ГГГГ-ММ-ДД_тема`, и внутри одного дня оно
+# упорядочивает по теме, а не по времени: замер боевого прогона — три сессии за
+# день, проверенной оказалась вторая по времени. Поэтому среди файлов последней
+# даты берём самый свежий по времени изменения.
 latest=""
+latest_date=""
 for file in "${files[@]}"; do
-  [ -z "$latest" ] && latest=$file
-  [[ "$file" > "$latest" ]] && latest=$file
+  day=$(basename "$(dirname "$file")" | cut -c1-10)
+  if [ -z "$latest" ] || [[ "$day" > "$latest_date" ]]; then
+    latest=$file; latest_date=$day; continue
+  fi
+  if [ "$day" = "$latest_date" ] && [ "$file" -nt "$latest" ]; then
+    latest=$file
+  fi
 done
 
 missing=()

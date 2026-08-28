@@ -9,7 +9,8 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-session-reflection.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=20
+SLOTS_FIXTURE=('Структура (Iceberg)' 'Три «Почему»' 'Слепые зоны (System Operator)' 'Ловушки сессии')
+EXPECTED_CASES=21
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=0   # мутации для этого набора не пересчитывались поимённо
@@ -149,6 +150,26 @@ check "унаследованная — про условие молчим" "н�
 check "каталога сессий нет — тихо" 0 "$(run_code "/nonexistent-$$")"
 S=$(make_sessions)
 check "сессий ещё не записано — тихо" 0 "$(run_code "$S")"
+
+# --- Три сессии за один день: проверяется последняя по времени ----------------
+# Замер боевого прогона: имя каталога `ГГГГ-ММ-ДД_тема` внутри дня упорядочивает
+# по теме, и проверенной оказалась вторая сессия из трёх.
+D=$(mktemp -d); TRASH+=("$D")
+for name in 2026-08-28_aaa-pervaya 2026-08-28_zzz-vtoraya; do
+  mkdir -p "$D/$name"
+  { printf '# Сессия\n\n'
+    for slot in "${SLOTS_FIXTURE[@]}"; do printf '### %s\nсодержание\n\n' "$slot"; done
+    printf '## Условие выхода\n- **Заявлено:** условие\n- **Достигнуто:** да\n'
+  } > "$D/$name/session.md"
+done
+# Третья — по алфавиту средняя, по времени последняя.
+mkdir -p "$D/2026-08-28_mmm-tretya"
+{ printf '# Сессия\n\n'
+  for slot in "${SLOTS_FIXTURE[@]}"; do printf '### %s\nсодержание\n\n' "$slot"; done
+  printf '## Условие выхода\n- **Заявлено:** условие\n- **Достигнуто:** да\n'
+} > "$D/2026-08-28_mmm-tretya/session.md"
+check "проверяется последняя по времени, не по алфавиту" "да" \
+  "$(says "$(run_out "$D")" "2026-08-28_mmm-tretya")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"
