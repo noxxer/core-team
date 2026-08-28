@@ -125,7 +125,7 @@ status: "живой — пополняется при находке, закры
 
 ### Security
 
-- `knowledge/stacks/security.md` (OWASP Top 10) как чеклист.
+- OWASP Top 10 как чеклист — `core-team-dev:stacks`, `references/security.md`.
 - Конкретный вектор и конкретная уязвимая точка, не «возможна XSS».
 - **Незакрытая уязвимость — обязательство** («вход X валидируется»), а не риск.
 
@@ -140,4 +140,4 @@ status: "живой — пополняется при находке, закры
 
 - `project/requirements.md` — обязательства; риск может **породить** требование, но им не станет
 - `project/decisions/` — снижение риска часто оформляется решением (`DEC-NNN`)
-- `.claude/knowledge/security-rules.md`, `knowledge/stacks/security.md` — security baseline
+- `.claude/knowledge/security-rules.md` + `core-team-dev:stacks` (`references/security.md`) — security baseline

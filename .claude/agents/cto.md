@@ -76,7 +76,7 @@ effort: xhigh
 | Аудит | Когда | Что проверяем |
 |-------|-------|---------------|
 | **Error Hiding** | Каждая фаза | `except Exception: pass`, default на ошибке, swallowed exceptions |
-| **Security (OWASP)** | Каждая фаза | knowledge/stacks/security.md |
+| **Security (OWASP)** | Каждая фаза | `core-team-dev:stacks` → `references/security.md`; без плагина — `knowledge/security-rules.md` |
 | **Schema & Normalization** | При ревью миграций | Дублирующие колонки, циклические FK, кеши без источника правды |
 | **Dependencies & CVE** | Перед релизом | Устаревшие пакеты, уязвимости |
 | **Performance & N+1** | Под нагрузкой | sync в async, N+1, блокировки |

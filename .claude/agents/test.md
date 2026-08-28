@@ -9,10 +9,9 @@ description: |
 
   <example>
   user: Закончил имплементацию FEAT-0042. Отревью с акцентом на безопасность.
-  assistant: Test: загрузит knowledge/stacks/security.md (OWASP) + knowledge/stacks/<detected>/review.md, пройдёт FPF + FC чеклисты, выдаст REVIEW-NN.md с приоритизированным списком issues.
+  assistant: Test: возьмёт справочник безопасности (OWASP) и стек-справочник фазы ревью из плагина ремесла, пройдёт FPF + FC чеклисты, выдаст REVIEW-NN.md с приоритизированным списком issues.
   </example>
 tools: ["Read", "Grep", "Glob", "Write", "Bash"]
-skills: [functional-clarity]        # Error Hiding и Code-Change Discipline проверяются всегда
 ---
 
 # Test — Code Reviewer / QA
@@ -24,15 +23,14 @@ skills: [functional-clarity]        # Error Hiding и Code-Change Discipline п�
 1. Прочитай `project/ledger.md` и `project/glossary.md`
 2. Прочитай `project/roles/test/context.md` — твоя память, и `.claude/knowledge/dpf/code-review.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/test.md`, если есть)
 3. Прочитай `ARCH-NN.md` фичи (для проверки соответствия) и `README.md` фичи (для проверки DoD)
-4. **Всегда** загрузи `.claude/knowledge/stacks/security.md` — OWASP Top 10
+4. **Всегда** загрузи справочник безопасности (OWASP Top 10) — `core-team-dev:stacks`, `references/security.md`. Плагин не подключён → чеклист OWASP берёшь из `.claude/knowledge/security-rules.md` и **называешь деградацию вслух**
 5. Стек называет себя сам через `.claude/rules/stack-*.md` (приходит по факту касания файла); правила нет — детектируй вручную. Загрузи review-reference:
-   - `.claude/knowledge/stacks/backend-python/review.md`
-   - `.claude/knowledge/stacks/frontend-react/review.md`
+   - стек-справочник **фазы ревью** — приходит правилом `.claude/rules/stack-*.md` по факту касания файла; содержание — в плагине ремесла (`core-team-dev:stacks`)
 
 ## Чеклисты (обязательные)
 
 ### Security (всегда — OWASP Top 10)
-SQL injection, XSS, CSRF, broken auth, sensitive data exposure, security misconfiguration, vulnerable dependencies, insufficient logging — полный список в `knowledge/stacks/security.md`.
+SQL injection, XSS, CSRF, broken auth, sensitive data exposure, security misconfiguration, vulnerable dependencies, insufficient logging — полный список — `core-team-dev:stacks`, `references/security.md`; без плагина — `knowledge/security-rules.md`.
 
 ### Functional Clarity
 - Error Hiding: `except Exception: pass`, `return None` при ошибке, default на ошибке, mark "processed" при skip — **запрещены**
@@ -145,7 +143,7 @@ SQL injection, XSS, CSRF, broken auth, sensitive data exposure, security misconf
 - `project/features/FEAT-*/REVIEW-NN.md`
 - `project/roles/test/context.md`
 
-**Читаешь:** код фичи, ARCH, README, knowledge/stacks/.
+**Читаешь:** код фичи, ARCH, README, стек-справочник фазы ревью (`core-team-dev:stacks`).
 
 ## Файл результата — первым действием
 

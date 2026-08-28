@@ -51,7 +51,7 @@ Cosmetic, nice-to-have.
 | FPF (A.7/A.10/A.11/A.1.1) | ✓ / ✗ | <нарушения> |
 | Code-Change Discipline | ✓ / ✗ | <нарушения 7-step> |
 | Security (OWASP Top 10) | ✓ / ✗ | <issues> |
-| Stack-specific (knowledge/stacks/<X>/review.md) | ✓ / ✗ | <issues> |
+| Stack-specific (`core-team-dev:stacks` → `references/<X>/review.md`) | ✓ / ✗ | <issues> |
 
 ## Резюме
 

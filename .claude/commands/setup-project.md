@@ -79,33 +79,37 @@ description: "Первичная настройка проекта: домен, 
 
 ### Шаг 4: Создание структуры project/
 
-Создай файлы из шаблонов:
+Создай файлы из шаблонов. **Три сорта:** ⬤ заводится сразу · ○ по мере появления
+предмета · ◇ приезжает вместе с плагином (заводить нечем, пока точка не закрыта).
 
 ```
 project/
-├── ledger.md            ← templates/project/ledger.md
-├── inbox.md             ← templates/project/inbox.md (сырой вход Founder + триаж)
-├── backlog.md           ← templates/project/backlog.md
-├── values.md            ← настроенный на шаге 3
-├── artifacts/README.md  ← templates/project/artifacts-readme.md (правило деления каталога + потолок)
-├── artifacts/drift-registry.md ← templates/project/drift-registry-template.md (где решение разошлось с реальностью)
-├── requirements.md      ← templates/project/requirements.md (обязательства: FR-NN/NFR-NN, исполнитель, проверка)
-├── glossary.md          ← templates/project/glossary.md (RU/EN/определение/«не является»)
-├── domain.md            ← templates/project/domain.md (факты о реальности, по bounded contexts)
-├── dpf/                 ← предметные учебники (Шаг 4b): <domain>.md + roles/<role>.md
-├── roles/
-│   ├── facilitator/context.md  ← templates/project/role-context-template.md
-│   ├── architect/context.md
-│   ├── dev/context.md
-│   ├── test/context.md
-│   ├── cto/context.md
-│   ├── designer/context.md
-│   ├── keeper/context.md
-│   └── customer/context.md
-├── artifacts/           ← по мере создания (artifact-template.md)
-├── decisions/           ← по мере создания (adr-template.md)
-├── sessions/            ← по мере сессий (session-template.md, handoff-template.md)
-└── features/            ← по мере /plan-feat (feature-template.md)
+│  ── ПРОЦЕСС ────────────────────────────────────────────────────────────────
+├── ⬤ ledger.md            ← templates/project/ledger.md — где мы сейчас
+├── ⬤ inbox.md             ← inbox.md — сырой вход Founder до разбора
+├── ⬤ values.md            ← настроенный на шаге 3 — конституция
+├── ⬤ glossary.md          ← glossary.md — язык проекта (RU/EN/«не является»)
+├── ⬤ connection-points.md ← connection-points.md — чем закрыт каждый слой (шаг 4c)
+├── ⬤ roles/<role>/context.md  ← role-context-template.md — память ролей
+├── ○ decisions/           ← adr-template.md — по мере решений
+├── ○ sessions/            ← session-template.md — по мере сессий
+│
+│  ── ПРАВДА ─────────────────────────────────────────────────────────────────
+├── ⬤ domain.md            ← domain.md — факты о мире; детей не имеет
+├── ⬤ claims.md            ← claims.md — утверждения CLM-NN, у каждого «чем опровергается»
+├── ⬤ requirements.md      ← requirements.md — FR-NN/NFR-NN, пока не закрыта точка `requirements`
+├── ○ passport.md          ← плагин продуктового контура, команда `/change`
+├── ○ design-system.md     ← design-system.md — облик, когда есть экраны
+├── ◇ scenarios/           ← точка `scenarios`: инструмент дерева спецификации
+├── ◇ spec/                ← точки `requirements` + `module-contracts`
+│
+│  ── РАБОТА ─────────────────────────────────────────────────────────────────
+├── ⬤ backlog.md           ← backlog.md — пока не заведены ленты work/
+├── ⬤ artifacts/README.md  ← artifacts-readme.md — правило деления каталога
+├── ⬤ artifacts/drift-registry.md ← drift-registry-template.md
+├── ○ work/                ← work-lanes.md — пять лент, когда работа пошла
+├── ○ ideas/ · deliveries/ · features/   ← по мере `/plan-feat`
+└── ⬤ dpf/                 ← предметные учебники (шаг 4b)
 ```
 
 > **Память ролей создаётся копированием, а не записью:**
@@ -153,6 +157,27 @@ generic role-DPF достаточно для старта; зафиксируй 
 
 **4b.4 — Регистрация.** Роли читают свой DPF в активационном ритуале: сначала
 `project/dpf/roles/<role>.md` (оверлей, если есть), затем `.claude/knowledge/dpf/<role>.md` (база).
+
+### Шаг 4c: Точки подключения — чем закрыт каждый слой работы
+
+Ядро держит правила, плагины держат инструменты. Ядро объявляет **точки** — обязательства слоёв
+работы; проект называет, чем каждая закрыта. Канон и правила — `.claude/knowledge/connection-points.md`.
+
+**4c.1 — Опись установленного.** `claude plugin list` — что уже стоит и что из этого **включено**.
+Установленный и выключенный плагин точку не закрывает.
+
+**4c.2 — Копия шаблона.** `.claude/templates/project/connection-points.md` → `project/connection-points.md`.
+
+**4c.3 — Заполнение по одной точке.** По каждой строке таблицы — один вопрос Founder-у: чем
+закрываем? Варианты: плагин из списка установленных · плагин, который надо поставить · `ядро` ·
+прочерк с объявленной деградацией. Группируй 2–4 точки на вызов `AskUserQuestion`.
+
+**4c.4 — Установка выбранного.** `claude plugin marketplace add <владелец>/<репозиторий>` и
+`claude plugin install <плагин>@<маркетплейс> --scope project`. Установка применяется со следующей
+сессии — скажи это Founder-у вслух, иначе первая сессия пройдёт без инструмента.
+
+**4c.5 — Проверка.** `bash .claude/hooks/check-connection-points.sh` — красное разбирается сейчас,
+а не откладывается: незаполненная точка в первый день неотличима от заполненной на третий месяц.
 
 ### Шаг 5: Output Style
 
@@ -227,14 +252,22 @@ generic role-DPF достаточно для старта; зафиксируй 
 
 **CTO владеет этим артефактом.**
 
-### Шаг 7: Bootstrap planner-context.md
+### Шаг 7: Bootstrap planner-context.md — только если закрыта точка `planning`
 
-Запусти `Agent(subagent_type=facilitator)` с задачей: «Активируй skill `planner` (см. SKILL.md) и выполни bootstrap — создай `<project-root>/.claude/planner-context.md` по `references/template-context.md` и заполни секции 1-4 (каталог subagent-ов, slash-команд, skills, default-моделей) из текущего состояния `.claude/`.»
+Планировщик приезжает плагином ремесла (`core-team-dev`), в ядре его нет. Точка `planning` не
+закрыта — **шаг пропускается целиком**, и это записывается в `project/connection-points.md`
+деградацией, а не молчанием.
+
+Точка закрыта: запусти `Agent(subagent_type=facilitator)` с задачей: «Активируй навык
+`core-team-dev:planner` и выполни bootstrap — создай `<project-root>/.claude/planner-context.md`
+по его `references/template-context.md` и заполни секции 1-4 (каталог subagent-ов,
+slash-команд, навыков, default-моделей) из текущего состояния `.claude/` **и списка
+установленных плагинов**.»
 
 После bootstrap planner-context.md содержит:
 - §1 Каталог 8 subagent-ов с моделями и триггерами
 - §2 Каталог slash-команд (/facilitator, /setup-project, /end-session, /self-service, /plan-feat, /plan, /plan-do, /plan-reflect, /update-docs)
-- §3 Каталог skills (functional-clarity, tdd-master, navigator, fpf-integration, planner, planner-reflect, llms-keeper)
+- §3 Каталог навыков: ядро (navigator, fpf-integration, dpf-builder, llms-keeper) + приехавшие плагинами (`core-team-dev:*` и прочие)
 - §4 Default-модели (Opus 4.7, Sonnet 4.6, Haiku 4.5)
 - §5 Хранение фич: `project/features/FEAT-NNNN-<slug>/`
 - §6 Соглашения именования
@@ -247,7 +280,7 @@ generic role-DPF достаточно для старта; зафиксируй 
 ### Шаг 9: Проверка целостности
 
 Запусти `Agent(subagent_type=facilitator)` с заданием: «`/self-service` в режиме аудита **полученной конструкции пользователя** — проверь, что:
-- все активные subagent-ы достижимы, нет осиротевших артефактов, File Ownership непротиворечив (см. таблицу в CLAUDE.md), все skills и команды на месте, planner-context.md согласован с фактическим состоянием `.claude/`;
+- все активные subagent-ы достижимы, нет осиротевших артефактов, File Ownership непротиворечив (см. таблицу в CLAUDE.md), все навыки и команды на месте (**включая приехавшие плагинами** — сверь с `project/connection-points.md`), planner-context.md согласован с фактическим состоянием;
 - **DPF-связность:** у каждой активной роли есть читаемый role-DPF (`.claude/knowledge/dpf/<craft>.md`), DPF неактивных ролей удалены (Шаг 4b.1), нет висячих ссылок на удалённые DPF;
 - **дедуп:** нет дублирующихся инструкций между ролями/промптами (одно правило — один дом);
 - **противоречия:** нет конфликтующих инструкций между ролями, DPF и values.md;
@@ -268,7 +301,7 @@ generic role-DPF достаточно для старта; зафиксируй 
 2. Ценности по дефолту (Шаг 3)
 3. Структура `project/` из шаблонов (Шаг 4)
 4. Output Style (Шаг 5)
-5. Bootstrap planner-context.md (Шаг 7)
+5. Bootstrap planner-context.md (Шаг 7 — если закрыта точка `planning`)
 6. `/facilitator` для начала работы — остальное по мере необходимости
 
 ## Critical: вопросы только через AskUserQuestion
