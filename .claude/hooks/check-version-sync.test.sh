@@ -8,7 +8,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-version-sync.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=15
+EXPECTED_CASES=17
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=0   # мутации для этого набора не пересчитывались поимённо
@@ -74,6 +74,14 @@ check "…и сказано почему" "да" "$(says "$(run_out "$R")" "не
 R=$(make_repo 5.0.0 - -)
 printf '{\n  "name": "core-team"\n}\n' > "$R/.claude-plugin/plugin.json"
 check "манифест есть, объявлений ноль" 1 "$(run_code "$R")"
+
+# --- Предрелизная версия: фреймворк обязан уметь объявить незрелость ----------
+# Замер: попытка пометить сборку `6.0.0-alpha.1` роняла сверку — бейдж разбирался
+# как `6.0.0`, и объявления «расходились» на ровном месте.
+R=$(make_repo "6.0.0-alpha.1" "6.0.0-alpha.1" "6.0.0--alpha.1")
+check "предрелизная версия сходится" 0 "$(run_code "$R")"
+R=$(make_repo "6.0.0-alpha.1" "6.0.0-alpha.2" "6.0.0--alpha.1")
+check "расхождение предрелизных ловится" 1 "$(run_code "$R")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

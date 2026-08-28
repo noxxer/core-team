@@ -147,7 +147,7 @@ alternatives_considered: N  # Cynefin-aware: Clear → 1 ОК; Complicated/Compl
 
 ### Протокол доступа
 
-- **Шаг 0 — pre-flight:** проверь наличие спеки до первого обращения — глобально `~/.claude/knowledge/fpf/FPF-Spec.md` или локально `.claude/knowledge/fpf/FPF-Spec.md`. Нет файла → **degraded mode**: работай по `glossary.md` + `tasks-lookup.md` (для большинства решений — NQD, Evidence Graph, Bounded Context, DRR — этого достаточно) и предложи пользователю `bash .claude/skills/fpf-integration/scripts/fetch-fpf-spec.sh`.
+- **Шаг 0 — pre-flight:** проверь наличие спеки до первого обращения — глобально `~/.claude/knowledge/fpf/FPF-Spec.md` или локально полная спецификация FPF (внешний источник, в поставку не входит). Нет файла → **degraded mode**: работай по `glossary.md` + `tasks-lookup.md` (для большинства решений — NQD, Evidence Graph, Bounded Context, DRR — этого достаточно) и предложи пользователю `bash .claude/skills/fpf-integration/scripts/fetch-fpf-spec.sh`.
 - **Шаг 1 — task mapping:** определи задачу → найди секцию в `tasks-lookup.md`.
 - **Шаг 2 — grep-first:** ищи по паттерну из `grep-patterns.md`, не по номеру строки (anchor-строки в sections-map приблизительны).
 - **Шаг 3 — context read:** читай вокруг grep-совпадений, не доверяй устаревшим offset-ам.

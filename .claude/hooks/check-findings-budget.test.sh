@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-findings-budget.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=23
+EXPECTED_CASES=29
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=8
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -42,8 +42,12 @@ ledger_with() {  # $1=потолок («-» = поля нет)
   printf '%s/ledger.md' "$d"
 }
 
-run_code() { ( HOOKS_DIR="$1" LEDGER_FILE="${2:-/nonexistent}" bash "$CHECKER" >/dev/null 2>&1 ); printf '%s' "$?"; }
-run_out()  { ( HOOKS_DIR="$1" LEDGER_FILE="${2:-/nonexistent}" bash "$CHECKER" 2>&1 ); }
+# Корень с заведённым `project/`: сводка отказывается работать там, где его нет,
+# потому что приборы адресуют свои предметы только через этот каталог.
+ROOT_OK=$(mktemp -d); TRASH+=("$ROOT_OK"); mkdir -p "$ROOT_OK/project"
+
+run_code() { ( HOOKS_DIR="$1" LEDGER_FILE="${2:-/nonexistent}" bash "$CHECKER" "${3:-$ROOT_OK}" >/dev/null 2>&1 ); printf '%s' "$?"; }
+run_out()  { ( HOOKS_DIR="$1" LEDGER_FILE="${2:-/nonexistent}" bash "$CHECKER" "${3:-$ROOT_OK}" 2>&1 ); }
 
 check() {
   ran=$((ran + 1))
@@ -117,6 +121,24 @@ H=$(new_hooks)
 printf '#!/bin/bash\nexit 0\n' > "$H/check-noTier.sh"; chmod +x "$H/check-noTier.sh"
 check "прибор без тира — сводить нечего" 1 "$(run_code "$H")"
 check "…и это названо отказом" "да" "$(says "$(run_out "$H")" "сводить нечего")"
+
+# --- Корень проекта: молчание приборов не равно чистоте ----------------------
+# Мир с дефектом: сводка, запущенная не из корня проекта, прогоняет приборы, все
+# они не находят своих путей, каждый честно молчит — и сводка печатает «стоп-
+# находок нет». Замер: в пустом каталоге напечатала «прогнано приборов 15» и
+# завершилась успехом. Гейт `/end-session` пройден там, где нет ни одного файла.
+H=$(new_hooks); fake "$H" "тихий" "стоп" "-"
+ROOT_BARE=$(mktemp -d); TRASH+=("$ROOT_BARE")
+check "корня проекта нет — отказ, а не тишина" 1 "$(run_code "$H" "" "$ROOT_BARE")"
+check "…и сказано, что проверки не выполнялись" "да" "$(says "$(run_out "$H" "" "$ROOT_BARE")" "НЕ ВЫПОЛНЯЛИСЬ")"
+check "…и названы обе причины" "да" "$(says "$(run_out "$H" "" "$ROOT_BARE")" "setup-project")"
+
+check "названного каталога не существует — отказ" 1 "$(run_code "$H" "" "/nonexistent-root-$$")"
+check "…и это не выдаётся за прогон" "да" "$(says "$(run_out "$H" "" "/nonexistent-root-$$")" "не выполнялись")"
+
+# Корень, названный аргументом, работает: это же и способ прогнать сводку по
+# чужому проекту, не переходя в него.
+check "корень с project/ — сводка работает" 0 "$(run_code "$H" "" "$ROOT_OK")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

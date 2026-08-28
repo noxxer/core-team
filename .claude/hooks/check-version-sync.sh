@@ -53,7 +53,11 @@ claim "${PLUGIN}" "${plugin_version}"
 
 for readme in "${ROOT}/README.md" "${ROOT}/README.en.md"; do
   [ -f "${readme}" ] || continue
-  badge=$(grep -m1 -oE 'badge/version-[0-9]+\.[0-9]+\.[0-9]+' "${readme}" | sed 's|badge/version-||')
+  # Предрелизная версия (`6.0.0-alpha.1`) — законное состояние: фреймворк обязан
+  # уметь объявить незрелость. В бейджах shields.io дефис экранируется двойным,
+  # поэтому `--alpha.1` разбирается обратно в `-alpha.1`.
+  badge=$(grep -m1 -oE 'badge/version-[0-9]+\.[0-9]+\.[0-9]+(--[a-z]+(\.[0-9]+)?)?' "${readme}" \
+          | sed 's|badge/version-||; s|--|-|')
   claim "${readme}" "${badge}"
 done
 

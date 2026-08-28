@@ -7,17 +7,22 @@ paths:
 
 # Стек: Python-бэкенд
 
-Ты работаешь с Python-кодом. Стек-справочник загружается **по фазе**, а не целиком:
+Ты работаешь с Python-кодом. Стек-справочник читается **по фазе**, а не целиком:
 
-| Фаза | Файл |
-|------|------|
-| Проектирование (architect) | `.claude/knowledge/stacks/backend-python/design.md` |
-| Реализация (dev) | `.claude/knowledge/stacks/backend-python/implement.md` |
-| Ревью (test) | `.claude/knowledge/stacks/backend-python/review.md` + `.claude/knowledge/stacks/security.md` |
+| Фаза | Что читать |
+|------|-----------|
+| Проектирование (architect) | навык `core-team-dev:stacks`, `references/backend-python/design.md` |
+| Реализация (dev) | тот же навык, `references/backend-python/implement.md` |
+| Ревью (test) | `references/backend-python/review.md` + `references/security.md` (OWASP) |
 
-Прочитай нужный файл прежде, чем предлагать решение. Стек-нейтральные принципы — в
-`.claude/skills/functional-clarity/`.
+Прочитай нужный справочник прежде, чем предлагать решение.
 
-> Это правило — **триггер, а не копия**. Единственный источник содержания —
-> `knowledge/stacks/`, чтобы не разъезжаться. Раньше загрузка держалась на том, что роль
-> сама «детектирует стек»: обещание в промпте вместо срабатывания по факту касания файла.
+**Плагин ремесла не подключён** (точка `craft:tdd` / `craft:clarity` в
+`project/connection-points.md` пуста) → работаешь на общих принципах: выжимка Функциональной
+ясности в `CLAUDE.md`, `.claude/knowledge/code-change-discipline.md`,
+`.claude/knowledge/security-rules.md`. **Скажи об этом вслух** — конвенции незнакомого стека,
+выдуманные по аналогии, выглядят как знание.
+
+> Это правило — **триггер, а не копия**. Единственный источник содержания — навык
+> `core-team-dev:stacks`, и разъехаться им нечем. Правило живёт в ядре, потому что канал
+> доставки по `paths:` проектный: плагины `rules/` не поставляют.

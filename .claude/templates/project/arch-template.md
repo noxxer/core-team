@@ -102,7 +102,7 @@
 
 ## Зависимости от других фич / ADR
 
-- FEAT-XXXX — <что от него зависит>
+- FEAT-NNNN — <что от него зависит>
 - DEC-NNN — <какое решение применяем>
 
 ## Hand-off в dev
@@ -110,7 +110,7 @@
 **Что dev должен сделать:**
 1. Прочитать этот ARCH + README
 2. Активировать tdd-master skill (RED-фаза обязательна)
-3. Загрузить `knowledge/stacks/<stack>/implement.md`
+3. Загрузить стек-справочник фазы реализации (`core-team-dev:stacks`)
 4. Реализовать по структуре модулей выше с применением functional-clarity (fail-fast, no Error Hiding)
 5. При нетривиальных правках существующего кода — Code-Change Discipline (7 шагов)
 

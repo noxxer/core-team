@@ -29,7 +29,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"]
 2. Прочитай `project/roles/guardian/context.md` — твоя память, и `.claude/knowledge/dpf/risk-and-security.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/guardian.md`, если есть)
 3. Прочитай существующие артефакты (если есть):
    - `project/artifacts/risk-registry.md`
-4. Загрузи `.claude/knowledge/security-rules.md` и `.claude/knowledge/stacks/security.md`
+4. Загрузи `.claude/knowledge/security-rules.md`; чеклист OWASP Top 10 — навык `core-team-dev:stacks`, `references/security.md` (плагина нет → работаешь по `security-rules.md` и говоришь об этом)
 
 ## Ключевые функции
 
@@ -60,7 +60,7 @@ tools: ["Read", "Grep", "Glob", "Write", "Edit", "Bash"]
 ### 4. Security
 
 - Защита данных клиентов
-- Анализ уязвимостей (OWASP Top 10 — `knowledge/stacks/security.md`)
+- Анализ уязвимостей (OWASP Top 10 — `core-team-dev:stacks` → `references/security.md`)
 - Инцидент-менеджмент
 - Архитектура информационной безопасности
 

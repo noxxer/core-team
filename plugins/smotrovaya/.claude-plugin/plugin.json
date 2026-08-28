@@ -1,0 +1,19 @@
+{
+  "name": "smotrovaya",
+  "version": "0.1.0",
+  "description": "Смотровая — визуальный стенд сценариев: продукт смотрится глазами, а не тестами. Стенд гоняет реальное приложение по сценариям и раскладывает кадры в ленту; человек листает ленту и по трём строкам замечания отдаёт агенту адрес шага сценария, а не место в коде. Закрывает точку подключения `scenario-verification` фреймворка Core Team: доказательство, что сценарий проходится. Девять инвариантов стенда — дубль кадра падает, подпись кадра измеряется, версия есть пара (код, прогон), прогон сериализует волну — куплены разбором 227 снимков боевого проекта.",
+  "author": {
+    "name": "noxxer"
+  },
+  "homepage": "https://github.com/noxxer/core-team",
+  "repository": "https://github.com/noxxer/core-team",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "keywords": [
+    "visual-testing",
+    "screenshot-deck",
+    "scenario-verification",
+    "playwright",
+    "core-team",
+    "connection-point"
+  ]
+}

@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-requirements.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=25
+EXPECTED_CASES=29
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=8
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -124,6 +124,28 @@ printf '\n## Снятые требования\n\n| NFR-90 | старое | | | 
 check "соседний раздел не считается" 0 "$(run_code "$F")"
 
 check "файла нет вовсе — тихо" 0 "$(run_code "/nonexistent-requirements-$$")"
+
+# --- Адрес ведёт в никуда ----------------------------------------------------
+# Мир с дефектом: заявить «покрыто: `artifacts/замеры.md`» можно было без файла.
+# Указатель дороже пустой ячейки — он выглядит ответом, и роль идёт по нему.
+# Правило уже действовало в двух местах фреймворка (колонка «Как работать» в
+# активах, ссылки внутри `.claude/`), а в требованиях его не было.
+F=$(new_file); head_of "$F" 5
+row "$F" FR-10 "договор аренды" "facilitator" "замер плана помещения" "покрыто: \`artifacts/нет-такого.md\`"
+check "адрес покрытия ведёт в никуда" 1 "$(run_code "$F")"
+check "…и назван поимённо" "да" "$(says "$(run_out "$F")" "artifacts/нет-такого.md")"
+
+# Файл на месте — находки нет.
+F=$(new_file); head_of "$F" 5
+D=$(dirname "$F"); mkdir -p "$D/artifacts"; printf 'замеры\n' > "$D/artifacts/есть.md"
+row "$F" FR-11 "договор аренды" "facilitator" "замер плана помещения" "покрыто: \`artifacts/есть.md\`"
+check "адрес существует — находки нет" 0 "$(run_code "$F")"
+
+# Граница: описание работы словами путём не является и на существование не
+# проверяется. Иначе прибор краснел бы на любой честной формулировке.
+F=$(new_file); head_of "$F" 5
+row "$F" FR-12 "опрос команды" "facilitator" "замер маршрута в час пик, три повторения" "покрыто"
+check "описание словами путём не считается" 0 "$(run_code "$F")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

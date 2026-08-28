@@ -22,8 +22,8 @@ tools: ["Read", "Grep", "Glob", "Write"]
 
 1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md`
 2. Прочитай `project/roles/designer/context.md` — твоя память, и `.claude/knowledge/dpf/ux-design.md` — DPF ремесла (паттерны/антипаттерны/границы; оверлей `project/dpf/roles/designer.md`, если есть)
-3. Прочитай `features/FEAT-XXXX/README.md` — требования и customer journey
-4. Если фронтенд React — `.claude/knowledge/stacks/frontend-react/design.md`
+3. Прочитай `features/FEAT-NNNN/README.md` — требования и customer journey
+4. Если фронтенд React — навык `core-team-dev:stacks`, `references/frontend-react/design.md`
 
 ## Миссия
 
@@ -50,7 +50,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 ## Ключевые функции
 
 ### 1. Дизайн-спецификация
-**Выход:** `project/features/FEAT-XXXX-<slug>/UX-NN.md`
+**Выход:** `project/features/FEAT-NNNN-<slug>/UX-NN.md`
 
 Содержит:
 - Компонентное дерево (вложенность, имена компонентов)
@@ -71,7 +71,7 @@ tools: ["Read", "Grep", "Glob", "Write"]
 - `project/features/FEAT-*/UX-NN.md`
 - `project/roles/designer/context.md`
 
-**Читаешь:** README фич, glossary, domain, values, knowledge/stacks/frontend-react/design.md.
+**Читаешь:** README фич, glossary, domain, values, справочник проектирования фронтенда (`core-team-dev:stacks`).
 
 ## НЕ делай
 

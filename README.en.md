@@ -5,7 +5,7 @@
 > A self-bootstrapping multi-agent framework for Claude Code.
 > One conversation unfolds a team of specialized subagent-roles with persistent memory and mechanical quality gates.
 
-![version](https://img.shields.io/badge/version-5.2.1-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.3.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 A dev core: **one Facilitator + 6 roles + DPF craft handbooks + memory + mechanical gates**.
 
@@ -160,6 +160,41 @@ One install — one `.claude/` (the tool) and one `project/` (the memory) at the
 ### Don't stack other plugins with the same methodologies
 
 Core Team ships its own versions of Functional Clarity, FPF, TDD, and planner. A second plugin with the same methodology produces contradictory guidance and wastes tokens. Attribution for the groundwork is in [CREDITS](CREDITS.md).
+
+---
+
+## Tool plugins
+
+The core holds the rules; plugins hold the tools. The core declares **connection points** —
+obligations of each layer of work — and a plugin declares which one it closes; an unclosed point
+**degrades out loud** instead of going quiet. The canon lives in
+`.claude/knowledge/connection-points.md` and is checked by `hooks/check-connection-points.sh`.
+
+Plugins do **not** arrive with the `.claude/` overlay — install them separately:
+
+```bash
+claude
+> /plugin marketplace add noxxer/core-team
+> /plugin install smotrovaya@core-team
+```
+
+> **The plugin catalogue lives in the repository, not in the `.claude/` folder.** An overlay
+> install does not bring it along, so add the marketplace **by repository name**
+> (`noxxer/core-team`), not by a path to your own copy.
+
+| Plugin | Closes | What it gives |
+|---|---|---|
+| [`smotrovaya`](plugins/smotrovaya/) | `scenario-verification` | The viewing deck: the product is looked at with eyes, not asserted by tests. Frame contract, nine run invariants, scenario form, deck review in lanes. `/smotrovaya-init`, `/smotrovaya-run`, `/smotrovaya-review`, agent `deck-reviewer` |
+| [`product-loop`](plugins/product-loop/) | `product-truth` | The product loop: the passport as today's truth, scenarios as usage paths, **a change estimate before consent**. An edit does not spawn tasks — it turns guards red. `/passport`, `/scenario`, `/radius` |
+| [`core-team-dev`](plugins/core-team-dev/) | `craft:tdd` · `craft:clarity` · `craft:stacks` · `planning` | The development craft: TDD, Functional Clarity (22 principles), the planner, stack references by phase and OWASP, and the `/plan-feat` → `/plan` → `/plan-do` → `/plan-reflect` pipeline. The `dev`/`test`/`architect` roles stay in the core |
+
+**The price is stated honestly:** an enabled plugin adds its own tax to every session (about 900
+tokens for Smotrovaya). Install what you actually work with.
+
+The points `requirements`, `module-contracts`, `scenarios` and `planning` are well covered by other
+marketplaces — [`i-m-senior-developer`](https://github.com/spumer/i-m-senior-developer) (planning)
+and `senior-developer-tools` (module specification tree). The framework neither duplicates nor forks
+them: it names the point, and the project decides what closes it.
 
 ---
 
