@@ -5,7 +5,7 @@
 > Саморазворачивающийся мультиагентный фреймворк для Claude Code.
 > Один разговор разворачивает команду специализированных subagent-ролей с памятью между сессиями и механическими гейтами качества.
 
-![version](https://img.shields.io/badge/version-5.2.1-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-6.0.0--alpha.1-orange) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 Dev-ядро: **один Facilitator + 6 ролей + DPF-учебники ремёсел + память + механические гейты**.
 
@@ -163,6 +163,42 @@ Core Team везёт свои версии Functional Clarity, FPF, TDD и plann
 
 ---
 
+## Плагины-инструменты
+
+Ядро держит правила, плагины держат инструменты. Ядро объявляет **точки подключения** —
+обязательства слоёв работы, — а плагин объявляет, что закрывает; незакрытая точка **деградирует
+вслух**, а не молчит. Канон точек — `.claude/knowledge/connection-points.md`, проверяет
+`hooks/check-connection-points.sh`.
+
+Плагины **не приезжают** с наложением `.claude/` — они ставятся отдельно:
+
+```bash
+claude
+> /plugin marketplace add noxxer/core-team
+> /plugin install smotrovaya@core-team
+```
+
+> **Витрина плагинов лежит в репозитории, а не в папке `.claude/`.** При установке
+> наложением она до проекта не доезжает, поэтому маркетплейс добавляется **по имени
+> репозитория** (`noxxer/core-team`), а не путём к своей копии. Локальный путь работает
+> только если указать корень клонированного репозитория фреймворка.
+
+| Плагин | Закрывает точку | Что даёт |
+|---|---|---|
+| [`smotrovaya`](plugins/smotrovaya/) | `scenario-verification` | визуальный стенд сценариев: продукт смотрится глазами, а не тестами. Контракт кадра, девять инвариантов прогона, форма сценария, разбор ленты дорожками. `/smotrovaya-init`, `/smotrovaya-run`, `/smotrovaya-review`, агент `deck-reviewer` |
+| [`product-loop`](plugins/product-loop/) | `product-truth` | продуктовый контур: паспорт продукта как правда на сегодня, сценарии как пути пользования, **смета изменения до согласия**. Правка не порождает задачи — она красит гарды красным. `/passport`, `/scenario`, `/radius` |
+| [`core-team-dev`](plugins/core-team-dev/) | `craft:tdd` · `craft:clarity` · `craft:stacks` · `planning` | ремесло разработки: TDD, Функциональная ясность (22 принципа), планировщик, стек-справочники по фазам и OWASP, конвейер `/plan-feat` → `/plan` → `/plan-do` → `/plan-reflect`. Роли `dev`/`test`/`architect` остаются в ядре |
+
+**Цена названа честно:** включённый плагин добавляет свой налог в каждую сессию (у Смотровой —
+около 900 токенов). Ставь то, чем работаешь.
+
+Точки `requirements`, `module-contracts`, `scenarios` и `planning` хорошо закрываются чужими
+маркетплейсами — [`i-m-senior-developer`](https://github.com/spumer/i-m-senior-developer)
+(планирование) и `senior-developer-tools` (дерево спецификации модулей). Фреймворк их не
+дублирует и не форкает: он называет точку, а чем её закрыть — решает проект.
+
+---
+
 ## Структура
 
 ```
@@ -170,12 +206,17 @@ Core Team везёт свои версии Functional Clarity, FPF, TDD и plann
 ├── CLAUDE.md             # контракт: роли, протоколы, инварианты, гейты
 ├── agents/               # 6 ядровых ролей (subagents)
 ├── commands/             # slash-команды
-├── skills/               # functional-clarity, tdd-master, planner(+reflect), navigator, fpf, dpf-builder, llms-keeper
-├── knowledge/            # core-protocols, biases, security, cost-model, fpf/, dpf/, stacks/
+├── skills/               # navigator, fpf-integration, dpf-builder, llms-keeper (ремесло разработки — в плагине)
+├── knowledge/            # core-protocols, biases, security, cost-model, connection-points, code-change-discipline, fpf/, dpf/
 ├── hooks/                # session-start.sh (контракт + термометр памяти) + *.test.sh (доказательства)
 ├── output-styles/        # core-team (инварианты + end-session nudge)
 ├── templates/            # шаблоны project/ + opt-in роли
 └── planner-context.md    # память оркестратора (калибровка оценок)
+
+plugins/                  # плагины-инструменты (ставятся отдельно, см. выше)
+├── smotrovaya/           # визуальный стенд сценариев
+├── product-loop/         # паспорт продукта, сценарии, смета изменения
+└── core-team-dev/        # ремесло разработки: TDD, FC, planner, стеки
 
 project/                  # создаётся /setup-project (gitignored — рантайм проекта)
 ├── ledger.md · glossary.md · domain.md · values.md
