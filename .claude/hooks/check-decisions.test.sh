@@ -13,10 +13,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decisions.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=22
+EXPECTED_CASES=26
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=0   # мутации для этого набора не пересчитывались поимённо
+MUTATIONS=2   # документ как адрес: распознавание якоря и его обязательность
 ran=0
 failed=0
 TRASH=()
@@ -149,6 +149,25 @@ check "ledger отсутствует — не роняет" 0 "$(run_checker "$D
 LEDGER_OVERRIDE=$(make_ledger "$D" 'Фаза: пилот. Решений пока не принимали.')
 check "в ledger нет упоминаний — тихо" 0 "$(run_checker "$D")"
 unset LEDGER_OVERRIDE
+
+# --- Решение закреплено документом, а не кодом --------------------------------
+# Мир с дефектом: белый список расширений состоял из кода — .py, .ts, .sh, .go.
+# Проект без кода закрепить решение не мог ничем и был вынужден писать «гарда
+# нет», то есть неправду: гард есть, он документ. Сам фреймворк закрепляет свои
+# решения правилами в `.claude/CLAUDE.md` и по собственной мерке был бы незакреплён.
+D=$(make_dir); add_decision "$D" 201 2026-09-01 'project/requirements.md::FR-01'
+check "документ с якорем — адрес" 0 "$(run_checker "$D")"
+
+D=$(make_dir); add_decision "$D" 202 2026-09-01 'docs/rules.md#deadline-section'
+check "якорь решёткой тоже адрес" 0 "$(run_checker "$D")"
+
+# Граница: файл целиком адресом не является — иначе отписка вернулась бы через
+# другую дверь, только с расширением .md.
+D=$(make_dir); add_decision "$D" 203 2026-09-01 'README.md'
+check "документ без якоря — не адрес" 1 "$(run_checker "$D")"
+
+D=$(make_dir); add_decision "$D" 204 2026-09-01 'project/requirements.md'
+check "путь к документу без места — не адрес" 1 "$(run_checker "$D")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"

@@ -30,6 +30,10 @@
 set -uo pipefail
 
 REQUIREMENTS=${1:-${REQUIREMENTS_FILE:-project/requirements.md}}
+# Пути в таблице пишутся от корня проекта — того каталога, где лежит сам файл
+# требований. Второй попыткой проверяется путь от текущего каталога: запись вида
+# `project/artifacts/x.md` законна и означает то же место.
+ROOT_DIR=${REQUIREMENTS_ROOT:-$(dirname "${1:-${REQUIREMENTS_FILE:-project/requirements.md}}")}
 POINTS=${CONNECTION_POINTS_FILE:-project/connection-points.md}
 
 # Спрашиваем у таблицы подключений, кто ведёт слой требований. Если его ведёт
@@ -85,6 +89,7 @@ trim() { printf '%s' "$1" | sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//; s/^\*+
 
 examined=0
 no_source=()
+broken_ref=()
 claimed_unverified=()
 unassigned=()
 
@@ -104,6 +109,22 @@ while IFS= read -r row; do
   case "${status}" in
     *покрыт*|*машин*) is_placeholder "${verify}" && claimed_unverified+=("${id}") ;;
   esac
+
+  # Адрес, ведущий в никуда, — тот же класс, что пустой, но опаснее: он выглядит
+  # ответом. Правило уже действует в двух местах фреймворка (колонка «Как работать»
+  # в активах, ссылки в `.claude/`), а здесь его не было: заявить «покрыто:
+  # `artifacts/замеры.md`» можно было безнаказанно и без файла.
+  # Проверяются только записи, похожие на путь внутри проекта; описание работы
+  # словами («замер маршрута трижды в час пик») путём не является и не проверяется.
+  for cell in "${status}" "${verify}"; do
+    for token in $(printf '%s' "${cell}" | tr -d '`' | tr ' ,;' '\n'); do
+      case "${token}" in
+        project/*|.claude/*|./*|artifacts/*|features/*|spec/*|decisions/*|sessions/*)
+          [ -e "${ROOT_DIR}/${token}" ] || [ -e "${token}" ] \
+            || broken_ref+=("${id} → ${token}") ;;
+      esac
+    done
+  done
 done < <(awk -v want="## ${SECTION}" '
   # Строка внутри HTML-комментария записью не является: там живут образцы формы
   # и временно снятые требования. Иначе прибор краснеет на собственном шаблоне.
@@ -132,6 +153,12 @@ if [ ${#no_source[@]} -gt 0 ]; then
   failed=1
 fi
 
+if [ ${#broken_ref[@]} -gt 0 ]; then
+  printf '\nАДРЕС ВЕДЁТ В НИКУДА (%s): %s.\n' "${#broken_ref[@]}" "$(join_list "${broken_ref[@]}")" >&2
+  printf 'Указатель дороже пустой ячейки: он выглядит ответом. Либо заведи файл, либо\n' >&2
+  printf 'опиши проверку словами — описание путём не считается и не проверяется.\n' >&2
+  failed=1
+fi
 if [ ${#claimed_unverified[@]} -gt 0 ]; then
   printf '\nПОКРЫТИЕ ЗАЯВЛЕНО БЕЗ ПРОВЕРКИ (%s): %s.\n' "${#claimed_unverified[@]}" "$(join_list "${claimed_unverified[@]}")" >&2
   printf 'Статус говорит «покрыто», а адреса проверки нет. Зелёный отчёт без прод-пути —\n' >&2
