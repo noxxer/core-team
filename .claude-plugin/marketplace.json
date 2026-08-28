@@ -1,11 +1,37 @@
 {
   "name": "core-team",
-  "owner": "noxxer",
-  "description": "Core Team — мультиагентный фреймворк для Claude Code.",
+  "owner": {
+    "name": "noxxer",
+    "url": "https://github.com/noxxer"
+  },
+  "description": "Плагины-инструменты фреймворка Core Team. Само ядро ставится наложением папки .claude/ — см. README, — а не отсюда: его файлы лежат в .claude/, и как плагин оно даёт ноль компонентов.",
   "plugins": [
     {
-      "name": "core-team",
-      "source": "noxxer/core-team"
+      "name": "smotrovaya",
+      "description": "Смотровая — визуальный стенд сценариев: продукт смотрится глазами, а не тестами. Закрывает точку подключения `scenario-verification`: доказательство, что сценарий проходится. Девять инвариантов прогона, контракт кадра, разбор ленты дорожками.",
+      "author": {
+        "name": "noxxer"
+      },
+      "source": "./plugins/smotrovaya",
+      "category": "testing"
+    },
+    {
+      "name": "product-loop",
+      "description": "Продуктовый контур: паспорт продукта как правда на сегодня, сценарии как пути пользования, смета изменения до согласия. Закрывает точку подключения `product-truth`. Правка не порождает задачи — она красит гарды красным.",
+      "author": {
+        "name": "noxxer"
+      },
+      "source": "./plugins/product-loop",
+      "category": "workflow"
+    },
+    {
+      "name": "core-team-dev",
+      "description": "Ремесло разработки: TDD, Функциональная ясность (22 принципа), планировщик (architecture и execution), стек-справочники по фазам и OWASP. Закрывает точки `craft:tdd`, `craft:clarity`, `craft:stacks`, `planning`. Роли dev/test/architect остаются в ядре — это их ремесло, а не они сами.",
+      "author": {
+        "name": "noxxer"
+      },
+      "source": "./plugins/core-team-dev",
+      "category": "development"
     }
   ]
 }
