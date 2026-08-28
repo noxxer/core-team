@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decision-decay.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=30
+EXPECTED_CASES=34
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=9
+MUTATIONS=10
 ran=0
 failed=0
 TRASH=()
@@ -130,6 +130,35 @@ D=$(new_dir)
 check "каталог есть, решений нет — законно" 0 "$(run_code "$D")"
 check "…и сказано, что проект только развёрнут" "да" "$(says "$(run_out "$D")" "только развёрнут")"
 check "каталога нет вовсе — тихо" 0 "$(run_code "/nonexistent-decisions-$$")"
+
+# --- YAML-комментарий не является значением -----------------------------------
+# Мир с дефектом: шаблон решения комментирует почти каждое поле, а разбор брал
+# строку целиком. Замер прогона: решение, заведённое из штатного `adr-template.md`,
+# дало две ложных находки подряд — пустое `accepted_until: ""  # ТРЕТИЙ ВИД…`
+# сочлось заполненным и объявлено просроченным долгом, а заполненное
+# `metric_for_revisit: "ставка…"  # обязательно если…` — пустым.
+D=$(new_dir)
+{ printf -- '---\n'
+  printf 'decision_id: "DEC-301"\n'
+  printf 'status: "accepted"\n'
+  printf 'date_proposed: "2026-09-01"\n'
+  printf 'review_due: "2027-01-01"\n'
+  printf 'accepted_until: ""        # ТРЕТИЙ ВИД КРАСНОГО. Заполняется, если решение принято\n'
+  printf 'kill_criteria: "ставка выше 32 000 за м²"\n'
+  printf 'metric_for_revisit: "ставка аренды за м² в год"  # обязательно если решение выбирает инвариант\n'
+  printf -- '---\n\n# DEC-301\n'
+} > "$D/DEC-301.md"
+check "комментарий не делает пустое поле заполненным" 0 "$(run_code "$D")"
+check "…и заполненное — пустым" "нет" "$(says "$(run_out "$D")" "ПОРОГ БЕЗ ПРИБОРА")"
+check "…и долг не объявляется просроченным" "нет" "$(says "$(run_out "$D")" "ДОЛГ ПРОСРОЧЕН")"
+
+# Граница: настоящий просроченный долг ловится по-прежнему.
+D=$(new_dir)
+{ printf -- '---\ndecision_id: "DEC-302"\nstatus: "accepted"\ndate_proposed: "2026-09-01"\n'
+  printf 'review_due: "2027-01-01"\naccepted_until: "2026-01-01"  # взяли долг\n'
+  printf 'kill_criteria: "-"\nmetric_for_revisit: "-"\n---\n\n# DEC-302\n'
+} > "$D/DEC-302.md"
+check "настоящий просроченный долг ловится" 1 "$(run_code "$D")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

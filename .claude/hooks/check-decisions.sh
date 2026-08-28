@@ -70,9 +70,18 @@ frontmatter_of() {
   awk 'NR==1 && $0!="---" {exit} NR==1 {next} /^---[[:space:]]*$/ {exit} {print}' "$1" 2>/dev/null
 }
 
-field_of() {  # $1 = файл, $2 = имя поля шапки
-  frontmatter_of "$1" | grep -m1 -E "^$2:" | sed -E "s/^$2:[[:space:]]*//; s/^\"//; s/\"[[:space:]]*$//"
-}
+# Разбор вынесен в библиотеку: комментарий после значения оставался частью
+# значения, а шаблон решения комментарии содержит на каждом втором поле.
+_lib_fm="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib-frontmatter.sh"
+if [ -f "${_lib_fm}" ]; then
+  # shellcheck source=/dev/null
+  . "${_lib_fm}"
+  field_of() { fm_field "$1" "$2"; }
+else
+  field_of() {  # $1 = файл, $2 = имя поля шапки
+    frontmatter_of "$1" | grep -m1 -E "^$2:" | sed -E "s/^$2:[[:space:]]*//; s/^\"//; s/\"[[:space:]]*$//"
+  }
+fi
 
 LEDGER=${LEDGER_FILE:-project/ledger.md}
 
