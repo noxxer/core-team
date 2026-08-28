@@ -9,7 +9,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=57
+EXPECTED_CASES=60
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=20
@@ -93,6 +93,22 @@ check "…и назван именно он" "да" "$(says "$(run_out "$C")" "�
 C=$(make_copy); printf 'EXPECTED_CASES=9\n' > "$C/.claude/hooks/check-session-reflection.test.sh"
 check "документация отстала от набора" 1 "$(run_code "$C")"
 check "…названы оба числа" "да" "$(says "$(run_out "$C")" "документация говорит 7 случаев, в наборе 9")"
+
+# --- Набор живёт у плагина, а не у ядра ---------------------------------------
+# Мир с дефектом: сверка чисел ищет набор только в `hooks/`. Тогда числа,
+# заявленные для гардов плагинов, не сверяются ВОВСЕ — и молчат об этом,
+# то есть «25 случаев» в документации остаётся мнением автора.
+C=$(make_copy)
+mkdir -p "$C/plugins/some-plugin/scripts"
+printf 'EXPECTED_CASES=25\nMUTATIONS=8\n' > "$C/plugins/some-plugin/scripts/check-plugin-guard.test.sh"
+printf 'Доказательство мутацией — `check-plugin-guard.test.sh` (25 случаев, восемь мутаций).\n' \
+  >> "$C/.claude/CLAUDE.md"
+check "число набора плагина сошлось" 0 "$(run_code "$C")"
+
+printf 'EXPECTED_CASES=31\nMUTATIONS=8\n' > "$C/plugins/some-plugin/scripts/check-plugin-guard.test.sh"
+check "число набора плагина разошлось" 1 "$(run_code "$C")"
+check "…и названы оба числа" "да" \
+  "$(says "$(run_out "$C")" "документация говорит 25 случаев, в наборе 31")"
 
 # --- Роль объявляет навык, которого нет --------------------------------------
 C=$(make_copy); rm -rf "$C/.claude/skills/навигатор"

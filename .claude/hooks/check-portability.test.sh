@@ -11,7 +11,7 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-portability.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=24
+EXPECTED_CASES=28
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=8
@@ -99,6 +99,20 @@ check "литералы через альтернативу — переноси
 
 D=$(new_dir); put "$D" ok.sh 'printf "ПАМЯТЬ НЕ ЧИТАЕТСЯ: %s\n" "$x"'
 check "кириллица вне скобок — не находка" 0 "$(run_code "$D")"
+
+# --- Обход рекурсивный: скрипт во вложенном каталоге тоже осматривается --------
+# Мир с дефектом: плоский глоб `${SCAN}/*.sh`. Скрипты плагинов живут в своих
+# `scripts/`, и при плоском обходе новый плагин выпадает из проверки МОЛЧА —
+# прогон печатает «нет ни одного файла .sh» там, где их два.
+D=$(new_dir); mkdir -p "$D/plugin/scripts"
+put "$D/plugin/scripts" deep.sh "${G_GREP} pattern file"
+check "непереносимость во вложенном каталоге найдена" 1 "$(run_code "$D")"
+check "…и назван вложенный файл" "да" "$(says "$(run_out "$D")" "deep.sh")"
+
+D=$(new_dir); mkdir -p "$D/plugin/scripts"
+put "$D/plugin/scripts" deep.sh 'printf "%s\n" "$x"'
+check "вложенный переносимый скрипт — не находка" 0 "$(run_code "$D")"
+check "…и он посчитан осмотренным" "да" "$(says "$(run_out "$D")" "осмотрено файлов 1")"
 
 # --- Половина «найдено не ноль» -----------------------------------------------
 D=$(new_dir)

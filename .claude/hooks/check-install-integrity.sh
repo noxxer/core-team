@@ -163,11 +163,24 @@ done
 # --- 8. Заявленное число случаев ↔ фактическое ------------------------------
 # Класс, случившийся трижды за один MR: набор растёт, число в документации нет.
 claude_md="${CLAUDE_DIR}/CLAUDE.md"
+
+# Набор живёт либо у ядра (`hooks/`), либо у плагина (`plugins/*/scripts/`).
+# Искать только в первом месте значит не сверять числа плагинов ВОВСЕ — и
+# промолчать об этом: заявленное «25 случаев» осталось бы мнением автора.
+suite_path() {  # $1 = имя файла набора → путь или пусто
+  local candidate
+  candidate="${CLAUDE_DIR}/hooks/$1"
+  [ -f "${candidate}" ] && { printf '%s' "${candidate}"; return 0; }
+  for candidate in "${CLAUDE_DIR}"/../plugins/*/scripts/"$1"; do
+    [ -f "${candidate}" ] && { printf '%s' "${candidate}"; return 0; }
+  done
+  return 0
+}
 if [ -f "${claude_md}" ]; then
   while IFS='|' read -r suite claimed; do
     [ -n "${suite}" ] || continue
     checked=$((checked + 1))
-    actual=$(grep -m1 '^EXPECTED_CASES=' "${CLAUDE_DIR}/hooks/${suite}" 2>/dev/null | cut -d= -f2)
+    actual=$(grep -m1 '^EXPECTED_CASES=' "$(suite_path "${suite}")" 2>/dev/null | cut -d= -f2)
     if [ -z "${actual}" ]; then
       note "в документации назван набор ${suite}, а файла или его счётчика нет"
     elif [ "${actual}" != "${claimed}" ]; then
@@ -183,7 +196,7 @@ if [ -f "${claude_md}" ]; then
   while IFS='|' read -r suite claimed_m; do
     [ -n "${suite}" ] || continue
     checked=$((checked + 1))
-    actual_m=$(grep -m1 '^MUTATIONS=' "${CLAUDE_DIR}/hooks/${suite}" 2>/dev/null | cut -d= -f2 | tr -cd '0-9')
+    actual_m=$(grep -m1 '^MUTATIONS=' "$(suite_path "${suite}")" 2>/dev/null | cut -d= -f2 | tr -cd '0-9')
     if [ -z "${actual_m}" ]; then
       note "набор ${suite} не объявляет MUTATIONS, а документация называет число"
     elif [ "${actual_m}" != "${claimed_m}" ]; then
