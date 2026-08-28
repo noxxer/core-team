@@ -38,19 +38,22 @@ Planner — оптимизатор, **не обязательный гейт**.
 ### Stage 2 — Architect (всегда)
 Запуск `Agent(subagent_type=architect)` (model: opus):
 - Читает `README.md` + `UX-NN.md` (если есть) + `PLANNER_OUTPUT.md`
-- Детектирует стек → загружает `knowledge/stacks/<stack>/design.md`
+- Стек-справочник фазы проектирования приходит правилом по `paths:` при первом касании файла
+  (`.claude/rules/stack-*.md` → навык `core-team-dev:stacks`, `references/<стек>/design.md`)
 - Применяет FPF-чеклист (A.7/A.10/A.11/A.1.1/A.15) — обязательно
 - NQD: ≥3 альтернативы для complicated/complex
-- Создаёт `<feature-dir>/ARCH-NN.md` по форме `templates/project/arch-template.md`
+- Создаёт `<feature-dir>/ARCH-NN.md` по форме `.claude/templates/project/arch-template.md`
 - Эскалация при breaking change → fasilitator → AskUserQuestion
 
 ### Stage 3 — Dev (имплементация)
 Запуск `Agent(subagent_type=dev)` (model: sonnet):
 - **Pre-feature TDD baseline** (обязательно): `pytest --co -q | tail -1` → зафиксировать N в `roles/dev/context.md`
 - Читает `ARCH-NN.md` + `README.md`
-- **Активирует tdd-master skill** (RED обязательно)
-- Загружает `knowledge/stacks/<stack>/implement.md`
-- Применяет functional-clarity (fail-fast, no Error Hiding)
+- **Активирует навык `core-team-dev:tdd-master`** (RED обязательно). Плагина нет — точка
+  `craft:tdd` не закрыта: скажи об этом вслух и работай на общих принципах
+- Стек-справочник фазы реализации — тем же правилом (`references/<стек>/implement.md`)
+- Применяет `core-team-dev:functional-clarity` (fail-fast, no Error Hiding); плагина нет —
+  действует выжимка из `CLAUDE.md`
 - При правке существующего кода — Code-Change Discipline (7 шагов)
 - Реализует фичу + тесты
 - После имплементации: `pytest` → tests ≥ N + Δ. Если Δ < ожидаемой → пометить как Test Suite Staleness, эскалация
@@ -59,10 +62,13 @@ Planner — оптимизатор, **не обязательный гейт**.
 ### Stage 4 — Test (code review)
 Запуск `Agent(subagent_type=test)` (model: sonnet):
 - Читает код фичи + `ARCH-NN.md` + `README.md`
-- **Всегда** загружает `knowledge/stacks/security.md` (OWASP Top 10)
-- Загружает `knowledge/stacks/<stack>/review.md`
-- Применяет FPF (A.7/A.10/A.11/A.1.1) + functional-clarity (Error Hiding) + Code-Change Discipline
-- Создаёт `<feature-dir>/REVIEW-NN.md` по форме `templates/project/review-template.md`, с приоритизированными issues (P0/P1/P2/P3)
+- **Всегда** берёт справочник безопасности навыка `core-team-dev:stacks` — `references/security.md`
+  (OWASP Top 10)
+- Стек-справочник фазы ревью — `references/<стек>/review.md` того же навыка
+- Применяет FPF (A.7/A.10/A.11/A.1.1) + `core-team-dev:functional-clarity` (Error Hiding) +
+  Code-Change Discipline
+- Создаёт `<feature-dir>/REVIEW-NN.md` по форме `.claude/templates/project/review-template.md`,
+  с приоритизированными issues (P0/P1/P2/P3)
 - **Не правит код** — только документирует
 
 ### Stage 4a — Architect drift-sweep (только для M/L фич)

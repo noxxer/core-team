@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-links.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=16
+EXPECTED_CASES=20
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=6
+MUTATIONS=7
 ran=0
 failed=0
 TRASH=()
@@ -94,6 +94,29 @@ check "…и сказано про пустое множество" "да" "$(sa
 # --- Законная тишина ---------------------------------------------------------
 E=$(mktemp -d); TRASH+=("$E")
 check "нет каталога .claude — отказ" 1 "$(run_code "$E")"
+
+# --- Путь без префикса `.claude/` ---------------------------------------------
+# Мир с дефектом: проверка искала только пути, начинающиеся с `.claude/` или
+# `plugins/`, а тексты фреймворка сплошь пишут короче — `knowledge/...`,
+# `templates/...`, `hooks/...`. Целый класс был невидим. Замер: 81 такая ссылка
+# в живом дереве, из них две вели в никуда — и одна на `knowledge/stacks/`,
+# каталог, которого нет с выноса ремесла в плагин: команда конвейера водила роли
+# по раскладке, которой не существует, а роль в этом случае молча работает без
+# справочника.
+C=$(make_copy 'Загружает `knowledge/stacks/security.md` — OWASP.')
+check "короткий путь в никуда — находка" 1 "$(run_code "$C")"
+check "…и назван с достроенной базой" "да" "$(says "$(run_out "$C")" ".claude/knowledge/stacks/security.md")"
+
+C=$(make_copy 'Форма — `templates/project/arch-template.md`.' ".claude/templates/project/arch-template.md")
+check "короткий путь в существующий файл" 0 "$(run_code "$C")"
+
+# Граница: `references/...` не проверяется — его база это корень навыка, а он
+# у каждого свой. Проба на живом дереве: угадывание базы дало 24 ложных красных.
+# Рядом стоит валидная ссылка: без неё множество разобранного пусто, и гард
+# отказал бы по другой причине — половине «найдено не ноль».
+C=$(make_copy 'Детали — `references/guards.md` внутри навыка, правила — `.claude/knowledge/other.md`.' \
+              ".claude/knowledge/other.md")
+check "references/ не проверяется — база неоднозначна" 0 "$(run_code "$C")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

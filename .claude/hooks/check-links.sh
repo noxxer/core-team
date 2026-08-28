@@ -53,9 +53,25 @@ while IFS=$'\t' read -r file link; do
   failures=$((failures + 1))
 done < <(
   find "${ROOT}/.claude" "${ROOT}/plugins" -type f -name '*.md' 2>/dev/null | while IFS= read -r f; do
+    # Два вида ссылок, и второй был невидим целиком.
+    #
+    # 1. Полный путь от корня: `.claude/...`, `plugins/...`.
+    # 2. Путь БЕЗ префикса, начинающийся с каталога ядра: `knowledge/...`,
+    #    `templates/...`, `hooks/...`. У такого база однозначна — это `.claude/`,
+    #    поэтому проверять его можно без догадок. Замер: 81 такая ссылка, из них
+    #    две вели в никуда, и одна — на `knowledge/stacks/`, каталог, которого не
+    #    существует с выноса ремесла в плагин: команда конвейера водила роли по
+    #    раскладке, которой нет, а роль в таком случае молча работает без справочника.
+    #
+    # `references/...` сюда НЕ входит намеренно: его база — корень навыка, а он
+    # у каждого свой, и угадывание дало бы 24 ложных красных на живом дереве.
     grep -oE '`(\.claude|plugins)/[A-Za-z0-9_./-]+\.(md|sh|json)`' "$f" 2>/dev/null \
       | tr -d '`' | while IFS= read -r link; do
         printf '%s\t%s\n' "${f#"${ROOT}/"}" "${link}"
+      done
+    grep -oE '`(knowledge|templates|hooks|rules|output-styles|agents|commands|skills)/[A-Za-z0-9_./-]+\.(md|sh|json)`' "$f" 2>/dev/null \
+      | tr -d '`' | while IFS= read -r link; do
+        printf '%s\t%s\n' "${f#"${ROOT}/"}" ".claude/${link}"
       done
   done
 )
