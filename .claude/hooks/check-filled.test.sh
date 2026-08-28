@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-filled.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=19
+EXPECTED_CASES=21
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=7
+MUTATIONS=8
 ran=0
 failed=0
 TRASH=()
@@ -89,6 +89,25 @@ P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
 printf '\n<!--\n- **Тезис:** [образец в комментарии]\n-->\n' >> "$P/templates/domain.md"
 printf '\n<!--\n- **Тезис:** [образец в комментарии]\n-->\n' >> "$P/project/domain.md"
 check "образец в комментарии шаблона не считается" 0 "$(run_code "$P")"
+
+# --- Образец формы в ограждении кода ------------------------------------------
+# Мир с дефектом: прибор знал про HTML-комментарий и не знал про ``` — а в Markdown
+# ограждение кода и есть привычный способ показать форму. Пять шаблонов фреймворка
+# держат образец так. Замер прогона: `domain.md` с разделом «Формат тезиса» краснел
+# четырьмя подсказками, которые обязаны там остаться.
+P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
+              "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN")
+printf '\n## Формат\n\n```\n- **Тезис:** [утверждение о реальности]\n  **Дата:** YYYY-MM-DD\n```\n' >> "$P/templates/domain.md"
+printf '\n## Формат\n\n```\n- **Тезис:** [утверждение о реальности]\n  **Дата:** YYYY-MM-DD\n```\n' >> "$P/project/domain.md"
+check "образец в ограждении кода не считается" 0 "$(run_code "$P")"
+
+# Граница: подсказка ВНЕ ограждения ловится по-прежнему — ограждение закрывает
+# образец, а не весь файл.
+P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
+              "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN")
+printf '\n```\n[образец внутри]\n```\n\n- **Тезис:** [не заполнено]\n' >> "$P/templates/domain.md"
+printf '\n```\n[образец внутри]\n```\n\n- **Тезис:** [не заполнено]\n' >> "$P/project/domain.md"
+check "подсказка вне ограждения ловится" 1 "$(run_code "$P")"
 
 # --- Мутация 6: нет шаблона — молчание вместо честного «не измерено» ---------
 D=$(mktemp -d); TRASH+=("$D"); mkdir -p "$D/templates" "$D/project"
