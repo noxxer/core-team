@@ -9,10 +9,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=72
+EXPECTED_CASES=76
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=24
+MUTATIONS=26
 ran=0
 failed=0
 TRASH=()
@@ -301,6 +301,39 @@ D=$(make_copy)
 sed -i.bak '/^MUTATIONS=/d' "$D/.claude/hooks/check-session-reflection.test.sh" && rm -f "$D/.claude/hooks/check-session-reflection.test.sh.bak"
 check "набор не объявляет MUTATIONS" 1 "$(run_code "$D")"
 check "…и это названо" "да" "$(says "$(run_out "$D")" "не объявляет MUTATIONS")"
+
+# --- Маршрут ведёт к роли, которой нет ---------------------------------------
+# Мир с дефектом: протоколы маршрутизируют tension по домену, и три роли боевого
+# проекта (Growth, Brand, CFO) переехали в общие протоколы вместе с текстом.
+# Facilitator, ведя «ресурсную» tension, шёл к CFO — и не находил никого:
+# tension возвращалась неразобранной, а заметить это было нечем.
+protocols_with() {  # $1 = корень, $2.. = строки таблицы
+  mkdir -p "$1/.claude/knowledge"
+  { printf '# Протоколы\n\n## Six Hats\n\n| Шляпа | О чём | Кто ведёт |\n|---|---|---|\n'
+    shift
+    printf '%s\n' "$@"
+  } > "$1/.claude/knowledge/core-protocols.md"
+}
+
+C=$(make_copy)
+mkdir -p "$C/.claude/templates/roles/optional"
+printf 'роль\n' > "$C/.claude/templates/roles/optional/analyst.md"
+protocols_with "$C" '| Белая | Факты | Analyst |' '| Зелёная | Реализация | Dev |'
+check "маршруты ведут к существующим ролям" 0 "$(run_code "$C")"
+
+protocols_with "$C" '| Белая | Факты | Analyst |' '| Жёлтая | Возможности | Growth |'
+check "маршрут к несуществующей роли — находка" 1 "$(run_code "$C")"
+check "…и роль названа" "да" "$(says "$(run_out "$C")" "«growth»")"
+
+# Граница: заголовок таблицы адресатом не является. Без этого прибор объявлял
+# «Минусы» ролью, которой нет, — на собственных протоколах фреймворка.
+C=$(make_copy)
+mkdir -p "$C/.claude/templates/roles/optional"
+printf 'роль\n' > "$C/.claude/templates/roles/optional/analyst.md"
+protocols_with "$C" '| Белая | Факты | Analyst |'
+printf '\n## Альтернативы\n\n| Вариант | Плюсы | Минусы |\n|---|---|---|\n| А | быстро | дорого |\n' \
+  >> "$C/.claude/knowledge/core-protocols.md"
+check "заголовок таблицы маршрутом не считается" 0 "$(run_code "$C")"
 
 # --- Бриф субагента: модель и запрет хроники ---------------------------------
 # Мир с дефектом: гейт «модель каждого диспатча называется явно» существовал, а
