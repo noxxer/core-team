@@ -7,6 +7,8 @@
 
 ![version](https://img.shields.io/badge/version-5.3.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
+**[Карта артефактов](https://htmlpreview.github.io/?https://github.com/noxxer/core-team/blob/main/artifacts-map.html)** — одна страница о том, что где живёт, чем отличается от соседа и что произойдёт, если его поправить.
+
 Dev-ядро: **один Facilitator + 6 ролей + DPF-учебники ремёсел + память + механические гейты**.
 
 ---
