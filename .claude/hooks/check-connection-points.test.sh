@@ -151,7 +151,7 @@ check "адрес назван — законно" 0 "$(run_code "$P" "$CANON_LO
 
 # У ремесла результата-артефакта нет: в каноне прочерк, адреса не спрашиваем.
 CANON_CRAFT=$(make_canon_no_location "craft:clarity")
-P=$(make_points "craft:clarity|\`core-team-dev\`|общие принципы|—")
+P=$(make_points "craft:clarity|\`planner\`|общие принципы|—")
 check "у слоя без артефакта адрес не нужен" 0 "$(run_code "$P" "$CANON_CRAFT" "$LIST_OK")"
 
 # Слой закрыт средствами фреймворка: свои пути ядро знает и без подсказки.
