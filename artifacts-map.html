@@ -1,0 +1,1497 @@
+<title>Артефакты Core Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+
+<style>
+  :root {
+    --ground: #F8F9FB;
+    --surface: #FFFFFF;
+    --surface-sunk: #F2F4F8;
+    --ink: #15171C;
+    --ink-soft: #3A404E;
+    --muted: #5A6070;
+    --hairline: #E3E5EC;
+    --hairline-strong: #CFD3DE;
+
+    --truth: #3B4CA8;
+    --truth-wash: #EDEFF9;
+    --work: #8F5C0E;
+    --work-wash: #F8F0E2;
+    --process: #2F6B57;
+    --process-wash: #E8F1EC;
+    --warn: #A33A2A;
+    --warn-wash: #FBEDEA;
+
+    --shadow: 0 1px 2px rgba(21, 23, 28, .05), 0 8px 24px -16px rgba(21, 23, 28, .18);
+
+    --measure: 68ch;
+    --step--1: .8125rem;
+    --step-0: .9375rem;
+    --step-1: 1.0625rem;
+    --step-2: 1.375rem;
+    --step-3: 1.875rem;
+    --step-4: 2.625rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1014;
+      --surface: #161920;
+      --surface-sunk: #12151B;
+      --ink: #E7E9F0;
+      --ink-soft: #C3C8D6;
+      --muted: #8B93A6;
+      --hairline: #252932;
+      --hairline-strong: #333947;
+
+      --truth: #94A3F0;
+      --truth-wash: #1B1F33;
+      --work: #D8A75C;
+      --work-wash: #2A2318;
+      --process: #6FBFA0;
+      --process-wash: #16241F;
+      --warn: #E08D7C;
+      --warn-wash: #2C1B18;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0E1014;
+    --surface: #161920;
+    --surface-sunk: #12151B;
+    --ink: #E7E9F0;
+    --ink-soft: #C3C8D6;
+    --muted: #8B93A6;
+    --hairline: #252932;
+    --hairline-strong: #333947;
+
+    --truth: #94A3F0;
+    --truth-wash: #1B1F33;
+    --work: #D8A75C;
+    --work-wash: #2A2318;
+    --process: #6FBFA0;
+    --process-wash: #16241F;
+    --warn: #E08D7C;
+    --warn-wash: #2C1B18;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.5rem); }
+
+  h1, h2, h3 {
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: -.01em;
+  }
+  h1 { font-size: var(--step-4); line-height: 1.1; }
+  h2 { font-size: var(--step-3); line-height: 1.2; }
+  h3 { font-size: var(--step-1); line-height: 1.35; }
+
+  p { margin: 0; max-width: var(--measure); }
+
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-size: .92em; }
+
+  code {
+    background: var(--surface-sunk);
+    border: 1px solid var(--hairline);
+    border-radius: 3px;
+    padding: .08em .32em;
+  }
+
+  a { color: var(--truth); }
+  a:focus-visible { outline: 2px solid var(--truth); outline-offset: 3px; border-radius: 2px; }
+
+  header.masthead {
+    border-bottom: 1px solid var(--hairline);
+    background: var(--surface);
+    padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2rem, 5vw, 3rem);
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: var(--step--1);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .lede { font-size: var(--step-1); color: var(--ink-soft); margin-top: 1.5rem; max-width: 58ch; }
+
+  .masthead-meta {
+    display: flex; flex-wrap: wrap; gap: .5rem 2rem; margin-top: 2.25rem;
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1); color: var(--muted);
+  }
+
+  nav.toc {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--ground) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  nav.toc ol {
+    display: flex; gap: 1.4rem; list-style: none; margin: 0; padding: .75rem 0;
+    overflow-x: auto; font-size: var(--step--1);
+  }
+  nav.toc a {
+    color: var(--muted); text-decoration: none; white-space: nowrap;
+    padding-bottom: .15rem; border-bottom: 1.5px solid transparent;
+  }
+  nav.toc a:hover { color: var(--ink); border-bottom-color: var(--hairline-strong); }
+
+  section { padding: clamp(2.75rem, 6vw, 4.5rem) 0; border-bottom: 1px solid var(--hairline); }
+  section > .wrap > * + * { margin-top: 1.5rem; }
+
+  .section-head { display: flex; flex-direction: column; gap: .5rem; }
+  .section-num {
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1);
+    color: var(--muted); letter-spacing: .08em;
+  }
+
+  /* карточки */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-top: 3px solid var(--fam, var(--hairline-strong));
+    border-radius: 4px;
+    padding: 1.15rem 1.2rem 1.35rem;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: .55rem;
+  }
+  .card h3 { color: var(--fam, var(--ink)); }
+  .card .q {
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1); color: var(--muted);
+  }
+  .card p { font-size: var(--step--1); color: var(--ink-soft); }
+
+  .fam-truth { --fam: var(--truth); }
+  .fam-work { --fam: var(--work); }
+  .fam-process { --fam: var(--process); }
+
+  /* таблицы */
+  .table-block {
+    border: 1px solid var(--hairline);
+    border-left: 3px solid var(--fam, var(--hairline-strong));
+    border-radius: 4px; background: var(--surface); overflow-x: auto;
+  }
+  .table-caption {
+    padding: .85rem 1.1rem; border-bottom: 1px solid var(--hairline);
+    background: var(--fam-wash, var(--surface-sunk));
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1);
+    letter-spacing: .06em; text-transform: uppercase; color: var(--fam, var(--muted));
+  }
+  table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+  th {
+    text-align: left; font-weight: 600; color: var(--muted); font-size: .78rem;
+    letter-spacing: .04em; text-transform: uppercase; padding: .7rem 1.1rem;
+    border-bottom: 1px solid var(--hairline); white-space: nowrap;
+  }
+  td { padding: .8rem 1.1rem; border-bottom: 1px solid var(--hairline); vertical-align: top; color: var(--ink-soft); }
+  tr:last-child td { border-bottom: none; }
+  td.term { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  td.en { font-family: "IBM Plex Mono", monospace; color: var(--muted); white-space: nowrap; }
+  td.mark strong { color: var(--fam, var(--ink)); font-weight: 600; }
+
+  .wash-truth { --fam: var(--truth); --fam-wash: var(--truth-wash); }
+  .wash-work { --fam: var(--work); --fam-wash: var(--work-wash); }
+  .wash-process { --fam: var(--process); --fam-wash: var(--process-wash); }
+  .wash-warn { --fam: var(--warn); --fam-wash: var(--warn-wash); }
+
+  /* дерево */
+  .tree {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 4px;
+    padding: 1.25rem; overflow-x: auto;
+    font-family: "IBM Plex Mono", monospace; font-size: .8rem; line-height: 1.8;
+    color: var(--muted); white-space: pre;
+  }
+  .tree b { font-weight: 500; color: var(--ink); }
+  .tree .g-truth { color: var(--truth); font-weight: 500; }
+  .tree .g-work { color: var(--work); font-weight: 500; }
+  .tree .g-process { color: var(--process); font-weight: 500; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1.25rem;
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1); color: var(--muted);
+  }
+
+  /* цепочка понятий */
+  .chain {
+    display: flex; align-items: stretch; gap: 0;
+    overflow-x: auto; padding: .25rem 0 .5rem;
+  }
+  .node {
+    flex: 0 0 auto; min-width: 9.5rem;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-bottom: 2px solid var(--fam, var(--truth));
+    border-radius: 4px; padding: .7rem .85rem;
+    display: flex; flex-direction: column; gap: .2rem;
+  }
+  .node .n-term { font-weight: 600; color: var(--ink); font-size: var(--step--1); }
+  .node .n-file { font-family: "IBM Plex Mono", monospace; font-size: .72rem; color: var(--muted); }
+  .link {
+    flex: 0 0 auto; align-self: center; padding: 0 .55rem;
+    display: flex; flex-direction: column; align-items: center; gap: .1rem;
+  }
+  .link .l-field {
+    font-family: "IBM Plex Mono", monospace; font-size: .7rem; color: var(--fam, var(--truth));
+  }
+  .link .l-arrow { color: var(--hairline-strong); font-size: .9rem; line-height: 1; }
+
+  .chain-note {
+    font-size: var(--step--1); color: var(--muted); margin-top: .35rem;
+    padding-left: .1rem; max-width: var(--measure);
+  }
+
+  /* команды */
+  .cmd-block {
+    border: 1px solid var(--hairline); border-radius: 4px; background: var(--surface);
+    overflow: hidden;
+  }
+  .cmd-row {
+    display: grid; grid-template-columns: 11rem 1fr; gap: 1rem;
+    padding: .9rem 1.1rem; border-bottom: 1px solid var(--hairline); align-items: start;
+  }
+  .cmd-row:last-child { border-bottom: none; }
+  .cmd-name {
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1);
+    color: var(--ink); font-weight: 500;
+  }
+  .cmd-body { font-size: var(--step--1); color: var(--ink-soft); }
+  .cmd-body b { color: var(--ink); }
+  .cmd-group-label {
+    padding: .6rem 1.1rem; background: var(--surface-sunk);
+    border-bottom: 1px solid var(--hairline);
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1);
+    letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+  }
+
+  /* правила */
+  .rules { display: grid; gap: .7rem; counter-reset: rule; }
+  .rule {
+    display: grid; grid-template-columns: 2rem 1fr; gap: .75rem;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: 4px; padding: .95rem 1.1rem;
+  }
+  .rule::before {
+    counter-increment: rule; content: counter(rule);
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1);
+    color: var(--muted); padding-top: .1rem;
+  }
+  .rule b { color: var(--ink); }
+  .rule span { color: var(--ink-soft); font-size: var(--step--1); }
+
+  /* шаги */
+  .beat {
+    display: grid; grid-template-columns: 6.5rem 1fr; gap: 1.25rem;
+    padding: 1rem 0; border-bottom: 1px dashed var(--hairline);
+  }
+  .beat:last-child { border-bottom: none; }
+  .beat .who {
+    font-family: "IBM Plex Mono", monospace; font-size: var(--step--1);
+    color: var(--muted); padding-top: .1rem;
+  }
+  .beat .what { font-size: var(--step--1); color: var(--ink-soft); }
+  .beat .what b { color: var(--ink); }
+
+  .readout {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; line-height: 1.7;
+    background: var(--surface-sunk); border: 1px solid var(--hairline);
+    border-radius: 3px; padding: .8rem 1rem; margin-top: .6rem;
+    white-space: pre; overflow-x: auto; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pull {
+    border-left: 3px solid var(--truth); padding: .35rem 0 .35rem 1.1rem;
+    font-family: "Source Serif 4", Georgia, serif; font-size: var(--step-2);
+    line-height: 1.35; color: var(--ink); max-width: 54ch; text-wrap: balance;
+  }
+
+  .note {
+    background: var(--warn-wash); border: 1px solid var(--hairline);
+    border-left: 3px solid var(--warn); border-radius: 4px;
+    padding: 1rem 1.15rem; font-size: var(--step--1); color: var(--ink-soft);
+  }
+  .note b { color: var(--ink); }
+  .note p { max-width: none; }
+  .note > * + * { margin-top: .6rem; }
+
+  footer { padding: 2.5rem 0 4rem; color: var(--muted); font-size: var(--step--1); }
+  footer p { max-width: none; }
+
+  @media (max-width: 640px) {
+    .beat, .cmd-row { grid-template-columns: 1fr; gap: .35rem; }
+    .rule { grid-template-columns: 1.6rem 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Core Team Framework · язык системы</div>
+    <h1>Артефакты Core&nbsp;Team</h1>
+    <p class="lede">
+      Три семейства, тридцать файлов, один закон на каждое семейство. Карта отвечает на
+      вопрос, который иначе требует прочитать всё: что где живёт, чем отличается от соседа
+      и что произойдёт, если его поправить.
+    </p>
+    <div class="masthead-meta">
+      <span>3 семейства</span><span>12 команд</span><span>11 точек подключения</span><span>27 приборов</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <ol>
+      <li><a href="#origin">Откуда выросло</a></li>
+      <li><a href="#families">Семейства</a></li>
+      <li><a href="#truth">Правда</a></li>
+      <li><a href="#work">Работа</a></li>
+      <li><a href="#lanes">Ленты</a></li>
+      <li><a href="#watch">Наблюдение</a></li>
+      <li><a href="#process">Процесс</a></li>
+      <li><a href="#ids">Номера</a></li>
+      <li><a href="#depth">Глубина дерева</a></li>
+      <li><a href="#points">Точки подключения</a></li>
+      <li><a href="#tools">Инструменты</a></li>
+      <li><a href="#tree">Дерево</a></li>
+      <li><a href="#links">Связи</a></li>
+      <li><a href="#commands">Команды</a></li>
+      <li><a href="#limits">Ограничители</a></li>
+      <li><a href="#guards">Приборы</a></li>
+      <li><a href="#usage">Как пользуются</a></li>
+    </ol>
+  </div>
+</nav>
+
+<section id="origin">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">01</span><h2>Откуда это выросло</h2></div>
+    <p>
+      До объединения работали четыре отдельных инструмента.
+    </p>
+
+    <div class="table-block">
+      <table>
+        <thead><tr><th>Мир</th><th>Что умел</th><th>Чего не умел</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Core Team</td>
+            <td>вести команду ролей, память, гейты, решения</td>
+            <td>не знал, из чего состоит продукт: работа шла от фичи к фиче</td>
+          </tr>
+          <tr>
+            <td class="term">Ремесло разработки</td>
+            <td>тесты до кода, отказ при неверных данных, планирование работы</td>
+            <td>не знало, какому обещанию продукта служит написанный код</td>
+          </tr>
+          <tr>
+            <td class="term">Дерево спецификации</td>
+            <td>описывать, что каждый модуль обещает соседям</td>
+            <td>не связывало это с пользой для продукта</td>
+          </tr>
+          <tr>
+            <td class="term">Смотровая</td>
+            <td>показывать, что человек видит на самом деле</td>
+            <td>не знал, какому обещанию этот экран должен соответствовать</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Продукт описывали, строили и показывали порознь, четырьмя способами, не сверенными между собой.
+    </p>
+
+    <p class="pull">Идея объединения одна: связать их так, чтобы зазор считался, а не замечался.</p>
+
+    <p>
+      Сценарий описывает путь, дерево отвечает, кто его исполняет, снимок доказывает, что
+      путь проходится. Три записи об одном предмете становятся одной цепочкой, у которой
+      есть длина. Отсюда всё остальное: у каждого артефакта появляется место в цепочке,
+      признак закрытия и ответ на вопрос «что произойдёт, если его поправить».
+    </p>
+  </div>
+</section>
+
+<section id="families">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">02</span><h2>Три семейства и три закона</h2></div>
+
+    <div class="cards">
+      <article class="card fam-truth">
+        <div class="q">как есть сейчас</div>
+        <h3>Правда</h3>
+        <p>Живёт всегда, не закрывается. Правка <b>снимает подтверждение с детей</b>. Формулировка живёт
+        ровно на одном слое: появилась ниже — поднимается наверх.</p>
+      </article>
+      <article class="card fam-work">
+        <div class="q">что мы делаем</div>
+        <h3>Работа</h3>
+        <p>Имеет номер и владельца, <b>закрывается и уходит</b>. Ничего не теряет подтверждение.
+        У каждого артефакта свой признак закрытия, а не общее «сделано».</p>
+      </article>
+      <article class="card fam-process">
+        <div class="q">как мы работаем</div>
+        <h3>Процесс</h3>
+        <p>Про команду, а не про продукт. В расчёт изменения не входит и никого
+        не теряет подтверждение.</p>
+      </article>
+    </div>
+
+    <p>
+      Путаница семейств — главный источник беспорядка. Единица работы, попавшая в слои
+      правды, даёт веерную инвалидацию при первой же правке. Правда, попавшая в ленту
+      работы, умирает вместе с закрытой задачей.
+    </p>
+    <p>
+      Внутри Правды два сорта: <b>узел</b> — у него есть дети, он теряет подтверждение и теряет подтверждение
+      других; <b>справочник</b> — детей нет, он материал. На этом различении разошлись
+      <code>domain.md</code> и <code>claims.md</code>.
+    </p>
+  </div>
+</section>
+
+<section id="truth">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">03 · Правда</span><h2>Как есть сейчас</h2></div>
+
+    <div class="table-block wash-truth">
+      <div class="table-caption">Признак отделяет от ближайшего соседа, а не описывает</div>
+      <table>
+        <thead><tr><th>Понятие</th><th>Файл</th><th>Назначение</th><th>Признак</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Утверждение<br><span class="en">claim</span></td>
+            <td class="en">claims.md</td>
+            <td>ставки о мире, на которых стоит продукт: <code>CLM-NN</code>, у каждой «чем опровергается»</td>
+            <td class="mark"><strong>Есть дети.</strong> Опровергли — подтверждение теряет всё, что стоит ниже</td>
+          </tr>
+          <tr>
+            <td class="term">Предметные факты<br><span class="en">domain facts</span></td>
+            <td class="en">domain.md</td>
+            <td>замеры, поведение людей, ограничения среды — материал для утверждений и решений</td>
+            <td class="mark"><strong>Детей нет.</strong> Факт перепроверяют, утверждение опровергают</td>
+          </tr>
+          <tr>
+            <td class="term">Паспорт<br><span class="en">passport</span></td>
+            <td class="en">passport.md</td>
+            <td>правда о продукте на сегодня: миссия, клиент, что делает, <b>чего не делает</b>, состояние</td>
+            <td class="mark">Отвечает <strong>«как есть»</strong>. Будущее время значит, что туда уехал беклог</td>
+          </tr>
+          <tr>
+            <td class="term">Облик<br><span class="en">design system</span></td>
+            <td class="en">design-system.md</td>
+            <td>токены, компоненты, пять состояний экрана, тон текстов</td>
+            <td class="mark">Описывает <strong>как выглядит</strong>. Сценарий — что делает человек</td>
+          </tr>
+          <tr>
+            <td class="term">Сценарий<br><span class="en">scenario</span></td>
+            <td class="en">scenarios/&lt;имя&gt;.md</td>
+            <td>путь пользования шагами: что человек делает, что видит, кто исполняет</td>
+            <td class="mark"><strong>Предъявляет, а не утверждает.</strong> Тест говорит «правильно», сценарий — «вот что видно»</td>
+          </tr>
+          <tr>
+            <td class="term">Требование<br><span class="en">requirement</span></td>
+            <td class="en">spec/requirements.md</td>
+            <td>что система умеет: <code>FR-NN</code> функциональные, <code>NFR-NN</code> нефункциональные</td>
+            <td class="mark"><strong>Закрывается постройкой.</strong> Пожелание без источника обязательства требованием не является</td>
+          </tr>
+          <tr>
+            <td class="term">Ответственность<br><span class="en">responsibility</span></td>
+            <td class="en">spec/&lt;зона&gt;/&lt;модуль&gt;.md</td>
+            <td>чем модуль владеет единолично, кого вправе звать, что возвращает, чего не делает</td>
+            <td class="mark"><strong>Стоит всегда.</strong> Проект описывает одно изменение и умирает</td>
+          </tr>
+          <tr>
+            <td class="term">Соглашения<br><span class="en">conventions</span></td>
+            <td class="en">spec/conventions.md</td>
+            <td>форма файла ответственности и запреты, действующие в этом проекте</td>
+            <td class="mark">Про <strong>форму записи</strong>, не про содержание</td>
+          </tr>
+          <tr>
+            <td class="term">Незакрытые вопросы<br><span class="en">open questions</span></td>
+            <td class="en">spec/open-questions.md</td>
+            <td><code>OQ-NNN</code>: вопросы к дереву, от ответа на которые ответственности меняются</td>
+            <td class="mark">Вопрос <strong>к правде</strong>, а не работа</td>
+          </tr>
+          <tr>
+            <td class="term">Снимок<br><span class="en">shot</span></td>
+            <td class="en">deck/output/&lt;версия&gt;/</td>
+            <td>что человек видит на самом деле, по шагам сценария</td>
+            <td class="mark">Доказательство <strong>шага сценария</strong>. Не эталон — попиксельно не сравнивают</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Стенд, снимок, Смотровая — три разных предмета</h3>
+    <div class="table-block wash-truth">
+      <table>
+        <thead><tr><th>Предмет</th><th>Что это</th><th>Отказывает так</th></tr></thead>
+        <tbody>
+          <tr><td class="term">Стенд</td>
+            <td>механизм: гоняет приложение по сценарию и снимает экран после каждого шага</td>
+            <td class="mark">«стенд упал» — прогон не дошёл до конца</td></tr>
+          <tr><td class="term">Снимок</td>
+            <td>единица доказательства: изображение с измеренной подписью — экран, состояние, устройство, номер шага</td>
+            <td class="mark">«снимка нет» — шаг не доказан</td></tr>
+          <tr><td class="term">Смотровая</td>
+            <td>место просмотра: лента снимков по порядку и карта переходов между экранами</td>
+            <td class="mark">«на Смотровой видно» — человек нашёл неправду глазами</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Три имени нужны потому, что отказы у них разные и лечатся по-разному. Зелёный прогон
+      стенда означает, что шаги дошли, а не что на экране правда: <b>183 шага из 183</b>
+      проходили при карточке, которая печатала одну величину под именем другой.
+    </p>
+  </div>
+</section>
+
+<section id="work">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">04 · Работа</span><h2>Лестница замысла</h2></div>
+
+    <div class="table-block wash-work">
+      <div class="table-caption">У каждого — свой признак закрытия</div>
+      <table>
+        <thead><tr><th>Понятие</th><th>Файл</th><th>Назначение</th><th>Закрывается, когда</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Идея<br><span class="en">idea</span></td>
+            <td class="en">ideas/IDEA-NNNN/</td>
+            <td>сырая мысль в форме: проблема, свидетельства, критическое неизвестное</td>
+            <td class="mark">Назван исход: фича · поставка · <strong>отказ</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Путь развития<br><span class="en">roadmap</span></td>
+            <td class="en">roadmap.md</td>
+            <td>куда идёт продукт горизонтами, с условиями перехода</td>
+            <td class="mark">Не закрывается — правится, как паспорт</td>
+          </tr>
+          <tr>
+            <td class="term">Поставка<br><span class="en">delivery</span></td>
+            <td class="en">deliveries/DEL-NNNN/</td>
+            <td>набор фич, выезжающих <b>вместе</b></td>
+            <td class="mark"><strong>Сценарий пройден насквозь</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Фича<br><span class="en">feature</span></td>
+            <td class="en">features/FEAT-NNNN/</td>
+            <td>единица работы: несколько шагов сценария, с критериями приёмки</td>
+            <td class="mark"><strong>У её шагов есть свежие снимки</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Проект<br><span class="en">architecture</span></td>
+            <td class="en">…/ARCHITECTURE.md</td>
+            <td>какие ответственности меняет это изменение и почему</td>
+            <td class="mark">Живёт <strong>одно изменение</strong> и умирает</td>
+          </tr>
+          <tr>
+            <td class="term">План выполнения<br><span class="en">execution</span></td>
+            <td class="en">…/EXECUTION.md</td>
+            <td>фазы, модели, параллельность; несёт отпечаток Проекта</td>
+            <td class="mark"><strong>Теряет подтверждение</strong>, когда Проект сдвинулся</td>
+          </tr>
+          <tr>
+            <td class="term">Отчёт<br><span class="en">report</span></td>
+            <td class="en">…/IMPLEMENTATION-NN.md</td>
+            <td>полный результат фазы по забронированному пути</td>
+            <td class="mark">Фаза закрыта чистой проверкой</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <b>Поставка закрывается сценарием, фича — снимками.</b> Раньше обе закрывались словом
+      «сделано» — и потому не закрывались никогда.
+    </p>
+    <p>
+      <b>Фича — срез работы, а не слой правды.</b> Одна фича трогает пять ответственностей,
+      одна ответственность участвует в десяти фичах. Поставленная слоем, она даёт узел
+      со многими родителями — и инвалидация расходится веером в обе стороны.
+    </p>
+  </div>
+</section>
+
+<section id="lanes">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">05 · Работа</span><h2>Пять лент</h2></div>
+    <p>
+      <b>Лента — список записей одного рода, у которых один способ закрытия.</b> Она
+      не хранит знание о продукте и не участвует в расчёте правки: запись появляется,
+      кто-то её закрывает, запись уходит.
+    </p>
+    <p>
+      Лент пять, и делятся они <b>по тому, кто разблокирует запись</b>. Тема не помогает:
+      в одной теме бывает и работа агента, и вопрос к человеку. Возраст тоже: старая
+      запись не становится ближе к закрытию.
+    </p>
+
+    <div class="table-block wash-work">
+      <div class="table-caption">Кто закрывает — тот и определяет ленту</div>
+      <table>
+        <thead><tr><th>Понятие</th><th>Файл</th><th>Назначение</th><th>Как наполняется</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Неподтверждённое</td><td class="en">work/unconfirmed.md</td>
+            <td>узлы, чья согласованность с родителем больше не доказана</td>
+            <td class="mark"><strong>Вычисляется, руками не пишется</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Задачи</td><td class="en">work/tasks.md</td>
+            <td>работа, которую агент может сделать сейчас</td>
+            <td class="mark">Из неподтверждённого и решений</td>
+          </tr>
+          <tr>
+            <td class="term">К человеку</td><td class="en">work/for-human.md</td>
+            <td>решение · деньги · доступ · юридическое · продуктовая развилка</td>
+            <td class="mark">Руками, <strong>с датой и ценой бездействия</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Долг</td><td class="en">work/debt.md</td>
+            <td>расхождение, оставленное осознанно</td>
+            <td class="mark">Руками, <strong>с датой и условием возврата</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Слепые пятна</td><td class="en">work/blind-spots.md</td>
+            <td>расхождение, которое нашёл человек, а не прибор</td>
+            <td class="mark">Каждая запись — <strong>заявка на проверку</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-block wash-work">
+      <div class="table-caption">Неподтверждённое — три вида, и это не задачи</div>
+      <table>
+        <thead><tr><th>Вид</th><th>Что значит</th><th>Кто снимает</th></tr></thead>
+        <tbody>
+          <tr><td class="term">Подтверждается прогоном</td><td>обязательство то же, надо переподтвердить</td><td class="mark"><strong>машина, без человека</strong></td></tr>
+          <tr><td class="term">Требует правки</td><td>контракт противоречит новому родителю</td><td>исполнитель</td></tr>
+          <tr><td class="term">Принято как долг</td><td>расхождение оставлено осознанно</td><td>человек, с датой</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <b>Потолок ставится только на «требует правки».</b> Иначе автоматически снимаемое
+      парализует работу. Слепые пятна обязаны <b>сокращаться</b>: расхождение нашёл
+      человек, а не прибор — значит не хватает прибора.
+    </p>
+  </div>
+</section>
+
+<section id="watch">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">06 · Работа</span><h2>Наблюдение</h2></div>
+    <p>Ленты держат то, что кто-то закроет. Наблюдение держит то, что постройкой
+    не закрывается.</p>
+
+    <div class="table-block wash-work">
+      <div class="table-caption">За чем следят</div>
+      <table>
+        <thead><tr><th>Понятие</th><th>Файл</th><th>Назначение</th><th>Признак</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Риск</td><td class="en">artifacts/risk-registry.md</td>
+            <td>событие, которое может случиться и повредить: вероятность, ущерб, чем снижаем</td>
+            <td class="mark">У риска <strong>наблюдатель</strong>, у обязательства — исполнитель</td>
+          </tr>
+          <tr>
+            <td class="term">Дрейф</td><td class="en">artifacts/drift-registry.md</td>
+            <td>где реальность разошлась с описанным: классы A–E</td>
+            <td class="mark">Ведётся руками, пока согласованность не считает машина</td>
+          </tr>
+          <tr>
+            <td class="term">Активы</td><td class="en">resources.md</td>
+            <td>домены, серверы, стенды, оплаченные услуги: владелец, срок, где лежит доступ</td>
+            <td class="mark">У актива есть <strong>срок</strong>; срок прошёл — услуга отключается без предупреждения</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <b>Риск и требование разделяет исполнитель.</b> «Провайдер сменит условия» — риск:
+      повлиять нельзя, можно снизить зависимость. «Провайдер заменяется за день» —
+      требование: закрывается постройкой. Риск, из которого выводится постройка, порождает
+      требование и остаётся риском. Замер: в боевом реестре <b>16 записей из 18</b> были
+      обязательствами под именем рисков и потому не имели исполнителя.
+    </p>
+    <p>
+      <b>Дрейф работает до появления расчёта.</b> Когда согласованность считает машина,
+      классы A, C и D уходят в неподтверждённое, B и E становятся проверками полноты,
+      остальное — слепыми пятнами.
+    </p>
+  </div>
+</section>
+
+<section id="process">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">07 · Процесс</span><h2>Как мы работаем</h2></div>
+
+    <div class="table-block wash-process">
+      <div class="table-caption">Про команду, не про продукт</div>
+      <table>
+        <thead><tr><th>Понятие</th><th>Файл</th><th>Назначение</th><th>Признак</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Точки подключения</td><td class="en">connection-points.md</td>
+            <td>чем закрыт каждый слой работы и что будет, если не закрыт</td>
+            <td class="mark">Пустая точка <strong>обязана назвать деградацию</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Состояние</td><td class="en">ledger.md</td>
+            <td>миссия → цель фазы → ближайший шаг</td>
+            <td class="mark">Отвечает «где мы», а не «что было»</td>
+          </tr>
+          <tr>
+            <td class="term">Входящее</td><td class="en">inbox.md</td>
+            <td>сырой вход человека до разбора</td>
+            <td class="mark">Ещё не классифицировано</td>
+          </tr>
+          <tr>
+            <td class="term">Ценности</td><td class="en">values.md</td>
+            <td>конституция проекта</td>
+            <td class="mark">Правит только человек</td>
+          </tr>
+          <tr>
+            <td class="term">Словарь</td><td class="en">glossary.md</td>
+            <td>термин, английский, определение, «не является»</td>
+            <td class="mark">Язык <strong>этого</strong> проекта</td>
+          </tr>
+          <tr>
+            <td class="term">Решения</td><td class="en">decisions/live · history · open</td>
+            <td><code>DEC-NNN</code>: почему выбрано так</td>
+            <td class="mark">У действующего — <strong>адрес проверки</strong>; у открытого — владелец и дата</td>
+          </tr>
+          <tr>
+            <td class="term">Память роли</td><td class="en">roles/&lt;role&gt;/context.md</td>
+            <td>что роль знает и где она сейчас</td>
+            <td class="mark"><strong>Состояние, не журнал</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Передача</td><td class="en">sessions/handoff.md</td>
+            <td>что сделано, какие решения приняты, что делать дальше, какие вопросы открыты</td>
+            <td class="mark">Пишется <strong>в конце сессии</strong>, читается <strong>первой</strong> при старте</td>
+          </tr>
+          <tr>
+            <td class="term">Накопитель обратной связи</td><td class="en">framework-feedback.md</td>
+            <td>находки, верные для любого проекта: корзина, причина, адрес</td>
+            <td class="mark">Универсальность проверяется так: <strong>в формулировке нет слов предметной области</strong></td>
+          </tr>
+          <tr>
+            <td class="term">Летопись</td><td class="en">sessions/&lt;ГГГГ-ММ-ДД&gt;_&lt;тема&gt;.md</td>
+            <td>что делали · какие решения приняты · что найдено сверх плана · условие выхода и вердикт по нему</td>
+            <td class="mark">Хроника <strong>по дням</strong>; состояние живёт в ledger</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Рядом с летописью — <code>handoff.md</code>: что нужно знать тому, кто откроет проект
+      следующим.
+    </p>
+  </div>
+</section>
+
+<section id="ids">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">08</span><h2>Как читаются номера</h2></div>
+
+    <div class="table-block">
+      <table>
+        <thead><tr><th>Префикс</th><th>Что нумерует</th><th>Пример</th></tr></thead>
+        <tbody>
+          <tr><td class="en">CLM-NN</td><td>утверждение</td><td class="en">CLM-04 — «мобильный путь основной для покупки»</td></tr>
+          <tr><td class="en">FR-NN · NFR-NN</td><td>требование функциональное · нефункциональное</td><td class="en">FR-12</td></tr>
+          <tr><td class="en">DEC-NNN</td><td>решение</td><td class="en">DEC-147</td></tr>
+          <tr><td class="en">OQ-NNN</td><td>незакрытый вопрос</td><td class="en">OQ-168</td></tr>
+          <tr><td class="en">DR-NN</td><td>запись расхождения в реестре дрейфа</td><td class="en">DR-87</td></tr>
+          <tr><td class="en">IDEA · DEL · FEAT-NNNN</td><td>идея · поставка · фича</td><td class="en">FEAT-0042</td></tr>
+          <tr><td class="en">ASSET-NN</td><td>актив: домен, сервер, оплаченная услуга</td><td class="en">ASSET-02</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <b>Два предмета номера не имеют</b> и адресуются именем, потому что имя устойчивее:
+      <b>сценарий</b> — <code>&lt;продукт&gt;.&lt;сценарий&gt;</code>, <b>ответственность</b> —
+      путём в дереве (<code>spec.billing.seats</code>). Номер пришлось бы менять при
+      переносе; имя переносится вместе с предметом.
+    </p>
+  </div>
+</section>
+
+<section id="depth">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">09</span><h2>Глубина дерева ответственностей</h2></div>
+    <p>Дерево имеет четыре уровня, последний необязателен:</p>
+    <div class="tree">spec/&lt;продукт&gt;/&lt;зона&gt;/[&lt;группа&gt;/]&lt;модуль&gt;.md</div>
+
+    <div class="table-block wash-truth">
+      <table>
+        <thead><tr><th>Уровень</th><th>Что это</th><th>Правило</th></tr></thead>
+        <tbody>
+          <tr><td class="term">продукт</td><td>поставляемая часть</td><td class="mark">у каждой части свой каталог</td></tr>
+          <tr><td class="term">зона</td><td>умение продукта</td><td class="mark">имя отвечает на «что система умеет», не «из каких слоёв состоит»</td></tr>
+          <tr><td class="term">группа</td><td>необязательный уровень</td><td class="mark">заводится под общее соглашение, а не под количество файлов</td></tr>
+          <tr><td class="term">модуль</td><td>зона ответственности</td><td class="mark">чем владеет, кого зовёт, что возвращает, чего не делает</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Фронтенд и бэкенд — разные продукты, а не разные зоны</h3>
+    <p>
+      Первый уровень внутри продукта отвечает на вопрос «что система умеет». Зон
+      <code>api</code>, <code>domain</code>, <code>storage</code> в дереве нет: приём задачи,
+      правила приёма и запись в хранилище — одна зона, потому что это одно умение.
+      Технические слои не исчезают — они становятся внутренним устройством зоны.
+    </p>
+    <p>Фронтенд и бэкенд разделяются <b>уровнем выше</b>: это две поставляемые части.</p>
+
+<div class="tree">spec/
+├── <b>server/</b>                    бэкенд
+│   ├── tasks/                 умение: принимать задачи и вести их состояние
+│   └── addressing/            умение: знать, кому задача адресована
+└── <b>web/</b>                       фронтенд
+    ├── intake/                умение: собрать задачу от человека
+    └── review/                умение: показать состояние и историю</div>
+
+    <p>
+      <b>Как фронтенд обращается к бэкенду.</b> Поле <code>uses</code> допускает соседей по
+      своему родителю и зоны верхнего уровня. Модуль фронтенда называет <b>зону</b>
+      бэкенда, а не его модуль: <code>server.tasks</code> — верно,
+      <code>server.tasks.intake</code> — ошибка. Через уровень не ходят, иначе внутреннее
+      устройство чужой зоны становится чьим-то контрактом.
+    </p>
+
+    <h3>Когда уровней не хватает</h3>
+    <div class="rules">
+      <div class="rule"><div><b>Группа заводится, когда однородным модулям есть что сказать хором:</b>
+        <span> общее владение данными, общее правило обращения к ним. Десять модулей без
+        общего соглашения остаются десятью модулями зоны — группа только удлинит адрес
+        и добавит файл, который нечем заполнить.</span></div></div>
+      <div class="rule"><div><b>Зона без своей единицы данных — обычно технический слой.</b>
+        <span> Её стоит разделить между теми зонами, чьи данные она обслуживает. Зона,
+        назвавшая чужую единицу данных, — спор о владении, и он решается до записи
+        файлов.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="points">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">10</span><h2>Точки подключения</h2></div>
+    <p>
+      <b>Ядро держит правила, плагины держат инструменты.</b> Ядро не знает имён плагинов:
+      оно объявляет точки — обязательства слоёв работы, — а плагин объявляет, что закрывает.
+    </p>
+
+    <div class="table-block wash-process">
+      <div class="table-caption">Так выглядит таблица в проекте</div>
+      <table>
+        <thead><tr><th>Точка</th><th>Обязательство</th><th>Чем закрыта</th><th>Деградация</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="en">requirements</td><td>нумерованные требования</td>
+            <td class="en">дерево спецификации</td><td>—</td>
+          </tr>
+          <tr>
+            <td class="en">scenario-verification</td><td>доказательство прохождения пути</td>
+            <td class="mark">—</td><td class="mark"><strong>ручная проверка; покрытие шагов не считается</strong></td>
+          </tr>
+          <tr>
+            <td class="en">craft:tdd</td><td>тест до кода</td>
+            <td><strong>неприменимо</strong></td><td>проект не пишет код: работа идёт документами</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rules">
+      <div class="rule"><div><b>Настройка спрашивает по каждой точке.</b>
+        <span> Чем закрываем? Сканирует установленные плагины, предлагает, ставит выбранное,
+        записывает в таблицу.</span></div></div>
+      <div class="rule"><div><b>Незакрытая точка обязана назвать деградацию.</b>
+        <span> Как работаем без инструмента и что при этом перестаёт считаться. Пустая
+        ячейка — отказ проверки: дыра без имени неотличима от закрытой точки.</span></div></div>
+      <div class="rule"><div><b>«Установлен» не отвечает на вопрос «работает».</b>
+        <span> Плагин со статусом «выключен» закрывает точку ровно настолько, насколько её
+        закрывает отсутствующий.</span></div></div>
+      <div class="rule"><div><b>Слой, которого у проекта быть не может, называется неприменимым — с причиной.</b>
+        <span> Канон писался от разработки, и проект-исследование обязан был объявлять деградацию
+        по тестам, которых у него не будет никогда. Строку не удаляют: слой, о котором проект
+        не сказал ничего, невидим. Неприменимость без причины — та же пустая ячейка, только
+        со словом.</span></div></div>
+      <div class="rule"><div><b>Хук старта печатает только находки.</b>
+        <span> Слой заявлен закрытым, а плагина нет или он выключен. Здоровый проект
+        молчит.</span></div></div>
+      <div class="rule"><div><b>Роль, упершаяся в незакрытый слой, называет деградацию вслух</b>
+        <span> и предлагает инструмент с ценой, а не выдумывает обходной путь молча.</span></div></div>
+    </div>
+
+    <p>
+      Зачем так, а не списком плагинов: то же ремесло приезжает из разных источников под
+      разными именами. Роль, в промпте которой зашито одно имя, при другом источнике
+      <b>не падает</b> — она молча работает без ремесла.
+    </p>
+  </div>
+</section>
+
+<section id="tools">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">11</span><h2>Откуда берутся инструменты</h2></div>
+
+    <div class="table-block">
+      <table>
+        <thead><tr><th>Инструмент</th><th>Как подключён</th><th>Состояние</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="term">Дерево спецификации</td>
+            <td>ссылкой: команда-маршрутизатор ведёт в плагин <code>senior-developer-tools</code> (М. Лопотков), правил не пересказывает</td>
+            <td>чисто</td>
+          </tr>
+          <tr>
+            <td class="term">Смотровая</td>
+            <td>наш плагин: метод перенесён из боевого проекта, код стенда остаётся в проекте</td>
+            <td>чисто</td>
+          </tr>
+          <tr>
+            <td class="term">Продуктовый контур</td><td>наш плагин</td><td>чисто</td>
+          </tr>
+          <tr>
+            <td class="term">Ремесло разработки</td>
+            <td><b>форк</b>: TDD, Функциональная ясность, планировщик выросли из <code>spumer/i-m-senior-developer</code> и разошлись с источником</td>
+            <td class="mark"><strong>долг</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p><b>Про форк — честно.</b> Замер расхождения с источником по строкам:
+      35 · 46 · 109 · 167 · 325. Форк не сообщает, что отстал, — он просто перестаёт быть
+      тем, чем назывался.</p>
+      <p><b>Три пути.</b> <b>1.</b> Оставить форк и признать долг — так сейчас: работает,
+      но расхождение растёт. <b>2.</b> Перейти на исходные плагины — доработки под
+      фреймворк (ссылки на роли, гейты, слой учебников ремесла) при этом потеряются.
+      <b>3.</b> Отправить доработки автору, а после — перейти на исходные.</p>
+      <p>Механизм для третьего пути во фреймворке уже есть: правка чужого помечается
+      маркером, накопитель собирает её, и она уезжает наверх. Пользовались им пока не для
+      этого. <b>Правильный путь — третий, и до него это записанный долг, а не «так
+      задумано».</b></p>
+    </div>
+  </div>
+</section>
+
+<section id="tree">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">12</span><h2>Дерево</h2></div>
+
+    <div class="legend">
+      <span>⬤ заводится сразу</span>
+      <span>○ по мере появления предмета</span>
+      <span>◇ приезжает с плагином</span>
+    </div>
+
+<div class="tree">project/
+│
+│  <span class="g-process">ПРОЦЕСС — как мы работаем</span>
+├── ⬤ <b>ledger.md</b>              где мы сейчас: миссия → цель фазы → шаг
+├── ⬤ <b>inbox.md</b>               сырой вход до разбора
+├── ⬤ <b>values.md</b>              конституция
+├── ⬤ <b>glossary.md</b>            язык проекта
+├── ⬤ <b>connection-points.md</b>   чем закрыт каждый слой
+├── ⬤ <b>roles/&lt;role&gt;/context.md</b> память ролей
+├── ○ <b>decisions/</b>             DEC-NNN: почему выбрано так
+├── ○ <b>sessions/</b>              ГГГГ-ММ-ДД_тема.md — что было в этот день
+├── ○ <b>sessions/handoff.md</b>    что нужно знать следующей сессии
+├── ○ <b>resources.md</b>           активы: домены, серверы, услуги
+├── ○ <b>framework-feedback.md</b>  находки, верные для любого проекта
+│
+│  <span class="g-truth">ПРАВДА — как есть сейчас</span>
+├── ⬤ <b>domain.md</b>              факты о мире
+├── ⬤ <b>claims.md</b>              CLM-NN — на них ссылается паспорт
+├── ⬤ <b>requirements.md</b>        FR/NFR, пока не закрыта точка requirements
+├── ○ <b>passport.md</b>            правда о продукте; называет свои утверждения
+├── ○ <b>design-system.md</b>       облик: токены, компоненты, пять состояний
+├── ◇ <b>scenarios/&lt;имя&gt;.md</b>     путь пользования; называет требования и модули
+├── ◇ <b>spec/</b>                  requirements · conventions · open-questions · дерево
+├── ◇ <b>deck/output/</b>           снимки: доказательство шагов
+│
+│  <span class="g-work">РАБОТА — что мы делаем</span>
+├── ⬤ <b>backlog.md</b>             пока не заведены ленты work/
+├── ⬤ <b>artifacts/drift-registry.md</b>  где реальность разошлась с описанным
+├── ○ <b>artifacts/risk-registry.md</b>   риски: вероятность, ущерб, наблюдатель
+├── ⬤ <b>artifacts/</b>             прочее, у чего нет своего дома
+├── ○ <b>work/</b>                  unconfirmed · tasks · for-human · debt · blind-spots
+├── ○ <b>roadmap.md</b>             очередь поставок и условия перехода
+├── ○ <b>ideas/IDEA-NNNN/</b>       замысел; может кончиться отказом
+├── ○ <b>deliveries/DEL-NNNN/</b>   поставка; закрывается сценарием
+└── ○ <b>features/FEAT-NNNN/</b>    фича + ARCHITECTURE + EXECUTION + отчёты</div>
+  </div>
+</section>
+
+<section id="links">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">13</span><h2>Связи</h2></div>
+    <p>Связь — поле в шапке файла, а не упоминание в тексте. По полям считают радиус правки.</p>
+
+    <div class="note" style="--warn: var(--truth); --warn-wash: var(--truth-wash)">
+      <p><b>Ссылка идёт снизу вверх: ребёнок называет родителя.</b><br>
+      <b>Инвалидация идёт сверху вниз: родитель сдвинулся — дети теряют подтверждение.</b></p>
+      <p>Ответственность полем <code>covers</code> называет требования, которые покрывает.
+      Значит требование — её родитель. Поправили требование — подтверждение теряет
+      ответственность, не наоборот.</p>
+    </div>
+
+    <h3>Слои правды</h3>
+    <div class="chain">
+      <div class="node fam-truth"><span class="n-term">Утверждение</span><span class="n-file">CLM-04</span></div>
+      <div class="link"><span class="l-field">holds</span><span class="l-arrow">→</span></div>
+      <div class="node fam-truth"><span class="n-term">Паспорт</span><span class="n-file">passport.md §4</span></div>
+      <div class="link"><span class="l-field">from</span><span class="l-arrow">→</span></div>
+      <div class="node fam-truth"><span class="n-term">Сценарий</span><span class="n-file">scenarios/oplata</span></div>
+      <div class="link"><span class="l-field">from</span><span class="l-arrow">→</span></div>
+      <div class="node fam-truth"><span class="n-term">Требование</span><span class="n-file">FR-12</span></div>
+      <div class="link"><span class="l-field">covers</span><span class="l-arrow">→</span></div>
+      <div class="node fam-truth"><span class="n-term">Ответственность</span><span class="n-file">spec.billing.seats</span></div>
+      <div class="link"><span class="l-field">код</span><span class="l-arrow">→</span></div>
+      <div class="node fam-truth"><span class="n-term">Снимок</span><span class="n-file">deck/output/</span></div>
+    </div>
+    <p class="chain-note">
+      Стрелка показывает порядок слоёв сверху вниз — так идёт инвалидация. Подписи —
+      поля, которыми ребёнок называет родителя. Две ссылки идут вбок: сценарий полем
+      <code>touches</code> называет модули, исполняющие его шаги, полем <code>deck</code> —
+      прогон, чьи снимки его доказывают. Родителями они не являются: сценарий их
+      использует, поэтому правка модуля снимает подтверждение со снимков шага, а не с пути.
+    </p>
+
+    <div class="table-block wash-truth">
+      <div class="table-caption">Кто кого называет</div>
+      <table>
+        <thead><tr><th>Ребёнок</th><th>Поле</th><th>Родитель</th><th>Что означает</th></tr></thead>
+        <tbody>
+          <tr><td class="term">паспорт</td><td class="en">holds</td><td>утверждения</td><td>раздел стоит на этих ставках</td></tr>
+          <tr><td class="term">требование</td><td class="en">from</td><td>сценарий, шаг</td><td>требование родилось из этого шага пути</td></tr>
+          <tr><td class="term">ответственность</td><td class="en">covers</td><td>требования</td><td>модуль закрывает эти требования</td></tr>
+          <tr><td class="term">ответственность</td><td class="en">uses</td><td>соседи</td><td>модуль зовёт этих соседей</td></tr>
+          <tr><td class="term">решение</td><td class="en">enforced_by</td><td>проверка</td><td>нарушение решения делает проверку красной</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Зачем требования при наличии сценария</h3>
+    <p>
+      Сценарий говорит «человек должен смочь». Требование говорит «система умеет вот это
+      и проверяется вот так». Один сценарий рождает несколько требований, одно требование
+      участвует в нескольких сценариях. Без требований <b>покрытие не считается</b>:
+      ответственности не с чем сопоставлять.
+    </p>
+
+    <h3>Ход работы</h3>
+    <div class="chain">
+      <div class="node fam-work"><span class="n-term">Идея</span><span class="n-file">IDEA-0007</span></div>
+      <div class="link" style="--fam: var(--work)"><span class="l-field">исход</span><span class="l-arrow">→</span></div>
+      <div class="node fam-work"><span class="n-term">Поставка</span><span class="n-file">DEL-0003</span></div>
+      <div class="link" style="--fam: var(--work)"><span class="l-field">срез</span><span class="l-arrow">→</span></div>
+      <div class="node fam-work"><span class="n-term">Фича</span><span class="n-file">FEAT-0042</span></div>
+      <div class="link" style="--fam: var(--work)"><span class="l-field">scenario</span><span class="l-arrow">→</span></div>
+      <div class="node fam-truth"><span class="n-term">Сценарий</span><span class="n-file">scenarios/oplata</span></div>
+    </div>
+    <div class="chain" style="margin-top:.5rem">
+      <div class="node fam-work"><span class="n-term">Путь развития</span><span class="n-file">roadmap.md</span></div>
+      <div class="link" style="--fam: var(--work)"><span class="l-field">очередь</span><span class="l-arrow">→</span></div>
+      <div class="node fam-work"><span class="n-term">Поставка</span><span class="n-file">какая следующая</span></div>
+    </div>
+    <p class="chain-note">
+      <b>Путь развития держит очередь.</b> Он не родитель поставок и не ребёнок: он
+      отвечает на вопрос «какая следующая». Закрыли поставку — путь развития называет
+      следующую и условие, по которому она открывается. Пустым он бывает один раз: пока
+      поставка первая. Дальше пустота означает, что очередь не держит никто.
+    </p>
+
+    <div class="table-block wash-work">
+      <div class="table-caption">Кто кого называет в работе</div>
+      <table>
+        <thead><tr><th>Ребёнок</th><th>Поле</th><th>Родитель</th><th>Что означает</th></tr></thead>
+        <tbody>
+          <tr><td class="term">поставка</td><td class="en">covers</td><td>утверждения</td><td>поставка проверяет эти ставки на людях</td></tr>
+          <tr><td class="term">поставка</td><td class="en">scenario</td><td>сценарий</td><td>закрыта, когда путь проходится целиком</td></tr>
+          <tr><td class="term">фича</td><td class="en">scenario</td><td>сценарий</td><td>делает эти шаги пути ссылкой, не копией</td></tr>
+          <tr><td class="term">проект</td><td class="en">touches</td><td>ответственности</td><td>меняет эти обещания модулей</td></tr>
+          <tr><td class="term">план</td><td class="en">depends_on</td><td>проект и отпечаток</td><td>проект сдвинулся — план теряет подтверждение</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="pull">
+      Оси пересекаются в одной точке: фича называет сценарий. Других переходов из работы
+      в правду нет.
+    </p>
+  </div>
+</section>
+
+<section id="commands">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">14</span><h2>Двенадцать команд</h2></div>
+    <p>Один вход на слой, а не одна команда на действие.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-group-label">Ведение</div>
+      <div class="cmd-row"><div class="cmd-name">/setup-project</div><div class="cmd-body">
+        Тип проекта, роли, ценности, учебники ремесла — и <b>шаг точек подключения</b>:
+        по каждому слою один вопрос, чем закрываем. Ответ «ничем» законен и записывается
+        деградацией.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/facilitator</div><div class="cmd-body">
+        Явное переключение в координатора. Он и так роль по умолчанию — команда нужна,
+        когда разговор ушёл в другую роль и надо вернуться.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/end-session</div><div class="cmd-body">
+        Условие выхода и вердикт по нему · ленты · гейты (решения, память ролей, активы,
+        требования, точки подключения) · <b>сверка заявленного «сделано» с git</b> · запись
+        летописи и передачи следующему.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/self-service</div><div class="cmd-body">
+        Аудит связности, имплант роли, порядок подключения плагина. Правило:
+        <b>имплант вместо плагина законен ровно в одном случае</b> — инструмента для этой
+        точки не существует.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/update-docs</div><div class="cmd-body">
+        Контекст проекта для агентов по стандарту llmstxt: что за продукт, из чего состоит,
+        где что лежит.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/spec</div><div class="cmd-body">
+        <b>Маршрутизатор, а не исполнитель.</b> Определяет этап по состоянию проекта: нет
+        каталога — собрать объём и требования; есть требования — построить дерево; есть
+        дерево — сверить сценарии. Точка не закрыта — называет деградацию и цену, а не
+        ведёт никуда.</div></div>
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-group-label">Замысел</div>
+      <div class="cmd-row"><div class="cmd-name">/plan-feat</div><div class="cmd-body">
+        Лестница: <b>идея → поставка → путь развития → фича</b>. Этап определяется входом,
+        а не отдельной командой на каждый. Разговор ведёт основная сессия; субагенты только
+        исследуют и опрашивают, решений не принимают. Каждый шаг заканчивается
+        <b>следующей командой с аргументом</b>.</div></div>
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-group-label">Исполнение</div>
+      <div class="cmd-row"><div class="cmd-name">/plan</div><div class="cmd-body">
+        Проект изменения по требованиям, затем План выполнения. Квота альтернатив: не меньше
+        трёх для сложного решения. План несёт отпечаток Проекта — гейт свежести.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/plan-do</div><div class="cmd-body">
+        Конвейер ролей: архитектор → разработка через тесты-до-кода → проверка → документация.
+        Круги правок до чистой проверки. Находка проектирования — остановка, а не обход.</div></div>
+      <div class="cmd-row"><div class="cmd-name">/plan-reflect</div><div class="cmd-body">
+        Что план обещал и что вышло: пробелы, сильные стороны моделей, поправки человека,
+        калибровка оценок. Итог — в память планировщика.</div></div>
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-group-label">Изменение</div>
+      <div class="cmd-row"><div class="cmd-name">/change</div><div class="cmd-body">
+        Определяет слой по формулировке · собирает задетое по названным связям · раскладывает
+        на три вида · показывает <b>смету до согласия</b> с ответами «принять · сузить ·
+        не сейчас» · после согласия метит узлы и наполняет ленты. Ею же заводится паспорт,
+        когда его ещё нет.</div></div>
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-group-label">Прибор</div>
+      <div class="cmd-row"><div class="cmd-name">/deck</div><div class="cmd-body">
+        Режимы <code>init</code> (каркас стенда, четыре проверкаа сразу и доказательство
+        мутацией) · <code>run</code> (проверка предусловий, прогон, три числа вместо
+        «готово») · <code>review</code> (разбор ленты дорожками в непересекающихся зонах,
+        сведение в корни). Пусто — прогон и разбор: порознь они почти не нужны.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">15</span><h2>Что удерживает систему от разрастания</h2></div>
+    <p>Пять механизмов, каждый закрывает свой способ утонуть.</p>
+
+    <div class="rules">
+      <div class="rule"><div><b>Записать правду дёшево; работой она становится отдельным согласием.</b>
+        <span> Десять записанных сценариев не создают ни одной задачи — они показывают, где
+        продукт не готов. Карта дыр сама по себе безвредна.</span></div></div>
+      <div class="rule"><div><b>Неподтверждённого больше, чем работы, и разница считается.</b>
+        <span> Большинство подтверждается прогоном без человека; потолок стоит только
+        на «требует правки».</span></div></div>
+      <div class="rule"><div><b>Отказ законен на каждом уровне.</b>
+        <span> Идея может кончиться отказом, сценарий — уехать в раздел паспорта «чего
+        не делаем» и больше никогда не всплыть как дыра.</span></div></div>
+      <div class="rule"><div><b>Производное не накапливается.</b>
+        <span> Починил — строка исчезла сама. Списка, который «надо разобрать»,
+        не существует.</span></div></div>
+      <div class="rule"><div><b>Здоровье читается одним числом</b>
+        <span> — растут ли слепые пятна.</span></div></div>
+    </div>
+
+    <h3>Три сквозных правила</h3>
+    <div class="rules">
+      <div class="rule"><div><b>Формулировка живёт ровно на одном слое.</b>
+        <span> Появилась ниже — помечается долгом и поднимается наверх. Иначе
+        ответственность становится сама себе заказчиком, и проверять её нечем.</span></div></div>
+      <div class="rule"><div><b>Производное не пишется руками.</b>
+        <span> Неподтверждённое вычисляется; записанное руками расходится с реальностью в тот же
+        день.</span></div></div>
+      <div class="rule"><div><b>У каждого артефакта есть владелец и способ смерти</b>
+        <span> — прочтением, исполнением или обновлением. Артефакт, который не умирает,
+        становится памятником.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="guards">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">16</span><h2>Чем система проверяет себя</h2></div>
+    <p>
+      Всё описанное выше — договорённости, а договорённость держится ровно до той сессии,
+      в которой её забыли. Поэтому у каждого класса ошибок есть <b>прибор</b>: скрипт, который
+      делает нарушение красным.
+    </p>
+    <p class="pull">
+      Правило без прибора — это просто мнение. Прибор без доказательства — тоже мнение,
+      просто зелёное.
+    </p>
+    <p>
+      Отсюда обязательный второй шаг: прибор не принят, пока не показано, что он
+      <b>краснеет в мире с дефектом</b>. Названа мутация, приложены красный и зелёный прогоны.
+      Сейчас приборов 27, наборов доказательств 28.
+    </p>
+
+    <h3>Две вещи, которые приборы делают неочевидно</h3>
+    <div class="rules">
+      <div class="rule"><div><b>Половина «найдено не ноль».</b>
+        <span> Перечисляющая проверка на пустом множестве — отказ, а не успех. Каталог ролей
+        есть, а файлов памяти ноль — это не здоровая команда, это поломка.</span></div></div>
+      <div class="rule"><div><b>У находки есть вес.</b>
+        <span> Прибор объявляет тир: <b>стоп</b> — ломает следующую сессию либо теряется
+        навсегда, разбирается сейчас; <b>счёт</b> — копится под потолком, а выше потолка
+        перестаёт быть задачей сессии и становится целью фазы. Сводка складывает чужие
+        находки и задаёт порядок: дешёвое из дорогого первым.</span></div></div>
+      <div class="rule"><div><b>Новое правило вводится вперёд.</b>
+        <span> Артефакт, записанный до его появления, считается унаследованным: он
+        перечисляется в отчёте, но прогон не роняет. Иначе обновление превращает исправный
+        проект в красный.</span></div></div>
+    </div>
+
+    <h3>Что нашла проверка перед выпуском</h3>
+    <p>
+      Приборы прогнали по восьми живым проектам, ядро развернули без единого плагина и прошли
+      на нём путь проекта, который не пишет код вовсе. Шесть находок — и все шесть о том,
+      что <b>проверка сама может ошибаться</b>.
+    </p>
+
+    <div class="table-block wash-warn">
+      <div class="table-caption">Находки предрелизной проверки</div>
+      <table>
+        <thead><tr><th>Что было</th><th>Почему это опасно</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Гейт зелёный в пустом каталоге</td>
+            <td>Шестнадцать приборов не нашли своих путей и промолчали — каждый по отдельности
+            прав, вместе получилось «проверено, чисто» там, где нет ни одного файла</td>
+          </tr>
+          <tr>
+            <td>Унаследованная сессия роняла прогон<br><span class="en">8 проектов из 8</span></td>
+            <td>Прибор сам печатал «для унаследованных это норма» и всё равно возвращал отказ.
+            Рефлексия по давно записанной сессии уже потеряна — красное её не воскресит</td>
+          </tr>
+          <tr>
+            <td>Ядро без плагинов звало себя неработоспособным</td>
+            <td>Проверка требовала файлы плагина, который не установлен. Чистая установка
+            объявляла себя сломанной</td>
+          </tr>
+          <tr>
+            <td>Проект без кода не мог убрать точки про код</td>
+            <td>Обязан был вечно объявлять деградацию по тестам, которых у него не будет</td>
+          </tr>
+          <tr>
+            <td>Решение, закреплённое документом, признать было нечем</td>
+            <td>Список форм состоял из расширений кода. Проект без кода мог написать только
+            «гарда нет» — то есть неправду: гард есть, он документ</td>
+          </tr>
+          <tr>
+            <td>Комментарий шаблона читался как значение</td>
+            <td>Решение, заведённое по инструкции, давало две ложных находки подряд: пустое
+            поле считалось заполненным, заполненное — пустым</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p><b>Что у этих шести общего.</b> Ни одна не нашлась чтением кода — все шесть вылезли
+      на живых данных. Четыре из них — <b>ложные срабатывания</b>: прибор сообщал о дефекте,
+      которого нет. Это дороже пропущенной ошибки: после второго ложного красного в отчёт
+      перестают смотреть, и тогда молчит уже вся система.</p>
+      <p><b>Отсюда правило для новых приборов.</b> Прогнать по чужому живому проекту прежде,
+      чем считать готовым. Своих данных всегда мало: они писались тем же человеком и по тем же
+      привычкам, что и сам прибор.</p>
+    </div>
+  </div>
+</section>
+
+<section id="usage">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">17</span><h2>Как этим пользуются</h2></div>
+
+    <h3>Старт: новый проект</h3>
+    <div class="story">
+      <div class="beat"><div class="who">/setup-project</div><div class="what">
+        Тип проекта, роли, ценности — и <b>точки подключения</b>. По каждой один вопрос:
+        чем закрываем? Ответ «ничем» законен и записывается деградацией.</div></div>
+      <div class="beat"><div class="who">Правда</div><div class="what">
+        Заводится <code>domain.md</code> (что известно о мире) и <code>claims.md</code>
+        (на что опираемся). Затем <code>/change</code> заводит паспорт: миссия, клиент,
+        что делает, <b>чего не делает</b>.</div></div>
+      <div class="beat"><div class="who">первый путь</div><div class="what">
+        Один сценарий — самый частый. Прочерки в «кто отвечает» законны: это видимые дыры,
+        а не грязь.</div></div>
+      <div class="beat"><div class="who">/deck init</div><div class="what">
+        Если у продукта есть экраны. Проекту без экранов команда честно откажет и
+        остановится.</div></div>
+    </div>
+
+    <h3>Расширение: подключить инструмент</h3>
+    <div class="story">
+      <div class="beat"><div class="who">1. назвать</div><div class="what">
+        Деградацию вслух: «требования ведём прозой, покрытие не считается».</div></div>
+      <div class="beat"><div class="who">2. предложить</div><div class="what">
+        Инструмент <b>с ценой</b>: плагин добавляет свой налог в каждую сессию и
+        <b>применяется со следующей</b>, а не с этой.</div></div>
+      <div class="beat"><div class="who">3. записать</div><div class="what">
+        В таблицу точек сразу после установки. Инструмент, о котором знает только тот, кто
+        его ставил, в следующей сессии не существует.</div></div>
+    </div>
+
+    <h3>Разработка: обычный круг</h3>
+    <div class="table-block wash-work">
+      <table>
+        <thead><tr><th>Ход</th><th>Команда</th><th>Что происходит</th></tr></thead>
+        <tbody>
+          <tr><td>появилась мысль</td><td class="en">/plan-feat</td><td>идея → исход. Отказ — законный конец</td></tr>
+          <tr><td>исход «поставка»</td><td class="en">/plan-feat</td><td>поставка называет сценарий, который закроет целиком</td></tr>
+          <tr><td>нужны контракты</td><td class="en">/spec</td><td>дерево ответственностей; у каждого шага ищется исполнитель</td></tr>
+          <tr><td>понятно, что меняем</td><td class="en">/change</td><td><b>смета до согласия</b>: что потеряет подтверждение, что снимется прогоном, сколько стоит</td></tr>
+          <tr><td>согласились</td><td class="en">/plan → /plan-do</td><td>Проект изменения, план, код, круги проверки до чистой</td></tr>
+          <tr><td>код готов</td><td class="en">/deck</td><td>снимки; сценарий жив, когда у всех шагов есть свежие</td></tr>
+          <tr><td>конец дня</td><td class="en">/end-session</td><td>условие выхода, ленты, гейты, сверка состояния с git</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <b>Вход бывает с любого слоя, и чаще всего снизу:</b> увидели неправду на экране →
+      <code>/change</code> ведёт вверх до слоя, где ложь родилась. Механика одна в обе
+      стороны, меняются только задетые узлы.
+    </p>
+
+    <h3>Пример: записали десять сценариев</h3>
+    <div class="story">
+      <div class="beat"><div class="who">человек</div><div class="what">
+        Диктует десять сценариев — грубо, шагами, без исполнителей.</div></div>
+      <div class="beat"><div class="who">/spec</div><div class="what">
+        Ведёт их по дереву. Машинная работа, без разговора.
+<div class="readout">Сценариев: 10 · шагов: 74
+  шагов с исполнителем:     48
+  шагов с прочерком:        26  → дыры, группируются в 6 мест дерева
+  требований без сценария:   5  → сироты</div>
+        Двадцать шесть дыр — но <b>шесть мест</b>. Десять сценариев не стали десятью
+        задачами.</div></div>
+      <div class="beat"><div class="who">человек</div><div class="what">
+        Решает по каждому месту: строим · не строим (в границы паспорта) · потом (в долг
+        с датой). Три строим → одна <b>поставка</b> и три <b>фичи</b>.</div></div>
+      <div class="beat"><div class="who">/change</div><div class="what">
+        Смета по первой фиче — <b>до согласия</b>.
+<div class="readout">Задето: ответственностей 2 · требований 3 · сценариев 4 · снимков 22
+  подтверждается прогоном:  18 дешёвых + 7 тестов контрактов
+  требует правки:       2 ответственности + код
+  дорогих прогонов:     2  (≈24 ₽)
+  «требует правки» после: 5   (потолок 15 — помещаемся)
+
+  [принять]   [сузить]   [не сейчас]</div></div></div>
+      <div class="beat"><div class="who">/plan-do</div><div class="what">
+        Правка идёт <b>в дерево раньше кода</b>, затем код и круги проверки.</div></div>
+      <div class="beat"><div class="who">/deck</div><div class="what">
+        Дешёвые снимки пересняты машиной — они были в косвенном неподтверждённом, их никто
+        не заказывал. Дорогие — по смете, к которой уже согласились.</div></div>
+      <div class="beat"><div class="who">проверка</div><div class="what">
+        Сверяет: у каждого шага задетых сценариев есть свежий снимок. Нет — <b>сценарий
+        не доказан</b>, и это неподтверждённое, а не «вроде готово».</div></div>
+      <div class="beat"><div class="who">/end-session</div><div class="what">
+        Найденное сверх плана уходит в слепые пятна как заявка на прибор, а не в починку
+        этой сессии.</div></div>
+    </div>
+
+    <p>
+      Через месяц вместо десяти незакрытых сценариев: три места закрыты, два стали
+      границами продукта, одно в долгу с датой.
+    </p>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="section-head"><span class="section-num">18</span><h2>Зачем это всё</h2></div>
+    <p>
+      Система из тридцати артефактов существует ради одного свойства: <b>знать, что
+      сломается, до того как ломать</b>. Всё остальное — способы это свойство удержать.
+    </p>
+    <p>
+      Артефакт живёт, пока отвечает на вопрос, который больше некому задать. Паспорт
+      отвечает «как есть сейчас», сценарий — «что человек должен смочь», снимок — «что он
+      видит на самом деле». Артефакт, чей вопрос перестал задаваться, перестают читать,
+      и он тихо расходится с продуктом.
+    </p>
+    <p class="pull">
+      Какой вопрос он закрывает, кто его задаёт и как этот файл умрёт?
+    </p>
+    <p>
+      Нет ответа хотя бы на один — файл заведён рано. Есть на все три — он найдёт своё
+      место в одном из трёх семейств сам.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Источник: <code>.claude/knowledge/artifacts-map.md</code> · Core Team Framework 5.3.0.
+      Детали каждого артефакта — в README плагина, который им владеет; здесь только закон
+      семейства, признаки различения и связи. Переносите существующий проект на эту версию
+      по <code>UPGRADING.md</code>: ремесло разработки уехало в плагин, и четыре команды
+      без него перестают существовать.
+    </p>
+  </div>
+</footer>
