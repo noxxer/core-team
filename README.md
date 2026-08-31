@@ -5,7 +5,7 @@
 > Саморазворачивающийся мультиагентный фреймворк для Claude Code.
 > Один разговор разворачивает команду специализированных subagent-ролей с памятью между сессиями и механическими гейтами качества.
 
-![version](https://img.shields.io/badge/version-5.3.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.3.1-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 **[Карта артефактов](https://htmlpreview.github.io/?https://github.com/noxxer/core-team/blob/main/artifacts-map.html)** — одна страница о том, что где живёт, чем отличается от соседа и что произойдёт, если его поправить.
 
