@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-portability.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=28
+EXPECTED_CASES=31
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=8
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -93,6 +93,19 @@ D=$(new_dir); put "$D" bad.sh "grep -E \"^${BR_OPEN}А-ЯЁ${BR_CLOSE}{2,}\" f"
 check "кириллический диапазон в регулярке" 1 "$(run_code "$D")"
 check "…и назван побайтовый разбор" "да" "$(says "$(run_out "$D")" "побайтово")"
 check "…и назван выход через альтернативу" "да" "$(says "$(run_out "$D")" "через альтернативу")"
+
+# Команда `test` классом символов не является: кириллица внутри неё лежит в кавычках
+# как литерал и от локали не зависит. Класс поймал сам себя — первая же строка нового
+# кода в check-install-integrity дала ложную находку на условии оболочки.
+D=$(new_dir); put "$D" ok.sh "if ${BR_OPEN} \"\$(grep -c 'Для памяти роли' \"\$f\")\" -eq 0 ${BR_CLOSE}; then :; fi"
+check "кириллица внутри условия оболочки — не находка" 0 "$(run_code "$D")"
+
+D=$(new_dir); put "$D" ok2.sh "${BR_OPEN} -n \"\${имя}\" ${BR_CLOSE} && echo да"
+check "условие с не-ASCII переменной — не находка" 0 "$(run_code "$D")"
+
+# Граница: пробел только с одной стороны условием не делает — это класс с пробелом.
+D=$(new_dir); put "$D" bad2.sh "grep -E \"${BR_OPEN} А-Я${BR_CLOSE}\" f"
+check "пробел только слева — всё ещё класс" 1 "$(run_code "$D")"
 
 D=$(new_dir); put "$D" ok.sh 'grep -E "(Сесси|сесси)" f'
 check "литералы через альтернативу — переносимо" 0 "$(run_code "$D")"

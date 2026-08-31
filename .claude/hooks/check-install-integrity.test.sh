@@ -9,10 +9,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=76
+EXPECTED_CASES=82
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=26
+MUTATIONS=28
 ran=0
 failed=0
 TRASH=()
@@ -253,6 +253,45 @@ D=$(make_copy); role_spec "$D" 2 2
 check "два описания блока в одном файле" 1 "$(run_code "$D")"
 check "…и названо противоречием" "да" "$(says "$(run_out "$D")" "противоречие в одном файле")"
 
+# Ноль описаний — класс дороже дубля: хук требует блок в отчёте любой роли с файлом
+# в `agents/`, и роль встаёт на первой активации, не сказав почему. Замер прогона
+# 5.3.0 на чистой копии: блок был у 6 ядровых ролей из 6 и у 0 опциональных из 5.
+D=$(make_copy); role_spec "$D" 0 2
+check "ноль описаний блока памяти" 1 "$(run_code "$D")"
+check "…и сказано, что хук не отпустит роль" "да" "$(says "$(run_out "$D")" "хук не отпустит роль")"
+
+# Facilitator идёт основной сессией, под SubagentStop не попадает и блок не выдаёт.
+D=$(make_copy); cp "$D/.claude/agents/dev.md" "$D/.claude/agents/facilitator.md"
+python3 - "$D/.claude/agents/facilitator.md" <<'INNER'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+p.write_text(p.read_text(encoding='utf-8').replace('## Для памяти роли', '## Работа'), encoding='utf-8')
+INNER
+check "facilitator без блока — не находка" 0 "$(run_code "$D")"
+
+# Шаблон опциональной роли смотрится наравне с agents/: это будущий файл роли,
+# он копируется туда дословно. Дрейф между двумя каталогами — тот же класс E,
+# только внутри поставки: блок добавили в agents/, а templates/ не тронули.
+D=$(make_copy); mkdir -p "$D/.claude/templates/roles/optional"
+printf -- '---
+name: product
+---
+
+Мини-CEO.
+' > "$D/.claude/templates/roles/optional/product.md"
+check "шаблон opt-in роли без блока" 1 "$(run_code "$D")"
+check "…и названа роль" "да" "$(says "$(run_out "$D")" "product: нет описания блока")"
+
+D=$(make_copy); mkdir -p "$D/.claude/templates/roles/optional"
+printf -- '---
+name: product
+---
+
+## Для памяти роли
+- Текущий фокус: <...>
+' > "$D/.claude/templates/roles/optional/product.md"
+check "шаблон opt-in роли с блоком" 0 "$(run_code "$D")"
+
 D=$(make_copy); role_spec "$D" 1 3
 check "непарное ограждение кода" 1 "$(run_code "$D")"
 check "…и сказано, чем это плохо" "да" "$(says "$(run_out "$D")" "читается как код")"
@@ -317,7 +356,7 @@ protocols_with() {  # $1 = корень, $2.. = строки таблицы
 
 C=$(make_copy)
 mkdir -p "$C/.claude/templates/roles/optional"
-printf 'роль\n' > "$C/.claude/templates/roles/optional/analyst.md"
+printf 'роль\n\n## Для памяти роли\n- Текущий фокус: <...>\n' > "$C/.claude/templates/roles/optional/analyst.md"
 protocols_with "$C" '| Белая | Факты | Analyst |' '| Зелёная | Реализация | Dev |'
 check "маршруты ведут к существующим ролям" 0 "$(run_code "$C")"
 
@@ -329,7 +368,7 @@ check "…и роль названа" "да" "$(says "$(run_out "$C")" "«growth
 # «Минусы» ролью, которой нет, — на собственных протоколах фреймворка.
 C=$(make_copy)
 mkdir -p "$C/.claude/templates/roles/optional"
-printf 'роль\n' > "$C/.claude/templates/roles/optional/analyst.md"
+printf 'роль\n\n## Для памяти роли\n- Текущий фокус: <...>\n' > "$C/.claude/templates/roles/optional/analyst.md"
 protocols_with "$C" '| Белая | Факты | Analyst |'
 printf '\n## Альтернативы\n\n| Вариант | Плюсы | Минусы |\n|---|---|---|\n| А | быстро | дорого |\n' \
   >> "$C/.claude/knowledge/core-protocols.md"
