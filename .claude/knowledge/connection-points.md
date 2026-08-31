@@ -61,6 +61,7 @@
 | `craft:tdd` | Red-Green-Refactor, тест до кода | `core-team-dev` | core-team | `tests/` | тесты пишутся после кода — и это говорится вслух |
 | `craft:clarity` | fail-fast, запрет Error Hiding, 22 принципа | `core-team-dev` | core-team | — | выжимка в `CLAUDE.md` + `knowledge/code-change-discipline.md` |
 | `craft:stacks` | стек-справочники по фазам: проектирование, реализация, ревью, OWASP | `core-team-dev` | core-team | — | общие принципы FC и FPF; конвенции стека не выдумываются по аналогии |
+| `boundary-contract` | границы между контурами перечислены: у каждой один источник формы и адрес сверки либо долг с датой | ядро | ядро | `boundaries.md` | — |
 | `drift-registry` | реестр расхождений, классы A–E | ядро | ядро | `artifacts/drift-registry.md` | — |
 
 **Колонка «Где лежит» отвечает на вопрос «куда идти за результатом этого слоя».** Требования,
