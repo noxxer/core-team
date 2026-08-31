@@ -37,6 +37,7 @@ last_updated: "ГГГГ-ММ-ДД"
 | `craft:tdd` | Red-Green-Refactor, тест до кода | — | — | — | тесты пишутся после кода — и это говорится вслух |
 | `craft:clarity` | fail-fast, запрет Error Hiding, 22 принципа | — | — | — | выжимка в `CLAUDE.md` + `knowledge/code-change-discipline.md` |
 | `craft:stacks` | стек-справочники по фазам и OWASP | — | — | — | общие принципы FC и FPF; конвенции стека не выдумываются |
+| `boundary-contract` | границы между контурами перечислены: у каждой один источник формы и адрес сверки либо долг с датой | ядро | ядро | `boundaries.md` | — |
 | `drift-registry` | реестр расхождений, классы A–E | ядро | ядро | — | — |
 
 ## Установка
@@ -44,6 +45,7 @@ last_updated: "ГГГГ-ММ-ДД"
 ```bash
 claude plugin marketplace add <владелец>/<репозиторий>
 claude plugin install <плагин>@<маркетплейс> --scope project
+claude plugin enable  <плагин>@<маркетплейс> --scope project   # ← без этого точка не закрыта
 ```
 
 Плагин применяется со следующей сессии. **Установленный и выключенный плагин точку не
