@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-boundaries.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=41
+EXPECTED_CASES=45
 # Читается снаружи: `check-install-integrity.sh` сверяет число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=10
+MUTATIONS=11
 ran=0
 failed=0
 TRASH=()
@@ -123,6 +123,22 @@ check "…и сказано, что указатель дороже пустот
 new_file; head_of "$F" 90
 row "$F" BND-13 "фронт ↔ бек" "backend/schemas.py" "Makefile" "—" "$TODAY"
 check "существующий файл без косой черты — адрес" 0 "$(run_code "$F")"
+
+# Проза с точкой или косой чертой адресом не является: запись с пробелом путём быть
+# не может. Три ложных находки на прогоне аудита — все на записях, которые человек
+# имел полное право написать.
+new_file; head_of "$F" 90
+row "$F" BND-13a "бек ↔ Jira" "внешний: Jira REST v3.0" "ci/check-api.sh" "—" "$TODAY"
+check "версия внешнего API в источнике — не путь" 0 "$(run_code "$F")"
+
+new_file; head_of "$F" 90
+row "$F" BND-13b "фронт ↔ бек" "схема в app.config.ts" "ci/check-api.sh" "—" "$TODAY"
+check "проза с именем файла в источнике — не путь" 0 "$(run_code "$F")"
+
+new_file; head_of "$F" 90
+row "$F" BND-13c "фронт ↔ бек" "backend/schemas.py" "смотрим на ревью п.3" "—" "$TODAY"
+check "проза с точкой в сверке — отсутствие сверки, а не битый адрес" 1 "$(run_code "$F")"
+check "…и названа именно нехватка сверки" "да" "$(says "$(run_out "$F")" "ГРАНИЦА БЕЗ СВЕРКИ (1): BND-13c")"
 
 new_file; head_of "$F" 90
 row "$F" BND-14 "фронт ↔ бек" "backend/schemas.py" "сверяем глазами при правке" "—" "$TODAY"
