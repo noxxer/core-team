@@ -2,6 +2,7 @@
 artifact_id: "requirements"
 title: "Требования — что система обязана обеспечивать"
 owner: "cto"
+artifact_path: "project/requirements.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 co_author: "guardian (если подключён)"
 form_kept_by: "keeper"
 created: "YYYY-MM-DD"

@@ -217,13 +217,35 @@ description: "Аудит системы промптов, имплантация
 5. **Необходимость** — без роли есть слепая зона (tensions test)
 
 **Артефакты имплантации:**
-- `.claude/agents/<role>.md` (subagent с frontmatter: name/model/color/description/tools, ≤ 200 строк)
-- `.claude/knowledge/dpf/<role>.md` (role-DPF — стадия 2-3 `dpf-builder`: FPF-process + Loop-improve)
-- `project/roles/<role>/context.md` (начальный контекст — память между сессиями)
+- `.claude/agents/<role>.md` (subagent с frontmatter: name/model/color/description/tools, ≤ 200 строк).
+  Роль из штатного набора заводится чтением шаблона в новый файл:
+  `cat .claude/templates/roles/optional/<role>.md > .claude/agents/<role>.md`
+  (не `cp`: `permissions.deny` из Шага 5 `/setup-project` закрывает каталог шаблонов, и клиент
+  бракует копирование по **источнику** — команду просто не выполнить)
+- `.claude/knowledge/dpf/<role>.md` — **сначала посмотри в архив**: `/setup-project` (Шаг 4b.1)
+  убирает учебники неактивных ролей в `.claude/knowledge/dpf/archive/`, и роль, подключённая
+  позже, обязана забрать свой обратно:
+  `mv .claude/knowledge/dpf/archive/<ремесло>.md .claude/knowledge/dpf/`
+  В архиве пусто — собери учебник методом `dpf-builder` (стадии 2-3: FPF-process + Loop-improve).
+  Не сделал ни того, ни другого — роль **молча работает без ремесла**, а `check-install-integrity.sh`
+  и `check-links.sh` покраснеют оба
+- `project/roles/<role>/context.md` — заводится **чтением шаблона в новый файл**:
+  `cat .claude/templates/project/role-context-template.md > project/roles/<role>/context.md`
+  (не `cp`: запрет на каталог шаблонов бракует копирование по источнику; не `Write`: перезапись
+  существующей памяти отклоняет `hooks/memory-gate.sh`)
 - Обновлённая таблица ролей в CLAUDE.md + строка в `.claude/knowledge/dpf/README.md`
-- Обновлённый File Ownership
+- Обновлённый File Ownership — **и в файле роли, и в таблице CLAUDE.md**: две записи об одном
+  предмете расходятся молча, и с 5.3.2 расхождение красное
 - Обновлённый `.claude/planner-context.md` §1 (каталог subagent-ов)
-- Активационный ритуал роли читает `.claude/knowledge/dpf/<role>.md`
+- Активационный ритуал роли читает `.claude/knowledge/dpf/<role>.md` **и `project/values.md`,
+  раздел 9** — проектная ценность, объявленная и не доехавшая до роли, держится только памятью
+  человека
+- Артефакт, который роль получает во владение, объявляет в шапке `owner:` и `artifact_path:`,
+  а роль называет этот путь в своём файле — иначе владелец не знает, чем владеет
+
+**Проверка после имплантации (обязательна):** `bash .claude/hooks/check-install-integrity.sh` и
+`bash .claude/hooks/check-links.sh`. Замер 5.3.1: подключение opt-in роли роняло гард целостности,
+и узнавал об этом человек, а не тот, кто подключал.
 
 #### Фаза 4: Верификация
 

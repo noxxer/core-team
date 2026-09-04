@@ -2,6 +2,7 @@
 artifact_id: "claims"
 title: "Утверждения — ставки о мире, на которых стоит продукт"
 owner: "cto"
+artifact_path: "project/claims.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 maintained_by: "cto + facilitator (модерация)"
 version: 1
 last_updated: "ГГГГ-ММ-ДД"

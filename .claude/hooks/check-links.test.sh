@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-links.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=20
+EXPECTED_CASES=24
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=7
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -117,6 +117,39 @@ check "короткий путь в существующий файл" 0 "$(run_
 C=$(make_copy 'Детали — `references/guards.md` внутри навыка, правила — `.claude/knowledge/other.md`.' \
               ".claude/knowledge/other.md")
 check "references/ не проверяется — база неоднозначна" 0 "$(run_code "$C")"
+
+# --- Учебник ремесла неактивной opt-in роли ------------------------------------
+# Мир с дефектом: два предписания фреймворка требовали противоположного. Шаг 4b.1
+# `/setup-project` убирает DPF ролей, не выбранных проектом, а шаблоны этих ролей
+# продолжают называть путь учебника — и проверка объявляла ссылки битыми. Замер
+# (отчёт с мест по 5.3.1): штатный прогон давал 3 такие находки из 4, красное
+# оставалось навсегда и приучало не смотреть.
+#
+# Шаблон роли, которой нет в `agents/`, — заготовка, а не действующий маршрут.
+# Рядом живая ссылка: иначе разобранных ссылок ноль и отказ придёт по другой причине.
+C=$(make_copy 'Правила — `.claude/knowledge/other.md`.' ".claude/knowledge/other.md")
+mkdir -p "$C/.claude/templates/roles/optional"
+printf 'Читай `.claude/knowledge/dpf/ux-design.md` — DPF ремесла.\n' \
+  > "$C/.claude/templates/roles/optional/designer.md"
+check "DPF неактивной opt-in роли — не находка" 0 "$(run_code "$C")"
+
+# Роль АКТИВНА — тот же путь проверяется как всякий другой: учебника нет, значит
+# роль молча работает без ремесла, и это находка.
+mkdir -p "$C/.claude/agents"
+printf 'Роль.\n' > "$C/.claude/agents/designer.md"
+check "DPF активной роли в никуда — находка" 1 "$(run_code "$C")"
+check "…и назван путь учебника" "да" "$(says "$(run_out "$C")" "knowledge/dpf/ux-design.md")"
+
+# --- Личный файл настроек ссылкой не является ----------------------------------
+# Мир с дефектом: `settings.local.json` под `.gitignore` фреймворка, в поставку не
+# входит и заводится на машине каждым сам, а документация обязана его называть —
+# в таблице уровней настроек Claude Code. Замер (healthstat-team, 2026-09-09): у
+# потребителя после чистой установки путь давал красное, а в самом репозитории
+# фреймворка молчал, потому что файл там физически лежал: ложное зелёное держалось
+# на неотслеживаемом файле.
+C=$(make_copy 'Уровень Local — `.claude/settings.local.json`, правила — `.claude/knowledge/other.md`.' \
+              ".claude/knowledge/other.md")
+check "личный файл настроек — не находка" 0 "$(run_code "$C")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

@@ -2,6 +2,7 @@
 artifact_id: "artifacts-index"
 title: "Artifacts — то, что команда завела сама"
 owner: "facilitator"
+artifact_path: "project/artifacts/README.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 ceiling: 40          # потолок записей каталога; выше — искать перестают и заводят заново
 created: "YYYY-MM-DD"
 last_updated: "YYYY-MM-DD"

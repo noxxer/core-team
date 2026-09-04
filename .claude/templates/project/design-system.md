@@ -2,6 +2,7 @@
 artifact_id: "design-system"
 title: "Облик — как продукт выглядит и ведёт себя"
 owner: "designer"
+artifact_path: "project/design-system.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 maintained_by: "designer + facilitator (модерация)"
 version: 1
 last_updated: "ГГГГ-ММ-ДД"

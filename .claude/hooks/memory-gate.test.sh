@@ -14,10 +14,10 @@ HOOK=${1:-"${HERE}/memory-gate.sh"}
 
 export MEMORY_CHECK="${HERE}/check-role-memory.sh"
 
-EXPECTED_CASES=30
+EXPECTED_CASES=36
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=8
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -137,6 +137,24 @@ check "вход не JSON — проходит" 0 "$(run_code 'не json вов�
 check "…и сказано, что пропущена" "да" "$(says "$(run_out 'не json вовсе')" "без проверки")"
 check "нет tool_name — проходит" 0 "$(run_code '{"tool_input":{"file_path":"project/roles/dev/context.md"}}')"
 check "нет file_path — проходит" 0 "$(run_code '{"tool_name":"Edit","tool_input":{}}')"
+
+# --- 4. Стирание памяти целиком ------------------------------------------------
+# Мир с дефектом: `Write` по памяти роли держал только `permissions.deny`. Запрет
+# по пути не видит, есть ли по этому пути что стирать, — и тот же блок запретов
+# делал невыполнимым ЗАВЕДЕНИЕ памяти новой роли (замер с мест по 5.3.1: после
+# Шага 5 законной двери не оставалось вовсе). Хук различает эти два случая, и
+# потому смотрит на файл: путь берётся настоящий, а не форма.
+W=$(new_roles); mkdir -p "$W/project/roles/dev" "$W/project/roles/keeper"
+printf -- '---\nrole: "dev"\n---\n\n## Текущий фокус\n\n- разбор\n' > "$W/project/roles/dev/context.md"
+: > "$W/project/roles/keeper/context.md"
+
+check "перезапись существующей памяти" 2 "$(run_code "$(write_json "$W/project/roles/dev/context.md")")"
+check "…и назван путь починки" "да" "$(says "$(run_out "$(write_json "$W/project/roles/dev/context.md")")" "правь точечно")"
+check "…и названа форма заведения" "да" "$(says "$(run_out "$(write_json "$W/project/roles/dev/context.md")")" "role-context-template.md")"
+
+check "заведение памяти новой роли проходит" 0 "$(run_code "$(write_json "$W/project/roles/test/context.md")")"
+check "пустой файл памяти — это заведение" 0 "$(run_code "$(write_json "$W/project/roles/keeper/context.md")")"
+check "Write вне памяти роли не трогаем" 0 "$(run_code "$(write_json "$W/project/roles/dev/заметка.md")")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

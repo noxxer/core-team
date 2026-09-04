@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-connection-points.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=41
+EXPECTED_CASES=48
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=10
+MUTATIONS=12
 ran=0
 failed=0
 TRASH=()
@@ -49,6 +49,15 @@ make_points() {  # строки вида «точка|чем закрыта|де
         "$name" "$closed" "${where:-spec/result.md}" "$degr"
     done
   } > "$f"
+  # Названный адрес по умолчанию СУЩЕСТВУЕТ: иначе каждый случай про плагины и
+  # деградацию краснел бы заодно и по «адрес ведёт в никуда», то есть проходил бы
+  # по неверной причине. Адрес в никуда — отдельный случай, он называет свой путь.
+  for entry in "$@"; do
+    IFS='|' read -r name closed degr where <<< "$entry"
+    where=${where:-spec/result.md}
+    case "${where}" in *'*'*|*'<'*|'—'|'') continue ;; esac
+    mkdir -p "$d/$(dirname "${where}")" && printf 'результат\n' > "$d/${where}"
+  done
   printf '%s' "$f"
 }
 
@@ -225,6 +234,49 @@ check "…и сказано, чего не хватает" "да" \
 # Слово стоит в колонке закрывателя, поэтому плагин у неё не спрашивается вовсе.
 P=$(make_points "craft:tdd|неприменимо|стека нет" "planning|нет-такого-плагина|—")
 check "соседняя точка проверяется как прежде" 1 "$(run_code "$P" "" "$LIST_OK")"
+
+# --- Живой проект без таблицы точек -------------------------------------------
+# Мир с дефектом: отсутствие файла означало «проект их ещё не заполнял» — и для
+# развёрнутого вчера, и для работающего год. Замер прогона по боевым проектам
+# (2026-09-04): таблицы нет в 7 живых проектах из 8 (5–88 решений в каждом), и
+# прибор возвращал ноль во всех семи — ровно та тишина, против которой он писан.
+alive_project() {  # $1=корень $2=сколько решений завести
+  local i
+  mkdir -p "$1/project/decisions"
+  for ((i = 1; i <= $2; i++)); do printf -- '---\nstatus: "accepted"\n---\n' > "$1/project/decisions/DEC-00$i.md"; done
+}
+
+CANON_ALIVE=$(make_canon "requirements")
+
+D=$(mktemp -d); TRASH+=("$D"); alive_project "$D" 6
+check "живой проект без таблицы точек" 1 "$( ( cd "$D" && bash "$CHECKER" project/connection-points.md "$CANON_ALIVE" >/dev/null 2>&1 ); printf '%s' "$?")"
+check "…и названа цена молчания" "да" \
+  "$(says "$( ( cd "$D" && bash "$CHECKER" project/connection-points.md "$CANON_ALIVE" 2>&1 ) )" "СЛОЙ ИНСТРУМЕНТОВ НЕВИДИМ")"
+
+D=$(mktemp -d); TRASH+=("$D"); alive_project "$D" 2
+check "вчера развёрнутый проект — тихо" 0 "$( ( cd "$D" && bash "$CHECKER" project/connection-points.md "$CANON_ALIVE" >/dev/null 2>&1 ); printf '%s' "$?")"
+
+# --- Названный адрес результата существует -------------------------------------
+# Мир с дефектом: прибор требовал НАЗВАТЬ адрес и не смотрел, есть ли он. Класс
+# «указатель дороже пустой ячейки» ядро ловит у активов, требований, границ и
+# ссылок — и не ловило здесь, хотя цена выше: адрес обещает не документ, а целый
+# слой работы. Замер с мест (lotus-pro-team, 2026-09-04): пять точек из одиннадцати
+# вели в несуществующие каталоги, прибор вернул успех и напечатал «разобрано 11».
+CANON_EXIST=$(make_canon "requirements")
+
+P=$(make_points "requirements|\`project-spec\`|проза|spec/requirements.md")
+rm -f "$(dirname "$P")/spec/requirements.md"      # адрес назван, а результата нет
+check "адрес назван, а файла нет" 1 "$(run_code "$P" "$CANON_EXIST" "$LIST_OK")"
+check "…и сказано, чем плох указатель" "да" \
+  "$(says "$(run_out "$P" "$CANON_EXIST" "$LIST_OK")" "Указатель дороже пустой ячейки")"
+
+# Тот же адрес, но результат на месте — законно (хелпер его и создаёт).
+P=$(make_points "requirements|\`project-spec\`|проза|spec/requirements.md")
+check "адрес назван и существует" 0 "$(run_code "$P" "$CANON_EXIST" "$LIST_OK")"
+
+# Маска адресом не является: её форма и есть форма. Иначе `FEAT-*` краснел бы всегда.
+P=$(make_points "requirements|\`project-spec\`|проза|features/FEAT-*/README.md")
+check "маска в адресе не проверяется" 0 "$(run_code "$P" "$CANON_EXIST" "$LIST_OK")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

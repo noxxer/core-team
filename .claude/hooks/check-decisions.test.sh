@@ -13,10 +13,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decisions.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=26
+EXPECTED_CASES=29
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=2   # документ как адрес: распознавание якоря и его обязательность
+MUTATIONS=3   # документ как адрес: распознавание якоря (::, #, §) и его обязательность
 ran=0
 failed=0
 TRASH=()
@@ -168,6 +168,21 @@ check "документ без якоря — не адрес" 1 "$(run_checker 
 
 D=$(make_dir); add_decision "$D" 204 2026-09-01 'project/requirements.md'
 check "путь к документу без места — не адрес" 1 "$(run_checker "$D")"
+
+# --- Якорь параграфом: `§4.6` называет место не хуже `#` и `::` ----------------
+# Мир с дефектом: белый список якорей знал `::` и `#`, но не `§` — форму, привычную
+# русскому тексту. Замер с мест (lotus-pro-team, 2026-09-04): решение закрепили
+# ссылкой на раздел собственного артефакта с перечнем тестов и мутаций, а прибор
+# потребовал написать вместо этого «гарда нет» — то есть неправду.
+D=$(make_dir); add_decision "$D" 030 2026-08-26 "artifacts/data-model.md §4.6"
+check "якорь параграфом с пробелом" 0 "$(run_checker "$D")"
+
+D=$(make_dir); add_decision "$D" 031 2026-08-26 "artifacts/data-model.md§4.6"
+check "якорь параграфом без пробела" 0 "$(run_checker "$D")"
+
+# Файл целиком адресом не является и с этой дверью: место обязано быть названо.
+D=$(make_dir); add_decision "$D" 032 2026-08-26 "artifacts/data-model.md §"
+check "параграф без номера — не адрес" 1 "$(run_checker "$D")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"

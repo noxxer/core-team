@@ -2,6 +2,7 @@
 artifact_id: "resources"
 title: "Активы — чем команда располагает"
 owner: "facilitator"
+artifact_path: "project/resources.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 source_of_truth: "founder"      # платежи, доступы и продления подтверждает Founder
 expiry_warning_days: 30         # за сколько дней прибор начинает предупреждать
 created: "YYYY-MM-DD"

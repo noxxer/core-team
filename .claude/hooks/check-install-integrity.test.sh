@@ -9,10 +9,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=82
+EXPECTED_CASES=119
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=28
+MUTATIONS=40
 ran=0
 failed=0
 TRASH=()
@@ -33,7 +33,10 @@ make_copy() {  # печатает корень исправной копии
   mkdir -p "$d/.claude/agents" "$d/.claude/skills/навигатор"
   mkdir -p "$d/.claude/knowledge/dpf"
   printf '# Ремесло\n' > "$d/.claude/knowledge/dpf/development.md"
-  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n\n## Для памяти роли\n- Текущий фокус: <...>\n' > "$d/.claude/agents/dev.md"
+  # Ритуал с `values.md` и владение одним артефактом — часть исправной копии:
+  # без них проверки 11 и 12 краснели бы на эталоне, то есть на здоровом мире.
+  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n\n## Старт активации\n\n1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md` раздел 9\n\n## Работа\n\nтекст\n\n## Для памяти роли\n- Текущий фокус: <...>\n' > "$d/.claude/agents/dev.md"
+  printf -- '---\nartifact_id: "словарь"\nowner: "dev"\nartifact_path: "project/glossary.md"\n---\n\n# Словарь\n' > "$d/.claude/templates/project/glossary.md"
   printf '# Навык\n' > "$d/.claude/skills/навигатор/SKILL.md"
   mkdir -p "$d/.claude/rules" "$d/.claude/knowledge/stacks"
   printf 'ok\n' > "$d/.claude/knowledge/stacks/справочник.md"
@@ -241,6 +244,8 @@ role_spec() {  # $1=корень $2=число описаний блока $3=ч
   local root=$1 blocks=$2 fences=$3 i
   { printf -- '---\nname: dev\nskills: [навигатор]\n---\n\n'
     printf 'Читай `.claude/knowledge/dpf/development.md`.\n\n'
+    printf '## Старт активации\n\n1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md`\n\n'
+    printf '## Работа\n\nтекст\n\n'
     for ((i = 1; i <= blocks; i++)); do printf '## Для памяти роли\n- Текущий фокус: <...>\n\n'; done
     for ((i = 1; i <= fences; i++)); do printf '```\nтекст\n'; done
   } > "${root}/.claude/agents/dev.md"
@@ -292,6 +297,26 @@ name: product
 ' > "$D/.claude/templates/roles/optional/product.md"
 check "шаблон opt-in роли с блоком" 0 "$(run_code "$D")"
 
+# Дубль в ШАБЛОНЕ opt-in роли — тот же класс, что дубль в agents/, но в поставке
+# он невидим: файл роли появится у потребителя при подключении, и покраснеет там.
+# Замер (отчёт с мест по 5.3.1): пять шаблонов optional/ держали внешний заголовок
+# раздела дословно равным имени блока внутри ограждения, и подключение любой
+# opt-in роли давало «КОПИЯ НЕ РАБОТОСПОСОБНА» на первом прогоне.
+D=$(make_copy); mkdir -p "$D/.claude/templates/roles/optional"
+printf -- '---
+name: product
+---
+
+## Для памяти роли
+
+Последним разделом отчёта:
+
+## Для памяти роли
+- Текущий фокус: <...>
+' > "$D/.claude/templates/roles/optional/product.md"
+check "два описания блока в шаблоне opt-in роли" 1 "$(run_code "$D")"
+check "…и названо противоречием" "да" "$(says "$(run_out "$D")" "описаний блока памяти 2")"
+
 D=$(make_copy); role_spec "$D" 1 3
 check "непарное ограждение кода" 1 "$(run_code "$D")"
 check "…и сказано, чем это плохо" "да" "$(says "$(run_out "$D")" "читается как код")"
@@ -301,7 +326,7 @@ D=$(make_copy); role_spec "$D" 0 2
 check "ни одной спецификации блока памяти" 1 "$(run_code "$D")"
 check "…и это названо отказом" "да" "$(says "$(run_out "$D")" "нет ни в одном")"
 
-# --- 11. Каждый прибор объявляет свой тир ------------------------------------
+# --- 14. Каждый прибор объявляет свой тир ------------------------------------
 # Класс: 19 приборов под одним словом «ОБЯЗАТЕЛЬНО». Прибор без тира выпадает из
 # сводки находок молча — его находки исчезают из порядка по ставке.
 D=$(make_copy)
@@ -417,6 +442,201 @@ brief_with "$C" 'ОТЧЁТ. «Для памяти роли»: срез сост
 printf '\n## Почему\n\n| Поле | Что ловит |\n|---|---|\n| Отчёт | просил «дата, что сделано» — хронику |\n' \
   >> "$C/.claude/templates/dispatch-brief.md"
 check "цитата дефекта в прозе не считается" 0 "$(run_code "$C")"
+
+# --- 17. Состав канона не пересказывается в файле роли ------------------------
+# Мир с дефектом: инлайн-пересказ Code-Change Discipline в двух файлах ролей слово
+# в слово называл себя «7 шагов» и перечислял шесть — терялось звено «поставить
+# идею под сомнение первой», которое канон называет самым дорогим.
+canon_of() {  # $1=корень $2=число в заголовке $3=число пунктов
+  local i
+  mkdir -p "$1/.claude/knowledge"
+  { printf '# Дисциплина\n\n## %s шагов\n\n' "$2"
+    for ((i = 1; i <= $3; i++)); do printf '%s. **Шаг %s** — текст.\n' "$i" "$i"; done
+  } > "$1/.claude/knowledge/code-change-discipline.md"
+}
+
+D=$(make_copy); canon_of "$D" 7 6
+check "канон обещает больше, чем перечисляет" 1 "$(run_code "$D")"
+check "…и сказано, что расходится сам с собой" "да" "$(says "$(run_out "$D")" "расходится сам с собой")"
+
+D=$(make_copy); canon_of "$D" 7 7
+check "канон верен сам себе" 0 "$(run_code "$D")"
+
+D=$(make_copy); canon_of "$D" 7 7
+printf 'Правишь чужое — `.claude/knowledge/code-change-discipline.md`, 7 шагов: идея → допущения.\n' \
+  >> "$D/.claude/agents/dev.md"
+check "файл роли пересказывает состав" 1 "$(run_code "$D")"
+check "…и назван дом состава" "да" "$(says "$(run_out "$D")" "состав живёт в каноне")"
+
+# Проза, называющая число, списком не является: этим текстом объясняют сам дефект.
+D=$(make_copy); canon_of "$D" 7 7
+printf 'Канон — `.claude/knowledge/code-change-discipline.md`; прежний пересказ звал себя «7 шагов» и давал шесть.\n' \
+  >> "$D/.claude/agents/dev.md"
+check "проза о числе — не пересказ" 0 "$(run_code "$D")"
+
+# --- 16. Роль не предписывает себе запись мимо File Ownership -----------------
+# Мир с дефектом: расхождение ВНУТРИ одного файла, которого не видит ни одна
+# сверка «файл с файлом». Замер: facilitator предписывал себе «fact → domain.md»,
+# а его File Ownership этого пути не содержал — роль выбирала между записью без
+# мандата и потерей входа, и слова «передай keeper-у» в тексте не было.
+role_with_own() {  # $1=корень $2=строка функции $3=строки File Ownership
+  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n\n## Старт активации\n\n1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md`\n\n## Ключевые функции\n\n%s\n\n## File Ownership\n\n**Пишешь:**\n%s\n\n## Для памяти роли\n- Текущий фокус: <...>\n' \
+    "$2" "$3" > "$1/.claude/agents/dev.md"
+}
+
+D=$(make_copy); role_with_own "$D" '- **факт** → `domain.md`' '- `project/roles/dev/context.md`'
+check "предписана запись мимо File Ownership" 1 "$(run_code "$D")"
+check "…и названо спором с собой" "да" "$(says "$(run_out "$D")" "спорит сама с собой")"
+
+D=$(make_copy); role_with_own "$D" '- **факт** → `domain.md`' '- `project/domain.md`
+- `project/roles/dev/context.md`'
+check "путь есть в File Ownership" 0 "$(run_code "$D")"
+
+# Справочник ремесла роль читает, а не пишет: без этой границы прибор давал две
+# находки на строке про OWASP-справочник в `cto.md` и `guardian.md`.
+D=$(make_copy); role_with_own "$D" '- OWASP — `core-team-dev:stacks` → `references/security.md`' '- `project/roles/dev/context.md`'
+check "чужая раскладка — не находка" 0 "$(run_code "$D")"
+
+# --- 15. Таблица ролей ↔ File Ownership ---------------------------------------
+# Мир с дефектом: таблица-справка в CLAUDE.md читается чаще самих файлов ролей,
+# и расходится с ними молча. Замер: таблица давала `cto` зону `decisions/DEC-*.md`
+# без оговорки, хотя `Write` там по механике Decider Protocol делает facilitator.
+table_of() {  # $1=корень $2=содержимое колонки «Пишет»
+  printf 'Доказательство мутацией — `check-session-reflection.test.sh` (7 случаев, три мутации).\n\n| Subagent | Модель | Зона | Пишет |\n|---|---|---|---|\n| **dev** | sonnet | код | %s |\n' \
+    "$2" > "$1/.claude/CLAUDE.md"
+}
+
+D=$(make_copy); role_with_own "$D" 'работа' '- `project/roles/dev/context.md`'
+table_of "$D" '`project/requirements.md`, `roles/dev/context.md`'
+check "таблица обещает больше, чем File Ownership" 1 "$(run_code "$D")"
+check "…и названы обе стороны" "да" "$(says "$(run_out "$D")" "таблица ролей обещает dev")"
+
+D=$(make_copy); role_with_own "$D" 'работа' '- `project/roles/dev/context.md`'
+table_of "$D" '`roles/dev/context.md`'
+check "таблица и File Ownership сходятся" 0 "$(run_code "$D")"
+
+# Маска и каталог сверке не подлежат: их форма в двух местах законно разная.
+D=$(make_copy); role_with_own "$D" 'работа' '- `project/roles/dev/context.md`'
+table_of "$D" '`features/FEAT-*/ARCH-NN.md`, `decisions/`, `roles/dev/context.md`'
+check "маска и каталог пропускаются" 0 "$(run_code "$D")"
+
+# Половина «найдено не ноль» для самого разбора таблицы. Мир с дефектом: снять `**`
+# вокруг имени роли (обычная работа markdown-форматтера) — и сверка владения молчит,
+# ничем не отличаясь от исправной копии. Находка ревью 5.3.2, ставка P0.
+D=$(make_copy); role_with_own "$D" 'работа' '- `project/roles/dev/context.md`'
+printf 'Раздел про Роли = Subagents.\n\n| Subagent | Модель | Зона | Пишет |\n|---|---|---|---|\n| dev | sonnet | код | `project/requirements.md` |\n' \
+  > "$D/.claude/CLAUDE.md"
+check "таблица ролей не разобрана — находка" 1 "$(run_code "$D")"
+check "…и сказано, что формат съехал" "да" "$(says "$(run_out "$D")" "разобрано ноль строк")"
+
+# Коллизия имён: одноимённые файлы в разных каталогах для проекта норма
+# (`README.md`, `context.md`), и сверка по basename засчитывала подмену пути.
+D=$(make_copy); role_with_own "$D" 'работа' '- `project/docs/other/README.md`
+- `project/roles/dev/context.md`'
+table_of "$D" '`secrets/README.md`, `roles/dev/context.md`'
+check "коллизия имён не засчитывается" 1 "$(run_code "$D")"
+
+D=$(make_copy); role_with_own "$D" 'работа' '- `project/docs/other/README.md`
+- `project/roles/dev/context.md`'
+table_of "$D" '`docs/other/README.md`, `roles/dev/context.md`'
+check "тот же путь целиком — сходится" 0 "$(run_code "$D")"
+
+# --- 18. Владелец артефакта знает, чем владеет ---------------------------------
+# Мир с дефектом: артефакт объявляет `owner: "cto"`, а в файле роли ноль упоминаний.
+# Роль действует по своему промпту, а не по шапке чужого файла, которую может не
+# открыть, — и артефакт замирает на дате заведения, ровно против чего поле и заведено.
+# Замер с мест по 5.3.1: две такие пары (`requirements.md`, `claims.md`); наш прогон
+# нашёл ещё три — `artifacts/README.md`, `resources.md`, `framework-feedback.md`.
+owned_tpl() {  # $1=корень $2=owner $3=artifact_path (пусто — поля нет)
+  mkdir -p "$1/.claude/templates/project"
+  { printf -- '---\nartifact_id: "требования"\nowner: "%s"\n' "$2"
+    [ -n "$3" ] && printf 'artifact_path: "%s"\n' "$3"
+    printf -- '---\n\n# Требования\n'
+  } > "$1/.claude/templates/project/requirements.md"
+}
+
+D=$(make_copy); owned_tpl "$D" dev project/requirements.md
+check "владелец не называет свой артефакт" 1 "$(run_code "$D")"
+check "…и названа цена" "да" "$(says "$(run_out "$D")" "замрёт на дате заведения")"
+
+D=$(make_copy); owned_tpl "$D" dev project/requirements.md
+printf 'Ведёшь `project/requirements.md`.\n' >> "$D/.claude/agents/dev.md"
+check "владелец называет свой артефакт" 0 "$(run_code "$D")"
+
+# Имя файла шаблона местом артефакта не является: `artifacts-readme.md` кладётся
+# в `artifacts/README.md`, и угадывать это нечем — потому поле обязательно.
+D=$(make_copy); owned_tpl "$D" dev ""
+check "owner есть, artifact_path нет" 1 "$(run_code "$D")"
+check "…и сказано, что сверять не с чем" "да" "$(says "$(run_out "$D")" "artifact_path не назван")"
+
+# Владелец, названный не ролью («форму держит keeper»), под правило не подпадает:
+# файла роли для него нет, сверять нечего.
+D=$(make_copy); owned_tpl "$D" "какой-то человек" project/requirements.md
+check "owner не роль — не находка" 0 "$(run_code "$D")"
+
+# --- 19. Ценности проекта доезжают до роли, которая их нарушит -----------------
+# Мир с дефектом: `values.md` читали три роли из восьми, и обе роли, физически
+# трогающие код, были не в их числе. Проектная ценность («данные работодателя не
+# попадают в репозиторий») оказывалась объявленной и недоставленной ПО КОНСТРУКЦИИ.
+ritual_of() {  # $1=корень $2=текст ритуала
+  printf -- '---\nname: dev\nskills: [навигатор]\n---\n\nЧитай `.claude/knowledge/dpf/development.md`.\n\n## Старт активации\n\n%s\n\n## Работа\n\nтекст\n\n## Для памяти роли\n- Текущий фокус: <...>\n' "$2" \
+    > "$1/.claude/agents/dev.md"
+}
+
+D=$(make_copy); ritual_of "$D" '1. Прочитай `project/ledger.md`, `project/glossary.md`'
+check "ритуал без values.md" 1 "$(run_code "$D")"
+check "…и названа цена" "да" "$(says "$(run_out "$D")" "не доезжает до роли")"
+
+D=$(make_copy); ritual_of "$D" '1. Прочитай `project/ledger.md`, `project/glossary.md`, `project/values.md` раздел 9'
+check "ритуал читает values.md" 0 "$(run_code "$D")"
+
+# Путь в File Ownership — разрешение, а не шаг активации: роль его не делает.
+# Ровно так `architect` числился читающим ценности и не читал их.
+D=$(make_copy); ritual_of "$D" '1. Прочитай `project/ledger.md`, `project/glossary.md`'
+printf -- '\n## File Ownership\n\n**Читаешь:** всё, кроме `project/values.md` (только Founder пишет).\n' \
+  >> "$D/.claude/agents/dev.md"
+check "values.md только в File Ownership" 1 "$(run_code "$D")"
+
+# --- 20. Предписанная команда исполнима при собственных запретах ---------------
+# Мир с дефектом: два предписания одного файла требуют противоположного. Шаг 4
+# `/setup-project` велел заводить память роли копированием шаблона, Шаг 5 того же
+# файла ставил `permissions.deny` на каталог шаблонов, а клиент бракует `cp` по
+# ИСТОЧНИКУ. Замер с мест по 5.3.1: после настройки завести память новой роли
+# было нечем, и упирался в это тот, кто подключал роль в другой сессии.
+setup_with() {  # $1=корень $2=текст предписания
+  mkdir -p "$1/.claude/commands"
+  { printf '### Шаг 4\n\n%s\n\n### Шаг 5\n\n' "$2"
+    printf '```json\n{ "permissions": { "deny": [\n'
+    printf '  "Edit(.claude/templates/**)", "Write(.claude/templates/**)"\n] } }\n```\n'
+  } > "$1/.claude/commands/setup-project.md"
+}
+
+D=$(make_copy); setup_with "$D" 'Заводи память: `cp .claude/templates/project/role-context-template.md project/roles/dev/context.md`.'
+check "предписан cp из запрещённого каталога" 1 "$(run_code "$D")"
+check "…и названа причина" "да" "$(says "$(run_out "$D")" "нельзя выполнить после настройки")"
+
+D=$(make_copy); setup_with "$D" 'Заводи память: `cat .claude/templates/project/role-context-template.md > project/roles/dev/context.md`.'
+check "чтение шаблона в новый файл — законно" 0 "$(run_code "$D")"
+
+# Проза, разбирающая этот самый дефект, пишет путь многоточием — иначе прибор
+# находил бы собственное объяснение и краснел на файле, который его чинит.
+D=$(make_copy); setup_with "$D" 'Почему не `cp .claude/templates/… project/…`: запрет бракует источник.'
+check "цитата дефекта прозой — не находка" 0 "$(run_code "$D")"
+
+# Подстановка в пути формы не отменяет: человек подставит имя роли и выполнит.
+# Замер на этой же версии: инструкция импланта роли несла `cp …/<role>.md …`,
+# и прибор молчал, пока класс символов не знал угловых скобок.
+D=$(make_copy); setup_with "$D" 'Заводи роль: `cp .claude/templates/roles/optional/<role>.md .claude/agents/<role>.md`.'
+check "cp с подстановкой в пути — находка" 1 "$(run_code "$D")"
+
+# Половина «найдено не ноль» для экстрактора запретов. Мир с дефектом: блок `deny`
+# переписан прозой — и проверка не делает ни одного сравнения, сертифицируя не
+# «команда исполнима», а «формат не съехал». Находка ревью 5.3.2, ставка P0.
+D=$(make_copy); mkdir -p "$D/.claude/commands"
+printf '### Шаг 4\n\nЗаводи память: `cp .claude/templates/project/role-context-template.md project/roles/dev/context.md`.\n\n### Шаг 5\n\nЗапрещаем (deny) правку каталога шаблонов.\n' \
+  > "$D/.claude/commands/setup-project.md"
+check "блок deny не разобран — находка" 1 "$(run_code "$D")"
+check "…и названа цена молчания" "да" "$(says "$(run_out "$D")" "молча не работает")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

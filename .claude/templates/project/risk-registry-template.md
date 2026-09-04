@@ -2,6 +2,7 @@
 artifact_id: "risk-registry"
 title: "Реестр рисков — что может случиться и повредить"
 owner: "guardian"
+artifact_path: "project/artifacts/risk-registry.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 moderated_by: "facilitator"
 ceiling: 20          # потолок открытых записей; выше — в реестр перестают смотреть
 created: "YYYY-MM-DD"

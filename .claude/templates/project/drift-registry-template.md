@@ -2,6 +2,7 @@
 artifact_id: "drift-registry"
 title: "Реестр дрейфа — где решение разошлось с реальностью"
 owner: "keeper"
+artifact_path: "project/artifacts/drift-registry.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 moderated_by: "facilitator"
 ceiling: 20               # потолок открытых записей; выше — реестр перестаёт быть инструментом
 enforced_since_id: 1      # записи с номером НИЖЕ — унаследованные: прогон не роняют.

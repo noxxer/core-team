@@ -75,6 +75,7 @@ is_placeholder() {  # $1=значение
 join_list() { printf '%s, ' "$@" | sed 's/, $//'; }
 
 examined=0
+headerless=()
 overdue=()
 no_review=()
 expired_debt=()
@@ -86,6 +87,16 @@ for file in "${DECISIONS_DIR}"/*.md; do
   [ -f "${file}" ] || continue
   name=$(basename "${file}" .md)
   examined=$((examined + 1))
+
+  # Решение без шапки вовсе: перечислять по полю бессмысленно — пусты ВСЕ, и
+  # каждое даёт свою находку. Замер прогона по боевым проектам (2026-09-04):
+  # в одном проекте 22 решения из 22 написаны без шапки, и прибор выдал 44
+  # находки вместо одной причины — «форма не та». Внимание конечно (гейт 9):
+  # куча из 44 предметов вытесняет настоящие находки соседних приборов.
+  if [ "$(head -1 "${file}")" != "---" ]; then
+    headerless+=("${name}")
+    continue
+  fi
 
   status=$(field "${file}" status)
   # Считаем только действующие: вытесненное и отклонённое устареть не может.
@@ -164,6 +175,16 @@ if [ ${#inherited[@]} -gt 0 ]; then
 fi
 
 failed=0
+
+if [ ${#headerless[@]} -gt 0 ]; then
+  printf '\nРЕШЕНИЕ БЕЗ ШАПКИ (%s): %s.\n' "${#headerless[@]}" "$(join_list "${headerless[@]:0:8}")" >&2
+  printf 'Метаданные написаны прозой в теле, а не полями шапки, — распад считать нечем\n' >&2
+  printf 'ни у одного из них. Это ОДНА причина, а не по находке на поле: форма решения —\n' >&2
+  printf '`.claude/templates/project/adr-template.md`, поля `date_proposed`, `review_due`,\n' >&2
+  printf '`status`, `enforced_by`. Замер: 22 решения из 22 в одном боевом проекте давали\n' >&2
+  printf '44 находки по полям, и настоящие находки соседних приборов терялись за ними.\n' >&2
+  failed=1
+fi
 
 if [ ${#overdue[@]} -gt 0 ]; then
   printf '\nПРОВЕРКА РЕЛЕВАНТНОСТИ ПРОСРОЧЕНА (%s): %s.\n' "${#overdue[@]}" "$(join_list "${overdue[@]}")" >&2

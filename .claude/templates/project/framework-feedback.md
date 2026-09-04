@@ -2,6 +2,7 @@
 artifact_id: "framework-feedback"
 title: "Что этот проект выяснил про сам фреймворк"
 owner: "facilitator"
+artifact_path: "project/framework-feedback.md"   # куда кладётся у потребителя; владелец обязан назвать этот путь в своём файле роли
 created: "YYYY-MM-DD"
 last_updated: "YYYY-MM-DD"
 status: "живой — пополняется при каждой находке, закрывается отправкой наверх"
