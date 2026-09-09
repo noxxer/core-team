@@ -59,9 +59,9 @@ while IFS= read -r name; do
   counted=$((counted + 1))
 
   # Хозяин важнее даты: файл `dec137-...-2026-07-27.md` едет к решению, а не в сессии.
-  if printf '%s' "${name}" | grep -qiE '(^|[^a-z])(feat|dec|dr)-?[0-9]{2,}'; then
+  if grep -qiE '(^|[^a-z])(feat|dec|dr)-?[0-9]{2,}' <<< "${name}"; then
     owned+=("${name}")
-  elif printf '%s' "${name}" | grep -qE '[0-9]{4}-[0-9]{2}-[0-9]{2}|-[0-9]{3}(\.md)?$'; then
+  elif grep -qE '[0-9]{4}-[0-9]{2}-[0-9]{2}|-[0-9]{3}(\.md)?$' <<< "${name}"; then
     session_results+=("${name}")
   fi
 done < <(ls -1 "${ARTIFACTS}" 2>/dev/null)

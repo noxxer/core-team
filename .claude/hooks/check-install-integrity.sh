@@ -33,9 +33,17 @@ checked=0
 # проходила зелёной. Совпадение обязано начинаться на границе: начало строки,
 # слэш, обратная кавычка или пробел.
 mentions_path() {  # $1 = текст, $2 = путь (можно с каталогами)
-  local needle
+  local needle bounds_before bounds_after
   needle=$(printf '%s' "$2" | sed -E 's/[.[\*^$()+?{}|]/\\&/g')
-  printf '%s' "$1" | grep -qE "(^|[/\`[:space:]\"'(])${needle}([[:space:]\`,.;)]|$)"
+  # Сопоставление средствами оболочки, а не конвейером: `printf … | grep -q` под
+  # `set -o pipefail` даёт ЛОЖНУЮ находку, когда grep выходит по первому совпадению
+  # раньше, чем printf допишет вход, — printf получает SIGPIPE, и статус конвейера
+  # становится ненулевым. Замер: CI на Linux упал одной находкой
+  # («facilitator.md не называет backlog.md») там, где macOS был зелёным: вход там
+  # целый файл роли, и гонка воспроизводится только на достаточно большом.
+  bounds_before='(^|[/`[:space:]"'"'"'(])'
+  bounds_after='([[:space:]`,.;)]|$)'
+  [[ "$1" =~ ${bounds_before}${needle}${bounds_after} ]]
 }
 
 # Разбор шапки вынесен в библиотеку: комментарий после значения оставался частью
@@ -403,7 +411,7 @@ if [ -f "${protocols}" ]; then
     [ -n "${who}" ] || continue
     case "${who}" in ''|fix|guard|prove|document) continue ;; esac
     checked=$((checked + 1))
-    printf '%s\n' "${known}" | grep -qx "${who}" \
+    grep -qxF "${who}" <<< "${known}" \
       || note "core-protocols.md: маршрут ведёт к роли «${who}», которой в копии нет — tension уйдёт в никуда"
   done <<< "${addressees}"
 fi
@@ -429,13 +437,13 @@ if [ -f "${brief}" ]; then
   # у которых нет отрицания перед ним. Между «не» и оборотом стоит `.*`, а не `.`:
   # точка матчит ОДИН БАЙТ, а кавычка-ёлочка в UTF-8 занимает два — в локали `C`
   # (умолчание CI) сравнение разъезжалось, и запрет снова читался как заказ.
-  if printf '%s' "${form}" | grep -q 'Для памяти роли' \
-     && printf '%s' "${form}" | grep 'что сделано' | grep -qv 'Не .*что сделано\|не .*что сделано'; then
+  if grep -q 'Для памяти роли' <<< "${form}" \
+     && grep 'что сделано' <<< "${form}" | grep -qv 'Не .*что сделано\|не .*что сделано'; then
     note "dispatch-brief.md: форма брифа заказывает хронику («что сделано») там, где канон роли требует срез состояния"
   fi
   # Гейт 5 применяется ровно здесь: бриф — единственное место, где модель называется.
   checked=$((checked + 1))
-  printf '%s' "${form}" | grep -qi 'МОДЕЛЬ\.' \
+  grep -qi 'МОДЕЛЬ\.' <<< "${form}" \
     || note "dispatch-brief.md: в форме брифа нет поля модели — гейт «явный выбор модели» негде исполнить"
 fi
 
@@ -646,7 +654,7 @@ for role_dir in "${CLAUDE_DIR}/agents" "${CLAUDE_DIR}/templates/roles/optional";
     [ -n "${ritual}" ] || continue
     rituals=$((rituals + 1))
     checked=$((checked + 1))
-    printf '%s' "${ritual}" | grep -q 'values\.md' \
+    grep -q 'values\.md' <<< "${ritual}" \
       || note "$(basename "${role_file}"): ритуал не читает project/values.md — проектная ценность объявлена и не доезжает до роли, которая её нарушит"
   done
 done

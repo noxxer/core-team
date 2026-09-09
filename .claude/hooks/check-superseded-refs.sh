@@ -80,8 +80,8 @@ for i in "${!dead_ids[@]}"; do
     rest=${hit#*:}
     line=${rest#*:}
     # Признание вытеснения на той же строке делает пересказ законным.
-    if printf '%s' "${line}" | grep -qiE 'вытеснен|устарел|отменен|отменён|superseded|deprecated'; then continue; fi
-    if [ -n "${by}" ] && printf '%s' "${line}" | grep -q "${by}"; then continue; fi
+    if grep -qiE 'вытеснен|устарел|отменен|отменён|superseded|deprecated' <<< "${line}"; then continue; fi
+    if [ -n "${by}" ] && grep -qF "${by}" <<< "${line}"; then continue; fi
     findings+=("${path#"${PROJECT}"/} → ${id}")
   # Граница справа обязательна: без неё `DEC-04` совпадает с `DEC-044`, и
   # действующее решение объявляется мёртвым. Поймано собственным набором.

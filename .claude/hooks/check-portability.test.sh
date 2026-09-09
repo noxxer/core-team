@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-portability.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=31
+EXPECTED_CASES=35
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=9
+MUTATIONS=10
 ran=0
 failed=0
 TRASH=()
@@ -131,6 +131,31 @@ check "…и он посчитан осмотренным" "да" "$(says "$(run
 D=$(new_dir)
 check "каталог есть, файлов .sh нет" 1 "$(run_code "$D")"
 check "каталога нет вовсе — тоже отказ" 1 "$(run_code "/nonexistent-portability-$$")"
+
+# --- Конвейер, ложно падающий под pipefail -------------------------------------
+# Мир с дефектом: `printf … | grep -q` под `set -o pipefail`. grep выходит по
+# первому совпадению, printf получает SIGPIPE, статус конвейера ненулевой — то есть
+# УСПЕШНЫЙ поиск читается как неудача. На коротком входе и на macOS молчит: нужна
+# гонка на входе больше буфера трубы. Замер: CI на Linux дал одну ложную находку
+# («роль не называет свой артефакт») там, где локальный прогон был зелёным.
+#
+# Образец собираем из частей по той же причине, что и `grep -P` выше: написанный
+# литералом, он сделал бы непереносимым сам набор.
+RACE="print${DASH#-}f '%s' \"\$x\" | grep ${DASH}q нужное"
+
+D=$(new_dir); put "$D" a.sh "set -uo pipefail
+${RACE}"
+check "конвейер printf в grep под pipefail" 1 "$(run_code "$D")"
+check "…и названа портируемая форма" "да" "$(says "$(run_out "$D")" "<<<")"
+
+# Без pipefail тот же конвейер безвреден: статус берётся от grep.
+D=$(new_dir); put "$D" b.sh "${RACE}"
+check "тот же конвейер без pipefail — не находка" 0 "$(run_code "$D")"
+
+# Here-string — портируемая форма, находкой не является.
+D=$(new_dir); put "$D" c.sh "set -uo pipefail
+grep ${DASH}q нужное <<< \"\$x\""
+check "here-string под pipefail — законно" 0 "$(run_code "$D")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"
