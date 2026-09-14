@@ -15,6 +15,7 @@
 #   M8 убранное потребителем возвращается как новое             → «убранное вами не возвращается»
 #   M9 предпросмотр не предсказывает целостность                → «предпросмотр предсказывает красную целостность»
 #   M10 нетронутые opt-in роли не обновляются из шаблона        → «нетронутая opt-in роль обновлена»
+#   M11 учебник, нужный остающейся роли, не возвращается         → «…и лежит на месте после apply»
 #
 # Сеть не нужна: поставкой служит локальный git с тегами; миграции — настоящие, из репозитория.
 
@@ -24,9 +25,9 @@ HOOK=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/upgrade.sh"}
 [ -f "$HOOK" ] || { printf 'нет файла прибора: %s\n' "$HOOK" >&2; exit 1; }
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-EXPECTED_CASES=43
+EXPECTED_CASES=45
 # shellcheck disable=SC2034
-MUTATIONS=10
+MUTATIONS=11
 ran=0; failed=0; TRASH=()
 cleanup() { [ ${#TRASH[@]} -eq 0 ] || rm -rf "${TRASH[@]}"; }
 trap cleanup EXIT
@@ -66,8 +67,9 @@ MD
   cat > "$d/.claude/settings.json" <<'JSON'
 { "env": { "A": "1" }, "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": ".claude/hooks/session-start.sh" } ] } ] } }
 JSON
-  printf 'facilitator v1\n' > "$d/.claude/agents/facilitator.md"
+  printf 'facilitator v1\nЧитай `.claude/knowledge/dpf/facilitation.md`.\n' > "$d/.claude/agents/facilitator.md"
   printf 'plan v1\n' > "$d/.claude/commands/plan.md"
+  printf 'dpf arch\n' > "$d/.claude/knowledge/dpf/architecture.md"
   printf 'style v1\n' > "$d/.claude/output-styles/core-team.md"
   printf 'dpf v1\n' > "$d/.claude/knowledge/dpf/facilitation.md"
   printf '| точка | чем закрыта |\n' > "$d/.claude/templates/project/connection-points.md"
@@ -84,7 +86,7 @@ JSON
   cat > "$d/.claude/settings.json" <<'JSON'
 { "env": { "A": "1", "B": "2" }, "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": ".claude/hooks/session-start.sh" } ] } ], "PreToolUse": [ { "matcher": "Edit|Write", "hooks": [ { "type": "command", "command": ".claude/hooks/memory-gate.sh" } ] } ] } }
 JSON
-  printf 'facilitator v2\n' > "$d/.claude/agents/facilitator.md"
+  printf 'facilitator v2\nЧитай `.claude/knowledge/dpf/facilitation.md`.\n' > "$d/.claude/agents/facilitator.md"
   rm -f "$d/.claude/commands/plan.md"
   printf 'style v2\n' > "$d/.claude/output-styles/core-team.md"
   printf 'guardian t2\n' > "$d/.claude/templates/roles/optional/guardian.md"
@@ -136,7 +138,8 @@ JSON
   case "$variant" in
     noversion) rm -f "$d/.claude/VERSION"; printf '{}\n' > "$d/.claude/hooks/hooks.json" ;;
     edited) printf '#!/bin/bash\necho mine\n' > "$d/.claude/hooks/session-start.sh" ;;
-    dropped) rm -f "$d/.claude/knowledge/dpf/facilitation.md" ;;
+    dropped) rm -f "$d/.claude/knowledge/dpf/architecture.md" ;;
+    dropped-needed) rm -f "$d/.claude/knowledge/dpf/facilitation.md" ;;
     claude-edited) printf -- '- моя правка вне раздела\n' >> "$d/.claude/CLAUDE.md" ;;
   esac
   gitc "$d" add -A; gitc "$d" commit -q -m copy; gitc "$d" switch -q -c update-core-team
@@ -198,9 +201,16 @@ check "своя правка файла поставки названа пере
 C=$(make_copy "$SRC" dropped)
 OUT=$(run "$C" "$SRC")
 check "убранное вами не предлагается как новое" "да/нет" \
-  "$(printf '%s' "$OUT" | grep -A3 'УБРАНО У ВАС' | grep -qF 'knowledge/dpf/facilitation.md' && printf 'да' || printf 'нет')/$(printf '%s' "$OUT" | grep -A6 'ПРИЕДЕТ СВЕРХУ' | grep -qF 'facilitation.md' && printf 'да' || printf 'нет')"
+  "$(printf '%s' "$OUT" | grep -A3 'УБРАНО У ВАС' | grep -qF 'knowledge/dpf/architecture.md' && printf 'да' || printf 'нет')/$(printf '%s' "$OUT" | grep -A6 'ПРИЕДЕТ СВЕРХУ' | grep -qF 'architecture.md' && printf 'да' || printf 'нет')"
 run "$C" "$SRC" --apply >/dev/null 2>&1
-check "убранное вами не возвращается при apply" "нет" "$([ -f "$C/.claude/knowledge/dpf/facilitation.md" ] && printf 'да' || printf 'нет')"
+check "убранное вами не возвращается при apply" "нет" "$([ -f "$C/.claude/knowledge/dpf/architecture.md" ] && printf 'да' || printf 'нет')"
+
+C=$(make_copy "$SRC" dropped-needed)
+OUT=$(run "$C" "$SRC")
+check "убранный учебник, который читает остающаяся роль, возвращается" "да" \
+  "$(printf '%s' "$OUT" | grep -A2 'ВОЗВРАЩАЕТСЯ' | grep -qF 'facilitation.md — учебник нужен роли facilitator' && printf 'да' || printf 'нет')"
+run "$C" "$SRC" --apply >/dev/null 2>&1
+check "…и лежит на месте после apply" "да" "$([ -f "$C/.claude/knowledge/dpf/facilitation.md" ] && printf 'да' || printf 'нет')"
 
 C=$(make_copy "$SRC" claude-edited)
 OUT=$(run "$C" "$SRC")
@@ -223,7 +233,7 @@ C=$(make_copy "$SRC")
 OUT=$(run "$C" "$SRC" --apply); code=$?
 check "apply: код 0, VERSION обновлён" "0/5.4.0" "$code/$(tr -d '[:space:]' < "$C/.claude/VERSION")"
 check "apply: файл поставки обновлён, своя роль и DPF остались" "facilitator v2/custom role/custom dpf" \
-  "$(cat "$C/.claude/agents/facilitator.md")/$(cat "$C/.claude/agents/custom.md")/$(cat "$C/.claude/knowledge/dpf/custom.md")"
+  "$(head -1 "$C/.claude/agents/facilitator.md")/$(cat "$C/.claude/agents/custom.md")/$(cat "$C/.claude/knowledge/dpf/custom.md")"
 check "apply: свой стиль вывода не перезаписан" "style mine" "$(cat "$C/.claude/output-styles/core-team.md")"
 check "apply: нетронутая opt-in роль обновлена из шаблона, правленая осталась" "guardian t2/product t1 + моё" \
   "$(cat "$C/.claude/agents/guardian.md")/$(cat "$C/.claude/agents/product.md")"
@@ -257,7 +267,7 @@ check "без VERSION: доклад честен о неизвестной ве�
 C=$(make_copy "$SRC" noversion)
 OUT=$(UPGRADE_INTEGRITY_CMD=false run "$C" "$SRC" --apply); code=$?
 check "красная целостность — откат: код 1, файлы прежние, созданное убрано" "1/да/facilitator v1/нет" \
-  "$code/$(says "$OUT" "ОТКАТ")/$(cat "$C/.claude/agents/facilitator.md")/$([ -f "$C/project/connection-points.md" ] && printf 'да' || printf 'нет')"
+  "$code/$(says "$OUT" "ОТКАТ")/$(head -1 "$C/.claude/agents/facilitator.md")/$([ -f "$C/project/connection-points.md" ] && printf 'да' || printf 'нет')"
 
 # --- upgrade.keep ---------------------------------------------------------------------------
 C=$(make_copy "$SRC" edited)

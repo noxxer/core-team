@@ -386,6 +386,16 @@ if [ -f "${protocols}" ]; then
       ls "${CLAUDE_DIR}"/templates/roles/optional/*.md 2>/dev/null
     } | while IFS= read -r f; do basename "${f}" .md; done | tr 'A-Z' 'a-z'
   )
+  # Ядровая роль, которой в копии нет, — не опечатка, а СОСТАВ: исследовательский
+  # проект убирает роли разработки на `/setup-project`, и маршрут к ним уходит
+  # facilitator-у по умолчанию. Это деградация, и она называется вслух, но копию
+  # неработоспособной не делает. Состав ядра берётся из таблицы «Ядро» CLAUDE.md —
+  # она едет с поставкой и не правится потребителем. Замер боевого прогона
+  # обновления (ve-health-team, 5.3.3 → 5.3.6): копия без `architect` откатилась
+  # по этому пункту, а потребитель до того держал свою правку core-protocols.md.
+  core_roles=$(awk '/^### Ядро/{f=1; next} /^###/{f=0} f && /^\| \*\*[a-z]+\*\*/ {
+      s = $0; sub(/^\| \*\*/, "", s); sub(/\*\*.*$/, "", s); print s }' "${CLAUDE_DIR}/CLAUDE.md" 2>/dev/null)
+  degraded=""
   # Адресат берётся СТРУКТУРНО: из таблицы, чей заголовок называет исполнителя
   # («Кто ведёт», «Роль»). Класс символов вроде `[A-ZА-Я]` здесь пробовали и
   # отвергли — в локали `C` GNU трактует кириллический диапазон побайтово и матчит
@@ -411,9 +421,12 @@ if [ -f "${protocols}" ]; then
     [ -n "${who}" ] || continue
     case "${who}" in ''|fix|guard|prove|document) continue ;; esac
     checked=$((checked + 1))
-    grep -qxF "${who}" <<< "${known}" \
-      || note "core-protocols.md: маршрут ведёт к роли «${who}», которой в копии нет — tension уйдёт в никуда"
+    if grep -qxF "${who}" <<< "${known}"; then :
+    elif grep -qxF "${who}" <<< "${core_roles}"; then degraded="${degraded:+${degraded}, }${who}"
+    else note "core-protocols.md: маршрут ведёт к роли «${who}», которой в копии нет — tension уйдёт в никуда"
+    fi
   done <<< "${addressees}"
+  [ -z "${degraded}" ] || printf 'Ядровые роли отключены в этой копии: %s — маршруты протоколов к ним уходят facilitator-у (деградация названа, копию не ломает).\n' "${degraded}"
 fi
 
 # --- 13. Бриф не заказывает хронику ------------------------------------------

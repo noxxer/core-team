@@ -9,10 +9,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-install-integrity.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=119
+EXPECTED_CASES=122
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=40
+MUTATIONS=41
 ran=0
 failed=0
 TRASH=()
@@ -388,6 +388,19 @@ check "маршруты ведут к существующим ролям" 0 "$(
 protocols_with "$C" '| Белая | Факты | Analyst |' '| Жёлтая | Возможности | Growth |'
 check "маршрут к несуществующей роли — находка" 1 "$(run_code "$C")"
 check "…и роль названа" "да" "$(says "$(run_out "$C")" "«growth»")"
+
+# Ядровая роль, отключённая в копии, — состав, а не опечатка: маршрут к ней уходит
+# facilitator-у, и это называется вслух, но копию не ломает. Замер: копия ve-health
+# без `architect` откатывала обновление по этому пункту.
+C=$(make_copy)
+protocols_with "$C" '| Зелёная | Альтернативы | Architect |'
+check "маршрут к ядровой роли без таблицы «Ядро» — находка, как прежде" 1 "$(run_code "$C")"
+printf '\n### Ядро\n\n| Subagent | Модель |\n|---|---|\n| **facilitator** *(default)* | sonnet |\n| **architect** | **opus** |\n\n### Opt-in\n\n| **growth** | sonnet |\n' \
+  >> "$C/.claude/CLAUDE.md"
+check "маршрут к отключённой ядровой роли — деградация, не находка" "0/да" \
+  "$(run_code "$C")/$(says "$(run_out "$C")" "Ядровые роли отключены в этой копии: architect")"
+protocols_with "$C" '| Зелёная | Альтернативы | Architect |' '| Жёлтая | Возможности | Growth |'
+check "роль вне таблицы «Ядро» остаётся находкой" 1 "$(run_code "$C")"
 
 # Граница: заголовок таблицы адресатом не является. Без этого прибор объявлял
 # «Минусы» ролью, которой нет, — на собственных протоколах фреймворка.

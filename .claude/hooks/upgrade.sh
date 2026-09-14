@@ -216,6 +216,31 @@ while IFS= read -r rel; do
   fi
 done < <(rel_files .claude)
 
+# --- Учебник, убранный вами, но нужный роли, которая остаётся ---------------------
+# Роль читает свой DPF в активационном ритуале; целостность краснеет, если файла нет.
+# Убранный учебник возвращается, когда после наложения его называет хоть один файл роли.
+# Замер боевого прогона (ve-health-team): `cto.md` поставки называет `tech-strategy.md`,
+# копия учебник убрала — обновление откатилось.
+role_after_overlay() {  # $1 = agents/<роль>.md → путь к содержимому после наложения
+  if [ -f ".claude/$1" ] && is_kept "$1"; then printf '.claude/%s' "$1"
+  elif [ -f "${SRC}/.claude/$1" ] && { [ -f ".claude/$1" ] || ! old_has "$1"; }; then printf '%s/.claude/%s' "${SRC}" "$1"
+  elif [ -f ".claude/$1" ]; then printf '.claude/%s' "$1"
+  fi
+}
+restored=(); still_dropped=()
+for rel in ${dropped[@]+"${dropped[@]}"}; do
+  case "${rel}" in knowledge/dpf/*) ;; *) still_dropped+=("${rel}"); continue ;; esac
+  needed=""
+  while IFS= read -r role; do
+    [ -n "${role}" ] || continue
+    rf=$(role_after_overlay "${role}"); [ -n "${rf}" ] || continue
+    grep -qF "${rel}" "${rf}" && { needed=$(basename "${role}" .md); break; }
+  done < <({ rel_files .claude; rel_files "${SRC}/.claude"; } | grep '^agents/' | sort -u)
+  if [ -n "${needed}" ]; then restored+=("${rel} — учебник нужен роли ${needed}"); else still_dropped+=("${rel}"); fi
+done
+dropped=(${still_dropped[@]+"${still_dropped[@]}"})
+is_restored() { local r; for r in ${restored[@]+"${restored[@]}"}; do [ "${r%% — *}" = "$1" ] && return 0; done; return 1; }
+
 # --- Opt-in роли: файл роли потребителя, у которого в поставке есть шаблон ------------
 # Шаблон opt-in роли — будущий файл роли; наложение до него не доходит (`agents/<роль>.md`
 # у поставки нет), и роль тихо отстаёт от контракта. Замер боевого прогона: копия 5.3.0
@@ -246,6 +271,7 @@ list "ВАШЕ И ОСТАНЕТСЯ — не трогается" ${kept[@]+"${k
 list "ВАША ПРАВКА БУДЕТ ПЕРЕЗАПИСАНА — файл поставки, изменённый у вас (вернуть: git diff по ветке)" ${overwritten[@]+"${overwritten[@]}"}
 list "УБРАНО ИЗ ПОСТАВКИ — удалится, у вас не правлен" ${removed[@]+"${removed[@]}"}
 list "УБРАНО У ВАС — было в поставке вашей версии, не возвращается (вернуть: скопировать из поставки)" ${dropped[@]+"${dropped[@]}"}
+list "ВОЗВРАЩАЕТСЯ — убрано у вас, но роль, которая остаётся, читает это в ритуале" ${restored[@]+"${restored[@]}"}
 list "OPT-IN РОЛИ — нетронутый шаблон прежней версии, обновится из шаблона поставки" ${optin_refresh[@]+"${optin_refresh[@]}"}
 list "OPT-IN РОЛИ — правлены вами, не трогаются" ${optin_stale[@]+"${optin_stale[@]}"}
 list "ВОПРОС — не тронуто, решите сами" ${questions[@]+"${questions[@]}"}
@@ -308,7 +334,7 @@ overlay_into() {  # $1 = каталог .claude назначения; печат
     [ -n "${rel}" ] || continue
     case "${rel}" in settings.local.json|CLAUDE.md|settings.json) continue ;; esac
     [ -f "${dest}/${rel}" ] && is_kept "${rel}" && continue
-    [ ! -f "${dest}/${rel}" ] && old_has "${rel}" && continue   # убрано у вас — не возвращается
+    [ ! -f "${dest}/${rel}" ] && old_has "${rel}" && ! is_restored "${rel}" && continue   # убрано у вас — не возвращается
     mkdir -p "$(dirname "${dest}/${rel}")"
     cp "${SRC}/.claude/${rel}" "${dest}/${rel}" || return 1
     case "${rel}" in *.sh) chmod +x "${dest}/${rel}" ;; esac
