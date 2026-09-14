@@ -1,4 +1,4 @@
-# DPF — Domain Principles Frameworks (каталог role-DPF)
+# DPF — Domain Principles Framework (каталог role-DPF)
 
 > «Предметный учебник для AI-агента». Слой **между** общим FPF и локальными артефактами проекта.
 > Источник концепции: практикум А. Левенчука, 28.06.2026 (экосистема FPPS → FPF → DPF → LPF).

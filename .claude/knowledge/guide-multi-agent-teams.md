@@ -178,7 +178,7 @@ project-root/
 │   ├── artifacts/             # Живые артефакты (правит владелец)
 │   │   ├── artifact-a.md
 │   │   └── artifact-b.md
-│   ├── decisions/             # ADR — Architecture Decision Records
+│   ├── decisions/             # ADR — Architecture Decision Record
 │   │   └── DEC-001_title.md
 │   └── sessions/              # Логи сессий
 │       └── YYYY-MM-DD_topic/
@@ -839,7 +839,7 @@ Facilitator:
 | Holacracy 5.0 | Brian Robertson, "Holacracy: The New Management System" |
 | Six Thinking Hats | Edward de Bono, "Six Thinking Hats" |
 | Structured Interviews | SHRM (Society for Human Resource Management) |
-| ADR (Architecture Decision Records) | Michael Nygard, "Documenting Architecture Decisions" |
+| ADR (Architecture Decision Record) | Michael Nygard, "Documenting Architecture Decisions" |
 
 ### Инструменты Agent Teams
 

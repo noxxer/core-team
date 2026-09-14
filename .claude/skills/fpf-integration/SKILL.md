@@ -34,7 +34,7 @@ Apply First Principles Framework (FPF) к решениям, артефактам
 | **A.1.1 BoundedContext** | Meaning is local, translation explicit | «Все роли понимают термин одинаково?» |
 | **A.11 Parsimony** | Add only what cannot be subtracted | «Существующее уже выражает это?» |
 | **NQD** | ≥3 альтернативы для complicated/complex | «Ещё два варианта с trade-offs?» |
-| **DRR Decay** | Evidence expires, decisions need review dates | «Когда evidence устареет?» |
+| **Evidence Decay** | Evidence expires, decisions need review dates | «Когда evidence устареет?» |
 
 ## Cynefin-фильтр перед применением
 
@@ -88,7 +88,7 @@ Apply First Principles Framework (FPF) к решениям, артефактам
 
 Шаблоны по архетипам ролей (analyst / architect / critic / stakeholder voice / coordinator / builder): `references/role-templates.md`.
 
-## DRR (Design Rationale Record) — формат решений
+## DRR (Design-Rationale Record) — формат решений
 
 ```yaml
 evidence_valid_until: "YYYY-MM-DD"

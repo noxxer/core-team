@@ -40,7 +40,7 @@ Not just "3 alternatives." NQD is a portfolio with metrics.
 4. Remove Pareto-dominated (worse on all axes)
 5. Present remaining to Owner with trade-offs
 
-## 3. DRR — Design Rationale Record
+## 3. DRR — Design-Rationale Record
 
 Key difference from ADR: every piece of evidence carries `valid_until`.
 

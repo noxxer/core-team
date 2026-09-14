@@ -102,7 +102,7 @@
 | Plane Map | Plane-map | Map для cross-plane reuse с penalties. | G.7, F.9 |
 | Congruence Level | Уровень congruence | CL для penalty routing в bridges. | C.2.2, F.9 |
 | Weakest Link | Слабое звено | Discipline для propagation R в paths. | C.2.2, G.6 |
-| Evidence Decay | Устаревание доказательств | Aging evidence с epistemic debt. | B.3.4, G.11 |
+| Evidence Decay | Устаревание доказательств | Aging evidence с epistemic debt: подтверждение решения теряет силу со временем. **Не `DRR`:** DRR — это запись обоснования (E.9), а не механизм устаревания. | B.3.4, G.11 |
 
 ## Новые термины (добавлено при ре-индексации, проверено по спеке)
 
@@ -117,6 +117,7 @@
 | Evidence Graph & Provenance Ledger | Граф доказательств и реестр происхождения | Структура трассируемости (PathId) и реестр provenance, отделённая от принципа отсылки (A.10); хранит цепочки доказательств для аудита. | G.6, A.10, B.3 |
 | U.LanguageStateSpace | Пространство языка-состояния (U.LanguageStateSpace) | Карта языка-состояния поверх U.CharacteristicSpace: частичные координаты и пороги для публикации position-claim до публикации endpoint-claim. | C.2.2a, A.16, B.4.1 |
 | Publication Discipline (Ontic Description) | Дисциплина публикации (описание онтика) | Держит онтик, его описывающую эпистему, публикацию и форму публикации различимыми; карточки/схемы/виды/источники не становятся онтиком по внешнему виду. | E.24.PUB, E.24, C.2.1 |
+| Design-Rationale Record (DRR) | Запись обоснования решения (DRR) | Одна ограниченная запись решения и его обоснования: точное основание, выбранный ответ, перенос источника и решения, отвергнутые альтернативы. В ядре роль этой записи играет ADR (`decisions/DEC-NNN.md`). **Не является** механизмом устаревания решений — это `Evidence Decay` (B.3.4); и не «Decision Revision Request» / «Decision Relevance Rate» — таких терминов в FPF нет. | E.9, E.9.DA |
 | NQD Onboarding Glossary | Онбординг-глоссарий NQD (A.0) | Вводный глоссарий по novelty/quality-diversity и explore/exploit (E/E-LOG): какие термины обязан публиковать генератор/селектор/публикация набора результатов, чтобы избежать single-winner bias. | A.0, C.18, C.19 |
 | PublicationUnit Stability Discipline | Дисциплина стабильности единицы публикации | Правила стабильности PublicationUnit при ауд­ите и редактировании: восстановление локальной головы и сохранение первичной EntityOfConcern единицы публикации. | E.17.AUD, E.17, E.17.AUD.OOTD |
 | U.EpistemicRetargeting | Эпистемический ретаргетинг (U.EpistemicRetargeting) | Безэффектный морфизм эпистемы, намеренно меняющий entityOfConcernRef под объявленным KindBridge, инвариантом и границей потерь, с сохранением только проверяемых мостом обязательств. | A.6.4, A.6.3, E.18 |

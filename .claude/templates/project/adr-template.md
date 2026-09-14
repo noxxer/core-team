@@ -6,8 +6,8 @@ date_proposed: "YYYY-MM-DD"
 proposed_by: "role"  # facilitator | architect | cto | product | guardian | …
 decided_in_session: "session_id"
 reversibility: "two-way-door"  # one-way-door | two-way-door
-kill_criteria: "Условие, при котором решение отменяется (DRR — FPF decay)"
-review_due: "YYYY-MM-DD"  # дата следующей проверки релевантности (FPF DRR)
+kill_criteria: "Условие, при котором решение отменяется (FPF Evidence Decay)"
+review_due: "YYYY-MM-DD"  # дата следующей проверки релевантности (FPF Evidence Decay)
 accepted_until: ""        # ТРЕТИЙ ВИД КРАСНОГО. Заполняется, если решение принято
                           # КАК ДОЛГ: знаем, что оно не лучшее, и живём с ним до даты.
                           # Дата прошла — решение обязано быть пересмотрено, прогон краснеет.
@@ -87,7 +87,7 @@ metric_for_revisit: ""  # обязательно если решение выб�
 ## Последствия
 [Что изменится, на что повлияет, какие артефакты обновить. Linkbacks: затронутые ADR, фичи, модули.]
 
-## DRR — Decay Review Rule (FPF)
+## Распад подтверждения (FPF Evidence Decay)
 
 Это решение **стареет**. При достижении `review_due` или при срабатывании `kill_criteria`:
 
