@@ -81,9 +81,14 @@ report=$(candidates | awk -F':' '
       abbr = substr(text, 1, RLENGTH - 2)
       rest = substr(text, RLENGTH + 1)
       sub(/\).*$/, "", rest)
-    } else if (match(text, /^[A-Z][A-Z0-9]+ — /)) {             # DRR — Design-Rationale Record
-      abbr = substr(text, 1, RLENGTH - 5)
-      rest = substr(text, RLENGTH + 1)
+    } else if ((dash = index(text, " — ")) > 0) {              # DRR — Design-Rationale Record
+      # Не match() с RLENGTH: тире — три байта, и длину совпадения macOS awk считает
+      # в байтах, gawk в символах. Первый прогон CI на Linux: аббревиатура обрезалась
+      # до «D», форма с тире не распознавалась вовсе, набор красный. index() и
+      # length() меряют одной единицей внутри одного awk, чем бы она ни была.
+      abbr = substr(text, 1, dash - 1)
+      rest = substr(text, dash + length(" — "))
+      if (abbr !~ /^[A-Z][A-Z0-9]+$/) next
     } else if (match(text, / \([A-Z][A-Z0-9]+\)$/)) {           # Design-Rationale Record (DRR)
       abbr = substr(text, RSTART + 2, RLENGTH - 3)
       rest = substr(text, 1, RSTART - 1)

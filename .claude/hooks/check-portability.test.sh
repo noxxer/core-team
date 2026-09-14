@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-portability.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=35
+EXPECTED_CASES=38
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=10
+MUTATIONS=11   # одиннадцатая — не-ASCII в образце match() не осматривается
 ran=0
 failed=0
 TRASH=()
@@ -84,6 +84,17 @@ check "…и назван самый дорогой класс" "да" "$(says "
 
 D=$(new_dir); put "$D" bad.sh "awk '{ if (${G_MATCH}) print m[1] }' f"
 check "match с тремя аргументами — только GNU awk" 1 "$(run_code "$D")"
+
+# Не-ASCII в образце match(): длина совпадения считается в байтах на BSD и в
+# символах в GNU awk. Класс пойман первым прогоном CI по 5.3.5: тире в образце,
+# локально аббревиатура «DRR», на Linux — «D». Тире собирается из байтов: литерал
+# в наборе нашёл бы сам себя.
+EM=$(printf '\342\200\224')
+D=$(new_dir); put "$D" bad.sh "awk '{ if (match(\$0, /^[A-Z]+ ${EM} /)) print substr(\$0, RLENGTH + 1) }' f"
+check "не-ASCII в образце match — длина зависит от awk" 1 "$(run_code "$D")"
+check "…и названа единица измерения" "да" "$(says "$(run_out "$D")" "в байтах")"
+D=$(new_dir); put "$D" ok.sh "awk '{ if (match(\$0, /^[A-Z]+ - /)) print substr(\$0, RLENGTH + 1) }' f"
+check "ASCII в образце match — не находка" 0 "$(run_code "$D")"
 
 # --- Класс символов, зависящий от локали ---------------------------------------
 # Класс, пойманный первым же прогоном CI: 13 провалов в двух наборах, локально

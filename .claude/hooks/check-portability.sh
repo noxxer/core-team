@@ -116,6 +116,21 @@ while IFS= read -r f; do
     && bsd_forms+=("${name}: sed -i с пустым аргументом (на GNU правка молча не происходит)")
   [ -n "$(code_lines 'match\([^)]+,[^)]+,[^)]+\)' "${f}")" ] \
     && bsd_forms+=("${name}: match() с тремя аргументами (только GNU awk)")
+  # Не-ASCII в образце match(): RSTART и RLENGTH после него BSD awk считает в
+  # БАЙТАХ, gawk — в СИМВОЛАХ, и арифметика на них (`substr(s, RLENGTH - 5)`)
+  # даёт разные подстроки. Замер: первый прогон CI по 5.3.5 — тире в образце,
+  # локально аббревиатура «DRR», на Linux «D», форма не распознавалась вовсе,
+  # набор красный. Детектор портируем тем же приёмом, что класс 3: содержимое
+  # между косыми чертами очищается от ASCII-байтов, остаток и есть находка.
+  while IFS= read -r line; do
+    [ -n "${line}" ] || continue
+    pattern=$(printf '%s' "${line}" | sed -nE 's/.*match\([^/]*\/([^/]*)\/.*/\1/p')
+    [ -n "${pattern}" ] || continue
+    if [ -n "$(printf '%s' "${pattern}" | tr -d '\000-\177')" ]; then
+      bsd_forms+=("${name}: match() с не-ASCII в образце (RLENGTH в байтах на BSD, в символах в GNU awk)")
+      break
+    fi
+  done < <(code_lines 'match\(' "${f}")
 
   # --- 5. Конвейер, который под `pipefail` даёт ложный отказ по SIGPIPE ---
   # `printf … | grep -q` выглядит одинаково везде и ведёт себя по-разному: grep
