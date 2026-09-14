@@ -14,7 +14,11 @@ set -uo pipefail
 HOOK=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/session-start.sh"}
 [ -f "$HOOK" ] || { printf 'нет файла хука: %s\n' "$HOOK" >&2; exit 1; }
 
-EXPECTED_CASES=28
+# Уведомление об обновлении по умолчанию молчит: набор не ходит в сеть.
+export UPGRADE_SOURCE="/nonexistent-remote-$$"
+UPGRADE_CACHE=$(mktemp -u); export UPGRADE_CACHE
+
+EXPECTED_CASES=30
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
 MUTATIONS=0   # мутации для этого набора не пересчитывались поимённо
@@ -273,6 +277,23 @@ check "объём напечатан выше возраста" "да" \
 # «Записей ноль» — потому что хук сливал оба потока прибора целиком.
 A=$(make_assets "—" founder)
 check "пустой реестр активов молчит" "нет" "$(says "$(run_with_assets "$A")" "**Активы.**")"
+
+# --- Уведомление об обновлении: печатается первым, отсутствие прибора не роняет хук --------
+NOTICE_REMOTE=$(mktemp -d); TRASH+=("$NOTICE_REMOTE")
+( cd "$NOTICE_REMOTE" && git init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m i && git tag v9.9.9 ) >/dev/null 2>&1
+NOTICE_VER=$(mktemp); TRASH+=("$NOTICE_VER"); printf '5.0.0\n' > "$NOTICE_VER"
+OUT=$(UPGRADE_SOURCE="$NOTICE_REMOTE" VERSION_FILE="$NOTICE_VER" UPGRADE_CACHE="$(mktemp -u)" bash "$HOOK" 2>/dev/null)
+pos_notice=$(first_line_of "$OUT" "Обновление Core Team")
+pos_protocol=$(first_line_of "$OUT" "**Идентичность.**")
+check "уведомление об обновлении напечатано и стоит выше протокола" "да" \
+  "$( [ -n "$pos_notice" ] && [ -n "$pos_protocol" ] && [ "$pos_notice" -lt "$pos_protocol" ] && printf 'да' || printf 'нет' )"
+
+STRIPPED=$(mktemp -d); TRASH+=("$STRIPPED"); cp "$HOOK" "$STRIPPED/session-start.sh"
+for f in check-ledger.sh check-role-memory.sh check-assets.sh check-connection-points.sh lib-frontmatter.sh lib-points.sh; do
+  [ -f "$(dirname "$HOOK")/$f" ] && cp "$(dirname "$HOOK")/$f" "$STRIPPED/"
+done
+OUT=$(bash "$STRIPPED/session-start.sh" 2>/dev/null); code=$?
+check "прибора уведомления нет — хук работает и молчит об обновлении" "0/нет" "$code/$(says "$OUT" "Обновление Core Team")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"

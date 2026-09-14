@@ -5,7 +5,7 @@
 > A self-bootstrapping multi-agent framework for Claude Code.
 > One conversation unfolds a team of specialized subagent-roles with persistent memory and mechanical quality gates.
 
-![version](https://img.shields.io/badge/version-5.3.6-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.4.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 A dev core: **one Facilitator + 6 roles + DPF craft handbooks + memory + mechanical gates**.
 
@@ -120,7 +120,20 @@ claude
 
 ### Case 3. Upgrading from an older Core Team
 
-> 🤖 **Want an agent to do it?** Give it one line:
+Since 5.4.0 the copy tells you at session start when a newer release exists, and the upgrade is
+a command — preview first, nothing touched:
+
+```
+claude
+> /upgrade
+```
+
+It shows what arrives, what gets updated, what is yours and stays, which of your edits would be
+overwritten, what the script cannot do for you (MANUAL), and whether the copy will pass the
+integrity check **after** the upgrade. Applying needs your confirmation, a separate branch, and
+rolls back on a red check. Without an agent: `bash .claude/hooks/upgrade.sh` (then `--apply`).
+
+> 🤖 A copy older than 5.4 has no `/upgrade` yet. Give the agent one line:
 > "Upgrade Core Team following https://github.com/noxxer/core-team/blob/main/UPGRADING.md"
 > — it carries the ordered steps, a check after each one, stop conditions, and a mandatory report back to you.
 > The manual path is below.

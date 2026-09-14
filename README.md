@@ -5,7 +5,7 @@
 > Саморазворачивающийся мультиагентный фреймворк для Claude Code.
 > Один разговор разворачивает команду специализированных subagent-ролей с памятью между сессиями и механическими гейтами качества.
 
-![version](https://img.shields.io/badge/version-5.3.6-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
+![version](https://img.shields.io/badge/version-5.4.0-blue) ![license](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange) ![claude-code](https://img.shields.io/badge/Claude%20Code-framework-8A2BE2)
 
 **[Карта артефактов](https://htmlpreview.github.io/?https://github.com/noxxer/core-team/blob/main/artifacts-map.html)** — одна страница о том, что где живёт, чем отличается от соседа и что произойдёт, если его поправить.
 
@@ -120,7 +120,20 @@ claude
 
 ### Случай 3. Обновление со старой версии Core Team
 
-> 🤖 **Хочешь, чтобы обновление сделал агент?** Дай ему одну строку:
+С 5.4.0 копия сама сообщает при старте сессии, что поставка ушла вперёд, а обновление делает
+команда — сначала предпросмотр, ничего не трогая:
+
+```
+claude
+> /upgrade
+```
+
+Она покажет, что приедет, что обновится, что ваше и останется, какие ваши правки перезапишутся,
+что скрипт сделать не сможет (ВРУЧНУЮ) и пройдёт ли копия проверку целостности **после**
+обновления. Применение — только по вашему подтверждению, в отдельной ветке, с откатом при
+красной проверке. Без агента то же делает `bash .claude/hooks/upgrade.sh` (и `--apply`).
+
+> 🤖 Копия старше 5.4 команды `/upgrade` ещё не имеет. Дай агенту одну строку:
 > «Обнови Core Team по инструкции https://github.com/noxxer/core-team/blob/main/UPGRADING.md»
 > — там порядок шагов, проверка после каждого, условия остановки и обязательный доклад тебе.
 > Ручной путь — ниже.
