@@ -10,10 +10,11 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-filled.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=21
+EXPECTED_CASES=27
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=8
+MUTATIONS=10  # девятая — артефакты с `artifact_path` в шаблоне не осматриваются;
+              # десятая — маркер в обратных кавычках считается подсказкой (пояснение формы краснеет)
 ran=0
 failed=0
 TRASH=()
@@ -29,6 +30,9 @@ make_pair() {  # $1..: «имя:содержимое проекта»
   printf '# Ценности\nСтрока раз\nСтрока два\nСтрока три\n' > "$d/templates/values.md"
   printf '# Словарь\n| Русский | Английский |\n| Термин | term |\n' > "$d/templates/glossary.md"
   printf '# Факты\n- **Тезис:** [утверждение о реальности]\n' > "$d/templates/domain.md"
+  # Шаблон реестра объявляет, куда кладётся у потребителя: осмотр идёт по этой карте.
+  printf -- '---\nartifact_path: "project/artifacts/risk-registry.md"   # куда кладётся\ncreated: "YYYY-MM-DD"\n---\n# Реестр рисков\n| ID | Статус | Сверка |\n| RISK-001 | Открыт | YYYY-MM-DD |\n' > "$d/templates/risk-registry-template.md"
+  mkdir -p "$d/project/artifacts"
   for entry in "$@"; do
     name=${entry%%:*}; body=${entry#*:}
     printf '%b\n' "$body" > "$d/project/$name"
@@ -140,6 +144,39 @@ P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
               "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN" \
               "claims.md:# Утверждения\n| CLM-01 | своя ставка | замер | опровержение | паспорт | 2026-08-28 |")
 check "заведённый необязательный не мешает" 0 "$(run_code "$P")"
+
+# --- Артефакт с шаблоном, у которого объявлен artifact_path ------------------
+# Мир с дефектом: прибор смотрел четыре обязательных и молчал о реестрах. Замер
+# с мест (ve-health-team, 2026-09-10): строка-образец `RISK-001 … YYYY-MM-DD`
+# простояла единственной записью реестра рисков, прибор потолка счёл её открытым
+# риском, прибор заполненности был зелёным.
+P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
+              "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN" \
+              "artifacts/risk-registry.md:---\nartifact_path: \"project/artifacts/risk-registry.md\"\ncreated: \"2026-09-10\"\n---\n# Реестр рисков\n| ID | Статус | Сверка |\n| RISK-001 | Открыт | YYYY-MM-DD |")
+check "образец в заведённом реестре — находка" 1 "$(run_code "$P")"
+check "…и назван путь от каталога project" "да" "$(says "$(run_out "$P")" "artifacts/risk-registry.md заведён, но остался шаблоном")"
+check "…и назван смысл: образец неотличим от записи" "да" "$(says "$(run_out "$P")" "неотличима от записи")"
+
+P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
+              "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN" \
+              "artifacts/risk-registry.md:---\nartifact_path: \"project/artifacts/risk-registry.md\"\ncreated: \"2026-09-10\"\n---\n# Реестр рисков\n| ID | Статус | Сверка |\n| RISK-001 | Открыт | 2026-10-01 |")
+check "заполненный реестр проходит и считается осмотренным" "да" "$(says "$(run_out "$P")" "осмотрено: 5")"
+
+# --- Маркер в обратных кавычках — пояснение формы, не подсказка -----------------
+# Мир с дефектом: любая строка шаблона с `YYYY-MM-DD` — подсказка. Замер с мест
+# (ve-health-team): «дата в форме `YYYY-MM-DD`» из шаблона реестра активов обязана
+# остаться в файле дословно, а прибор назвал её незаполненной подсказкой.
+P=$(make_pair "ledger.md:$FILLED_LEDGER" "values.md:$FILLED_VALUES" \
+              "glossary.md:$FILLED_GLOSSARY" "domain.md:$FILLED_DOMAIN")
+printf '%s\n' '# Реестр' '**«Оплачено до»:** дата в форме `YYYY-MM-DD`, либо `—` если бессрочно' '| RISK-001 | Открыт | YYYY-MM-DD |' > "$P/templates/risk-registry-template.md"
+sed -i.bak '1i\
+---\
+artifact_path: "project/artifacts/risk-registry.md"\
+---' "$P/templates/risk-registry-template.md" && rm -f "$P/templates/risk-registry-template.md.bak"
+printf '%s\n' '---' 'artifact_path: "project/artifacts/risk-registry.md"' '---' '# Реестр' '**«Оплачено до»:** дата в форме `YYYY-MM-DD`, либо `—` если бессрочно' '| RISK-001 | Открыт | 2026-10-01 |' > "$P/project/artifacts/risk-registry.md"
+check "маркер в обратных кавычках подсказкой не считается" 0 "$(run_code "$P")"
+printf '%s\n' '---' 'artifact_path: "project/artifacts/risk-registry.md"' '---' '# Реестр' '**«Оплачено до»:** дата в форме `YYYY-MM-DD`, либо `—` если бессрочно' '| RISK-001 | Открыт | YYYY-MM-DD |' > "$P/project/artifacts/risk-registry.md"
+check "…а тот же маркер без кавычек — подсказка" 1 "$(run_code "$P")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

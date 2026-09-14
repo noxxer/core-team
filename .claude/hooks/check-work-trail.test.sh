@@ -10,10 +10,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-work-trail.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=19
+EXPECTED_CASES=23
 # Читается снаружи: число случаев сверяется с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=6
+MUTATIONS=7   # седьмая — `code_path` из ledger не читается: код в соседнем репозитории невидим
 ran=0
 failed=0
 TRASH=()
@@ -107,6 +107,22 @@ check "…и счёт пропусков назван" "да" "$(says "$(run_out
 # --- Законная тишина ----------------------------------------------------------
 E=$(mktemp -d); TRASH+=("$E")
 check "каталога project нет вовсе" 0 "$(run_code "$E")"
+
+# --- Код в соседнем репозитории, объявленном в ledger ------------------------
+# Мир с дефектом: прибор искал код только под корнем проекта и отвечал «файлов
+# кода нет — не измеряется» там, где работа шла. Замер с мест (lotus-pro-team,
+# 2026-09-09): `code_path` читал один прибор из четырёх.
+P=$(make_project 0 0 0 0); mkdir -p "$P/../wt-code-$$"; TRASH+=("$P/../wt-code-$$")
+printf 'print("код")\n' > "$P/../wt-code-$$/app.py"; printf 'print("ещё")\n' > "$P/../wt-code-$$/lib.py"
+printf -- '---\ncode_path: "../wt-code-%s"   # комментарий не значение\n---\n# Состояние\n' "$$" > "$P/project/ledger.md"
+check "код по code_path засчитан — следа нет, красное" 1 "$(run_code "$P")"
+check "…и число файлов кода названо из соседнего репозитория" "да" "$(says "$(run_out "$P")" "файлов кода 2")"
+
+# Объявленный адрес кода, по которому ничего нет, — отказ, а не «проекта без кода».
+P=$(make_project 0 1 1 0)
+printf -- '---\ncode_path: "../nowhere-%s"\n---\n# Состояние\n' "$$" > "$P/project/ledger.md"
+check "code_path ведёт в никуда" 1 "$(run_code "$P")"
+check "…и это названо, а не «кода нет»" "да" "$(says "$(run_out "$P")" "code_path ведёт в никуда")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

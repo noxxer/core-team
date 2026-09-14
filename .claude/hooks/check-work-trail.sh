@@ -22,12 +22,22 @@
 # одного документа, — а проверка знала только первый и сообщала «построено без
 # записанного зачем».
 #
+# Код ищется от корня проекта И от `code_path:` из шапки ledger. Раскладка
+# «команда отдельно, код отдельно» встречается в трёх проектах из четырёх, и
+# прибор, смотрящий только под корень, отвечал такому проекту «файлов кода нет —
+# не измеряется», то есть молчал ровно там, где работа шла. Замер с мест
+# (lotus-pro-team, 2026-09-09): `code_path` читал один прибор из четырёх, и
+# ledger проекта нёс про это ручную пометку — человек заметил и починить не мог.
+# Объявленный `code_path`, по которому каталога нет, — отказ, а не пропуск:
+# указатель дороже пустой ячейки, потому что выглядит ответом.
+#
 # Что НЕ проверяется намеренно: проект без кода — исследование, документация,
 # аналитика; там прибор молчит, потому что мерить нечего.
 #
 # ЗАПУСК: bash .claude/hooks/check-work-trail.sh [корень проекта]
 #   exit 0 — след есть либо мерить нечего
-#   exit 1 — построено без записанного замысла или без записи сессии
+#   exit 1 — построено без записанного замысла или без записи сессии,
+#            либо `code_path` ведёт в никуда
 #
 # Доказательство мутацией: .claude/hooks/check-work-trail.test.sh
 
@@ -40,8 +50,8 @@ PROJECT="${ROOT}/project"
 
 # Код — файлы известных расширений вне служебных каталогов. Каталог снимков и
 # зависимостей исключены: там чужое и производное.
-count_code() {
-  find "${ROOT}" -type f \
+count_code_in() {  # $1 = корень поиска
+  find "$1" -type f \
     \( -name '*.py' -o -name '*.js' -o -name '*.mjs' -o -name '*.ts' -o -name '*.tsx' \
        -o -name '*.jsx' -o -name '*.go' -o -name '*.rs' -o -name '*.java' -o -name '*.rb' \
        -o -name '*.php' -o -name '*.vue' -o -name '*.svelte' \) \
@@ -55,7 +65,26 @@ count_files_in() {  # $1 = каталог → число файлов, 0 есл�
   find "$1" -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' '
 }
 
-code=$(count_code)
+# Второй корень поиска — репозиторий кода, объявленный в шапке ledger. Читается
+# библиотекой шапки, чтобы комментарий после значения не стал частью пути.
+_lib_fm="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib-frontmatter.sh"
+code_path=""
+if [ -f "${_lib_fm}" ] && [ -f "${PROJECT}/ledger.md" ]; then
+  # shellcheck source=/dev/null
+  . "${_lib_fm}"
+  code_path=$(fm_field "${PROJECT}/ledger.md" code_path)
+fi
+case "${code_path}" in ''|.|./) code_path="" ;; /*) ;; *) code_path="${ROOT}/${code_path}" ;; esac
+
+code=$(count_code_in "${ROOT}")
+code_path_dead=0
+if [ -n "${code_path}" ]; then
+  if [ -d "${code_path}" ]; then
+    code=$((code + $(count_code_in "${code_path}")))
+  else
+    code_path_dead=1
+  fi
+fi
 ideas=$(count_files_in "${PROJECT}/ideas")
 deliveries=$(count_files_in "${PROJECT}/deliveries")
 features=$(count_files_in "${PROJECT}/features")
@@ -76,6 +105,15 @@ if [ "${scenarios}" -eq 0 ] && [ -f "${_lib}" ] && [ -f "${POINTS}" ]; then
 fi
 
 plan=$((ideas + deliveries + features + scenarios))
+
+# Объявленный адрес кода, по которому ничего нет, — отказ ДО границы применимости:
+# иначе проект с переехавшим репозиторием читался бы как «без кода» и молчал.
+if [ "${code_path_dead}" -eq 1 ]; then
+  printf 'КРАСНОЕ: code_path ведёт в никуда — ledger объявляет %s, каталога нет.\n' "${code_path}" >&2
+  printf '  Приборы, ходящие по коду, меряют пустоту и отвечают «кода нет» вместо «код не здесь».\n' >&2
+  printf '  Поправь `code_path:` в шапке project/ledger.md либо убери поле, если код лежит в корне.\n' >&2
+  exit 1
+fi
 
 # Проект без кода прибор не трогает: исследованию, документации и аналитике
 # мерить этим нечем, и молчание здесь — не пропуск, а граница применимости.

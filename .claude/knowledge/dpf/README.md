@@ -29,7 +29,7 @@
 | `architecture.md` | architect | 13 | draft |
 | `development.md` | dev | 12 | draft |
 | `code-review.md` | test | 12 | draft |
-| `tech-strategy.md` | cto | 12 | draft |
+| `tech-strategy.md` | cto | 13 | draft |
 | `knowledge-keeping.md` | keeper | 11 | draft |
 | `product-management.md` | product | 12 | draft |
 | `risk-and-security.md` | guardian | 13 | draft |

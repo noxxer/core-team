@@ -13,10 +13,12 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decisions.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=29
+EXPECTED_CASES=38
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=3   # документ как адрес: распознавание якоря (::, #, §) и его обязательность
+MUTATIONS=5   # документ как адрес: распознавание якоря (::, #, §) и его обязательность;
+              # адрес в никуда: проверка существования снята — набор красный;
+              # второй корень: `code_path` не читается — честный адрес соседнего репозитория красный
 ran=0
 failed=0
 TRASH=()
@@ -41,13 +43,20 @@ add_decision() {  # $1 = каталог, $2 = id, $3 = дата, $4 = значе
   } > "$file"
 }
 
+# Адреса разрешаются от каталога случая: файл проверки, названный в решении,
+# обязан там лежать — иначе законный случай красный по третьей работе.
+add_target() {  # $1 = каталог, $2 = путь файла проверки внутри него
+  mkdir -p "$(dirname "$1/$2")"
+  printf 'проверка\n' > "$1/$2"
+}
+
 run_checker() {  # $1 = каталог решений
-  ( DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" >/dev/null 2>&1 )
+  ( DECISIONS_ROOT="$1" DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" >/dev/null 2>&1 )
   printf '%s' "$?"
 }
 
 run_output() {  # $1 = каталог решений — печатает stdout+stderr
-  ( DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" 2>&1 )
+  ( DECISIONS_ROOT="$1" DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" 2>&1 )
 }
 
 make_ledger() {  # $1 = каталог, $2 = тело ledger — печатает путь
@@ -69,7 +78,7 @@ says() { case "$1" in *"$2"*) printf 'да' ;; *) printf 'нет' ;; esac; }
 
 # --- Законные значения -------------------------------------------------------
 
-D=$(make_dir); add_decision "$D" 101 2026-09-01 "tests/test_x.py::test_y"
+D=$(make_dir); add_target "$D" tests/test_x.py; add_decision "$D" 101 2026-09-01 "tests/test_x.py::test_y"
 check "адрес — путь до проверки" 0 "$(run_checker "$D")"
 
 D=$(make_dir); add_decision "$D" 102 2026-09-01 "гарда нет — держится на внимании роли cto"
@@ -123,18 +132,18 @@ D=$(make_dir)
 check "пустой каталог решений — тихо" 0 "$(run_checker "$D")"
 
 # --- Гейт «DEC-NNN ⟹ файл»: упоминание без файла --------------------------
-D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+D=$(make_dir); add_target "$D" tests/test_a.py; add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
 LEDGER_OVERRIDE=$(make_ledger "$D" 'Ратифицированы DEC-044 и DEC-032.')
 check "упомянутое решение без файла" 1 "$(run_checker "$D")"
 check "…и назван осиротевший номер" "да" "$(says "$(run_output "$D")" "DEC-032")"
 check "…счётчик упомянутых печатается" "да" "$(says "$(run_output "$D")" "Упомянуто в ledger решений: 2. Без файла: 1.")"
 
-D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+D=$(make_dir); add_target "$D" tests/test_a.py; add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
 LEDGER_OVERRIDE=$(make_ledger "$D" 'Ратифицировано DEC-044.')
 check "упомянутое решение с файлом" 0 "$(run_checker "$D")"
 
 # Набивка нулями не должна рождать ложную сироту.
-D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+D=$(make_dir); add_target "$D" tests/test_a.py; add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
 LEDGER_OVERRIDE=$(make_ledger "$D" 'Ратифицировано DEC-44.')
 check "DEC-44 и DEC-044 — одно решение" 0 "$(run_checker "$D")"
 
@@ -143,7 +152,7 @@ D=$(make_dir); LEDGER_OVERRIDE=$(make_ledger "$D" 'Опираемся на DEC-0
 check "решений нет, ledger упоминает" 1 "$(run_checker "$D/пусто")"
 
 # Законная тишина: ledger не найден либо решений в нём не упомянуто.
-D=$(make_dir); add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
+D=$(make_dir); add_target "$D" tests/test_a.py; add_decision "$D" 044 2026-09-01 "tests/test_a.py::test_b"
 LEDGER_OVERRIDE="$D/-нет-такого-"
 check "ledger отсутствует — не роняет" 0 "$(run_checker "$D")"
 LEDGER_OVERRIDE=$(make_ledger "$D" 'Фаза: пилот. Решений пока не принимали.')
@@ -155,10 +164,10 @@ unset LEDGER_OVERRIDE
 # Проект без кода закрепить решение не мог ничем и был вынужден писать «гарда
 # нет», то есть неправду: гард есть, он документ. Сам фреймворк закрепляет свои
 # решения правилами в `.claude/CLAUDE.md` и по собственной мерке был бы незакреплён.
-D=$(make_dir); add_decision "$D" 201 2026-09-01 'project/requirements.md::FR-01'
+D=$(make_dir); add_target "$D" project/requirements.md; add_decision "$D" 201 2026-09-01 'project/requirements.md::FR-01'
 check "документ с якорем — адрес" 0 "$(run_checker "$D")"
 
-D=$(make_dir); add_decision "$D" 202 2026-09-01 'docs/rules.md#deadline-section'
+D=$(make_dir); add_target "$D" docs/rules.md; add_decision "$D" 202 2026-09-01 'docs/rules.md#deadline-section'
 check "якорь решёткой тоже адрес" 0 "$(run_checker "$D")"
 
 # Граница: файл целиком адресом не является — иначе отписка вернулась бы через
@@ -174,15 +183,53 @@ check "путь к документу без места — не адрес" 1 "
 # русскому тексту. Замер с мест (lotus-pro-team, 2026-09-04): решение закрепили
 # ссылкой на раздел собственного артефакта с перечнем тестов и мутаций, а прибор
 # потребовал написать вместо этого «гарда нет» — то есть неправду.
-D=$(make_dir); add_decision "$D" 030 2026-08-26 "artifacts/data-model.md §4.6"
+D=$(make_dir); add_target "$D" artifacts/data-model.md; add_decision "$D" 030 2026-08-26 "artifacts/data-model.md §4.6"
 check "якорь параграфом с пробелом" 0 "$(run_checker "$D")"
 
-D=$(make_dir); add_decision "$D" 031 2026-08-26 "artifacts/data-model.md§4.6"
+D=$(make_dir); add_target "$D" artifacts/data-model.md; add_decision "$D" 031 2026-08-26 "artifacts/data-model.md§4.6"
 check "якорь параграфом без пробела" 0 "$(run_checker "$D")"
 
 # Файл целиком адресом не является и с этой дверью: место обязано быть названо.
 D=$(make_dir); add_decision "$D" 032 2026-08-26 "artifacts/data-model.md §"
 check "параграф без номера — не адрес" 1 "$(run_checker "$D")"
+
+# --- Адрес ведёт в никуда: форма годна, файла нет ------------------------------
+# Мир с дефектом: прибор проверял форму адреса и молчал о существовании. Замер
+# с мест (lotus-pro-team, 2026-09-08): удаление прототипа (`DEC-010` вытеснено
+# `DEC-014`) осиротило три адреса проверки разом, и ни один прибор не заметил.
+D=$(make_dir); add_decision "$D" 301 2026-09-01 "tests/test_gone.py::test_y"
+check "адрес по форме годен, файла нет" 1 "$(run_checker "$D")"
+check "…и назван класс «ведёт в никуда»" "да" "$(says "$(run_output "$D")" "АДРЕС ВЕДЁТ В НИКУДА")"
+check "…и подсказан code_path, раз он не объявлен" "да" "$(says "$(run_output "$D")" "объяви \`code_path:\`")"
+
+D=$(make_dir); add_decision "$D" 302 2026-09-01 "project/requirements.md::FR-01"
+check "документ с якорем, файла нет — тоже в никуда" 1 "$(run_checker "$D")"
+
+# Унаследованное решение здесь не освобождается: адрес НАЗВАН, и мёртвый он так же.
+D=$(make_dir); add_decision "$D" 303 2026-08-01 "tests/test_gone.py"
+check "мёртвый адрес у унаследованного — находка" 1 "$(run_checker "$D")"
+
+# --- Второй корень: код в соседнем репозитории, путь объявлен в ledger ---------
+# Мир с дефектом: `code_path` читал один прибор из четырёх, и честный адрес
+# соседнего репозитория краснел бы как несуществующий.
+D=$(make_dir); mkdir -p "$D/code/tests"; printf 'test\n' > "$D/code/tests/test_x.py"
+add_decision "$D" 304 2026-09-01 "tests/test_x.py::test_y"
+LEDGER_OVERRIDE=$(make_ledger "$D" "$(printf -- '---\ncode_path: "code"   # комментарий не значение\n---\nФаза: пилот.')")
+check "адрес найден от code_path ledger-а" 0 "$(run_checker "$D")"
+
+D=$(make_dir); mkdir -p "$D/code"
+add_decision "$D" 305 2026-09-01 "tests/test_x.py::test_y"
+LEDGER_OVERRIDE=$(make_ledger "$D" "$(printf -- '---\ncode_path: "code"\n---\nФаза: пилот.')")
+check "code_path объявлен, файла нет и там" 1 "$(run_checker "$D")"
+check "…и в сообщении назван второй корень" "да" "$(says "$(run_output "$D")" "ни от code_path")"
+unset LEDGER_OVERRIDE
+
+# Канон ядра пишет адрес документа как `requirements.md::FR-01` — от каталога project,
+# где лежат сами решения, а не от корня. Боевой прогон без этого корня назвал семь
+# честных адресов из девяти мёртвыми.
+D=$(make_dir); mkdir -p "$D/project/decisions"; printf '## FR-01\n' > "$D/project/requirements.md"
+add_decision "$D/project/decisions" 306 2026-09-01 "requirements.md::FR-01"
+check "адрес документа от каталога project" 0 "$(run_checker "$D/project/decisions")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"
