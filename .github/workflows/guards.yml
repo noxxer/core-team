@@ -85,6 +85,10 @@ jobs:
       - name: целостность развёрнутой копии
         run: bash .claude/hooks/check-install-integrity.sh
 
+      # Поставка меряет собственный вес теми же потолками, что накладывает на потребителя.
+      - name: бюджет поставки
+        run: bash .claude/hooks/check-delivery-budget.sh
+
       - name: Прогон гардов фреймворка
         shell: bash
         run: |
