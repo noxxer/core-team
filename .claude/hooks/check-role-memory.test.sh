@@ -11,10 +11,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-role-memory.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=22
+EXPECTED_CASES=29
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=7
+MUTATIONS=9
 ran=0
 failed=0
 TRASH=()
@@ -132,6 +132,23 @@ F=$(add_role "$D" architect 20 0 -); pad_file "$F" 310778
 add_role "$D" facilitator 40 0 - >/dev/null
 check "три роли боевого проекта названы" "да" \
   "$(says "$(run_out "$D")" "dev (571 КБ)")"
+
+# --- Амнистия унаследованного: лента до даты перечисляется, прогон не роняет ---------------
+R=$(new_roles); add_role "$R" dev 300 6 - >/dev/null     # 6 датированных заголовков 2026-08-10…15, 300 строк
+check "лента без даты амнистии — красная" 1 "$(run_code "$R")"
+OUT=$( ( GATES_ENFORCED_SINCE=2026-09-01 bash "$CHECKER" "$R" 2>/dev/null ) ); code=$?
+check "лента старше даты амнистии — унаследована, код 0" "0/да/да" \
+  "$code/$(says "$OUT" "УНАСЛЕДОВАННАЯ ПАМЯТЬ")/$(says "$OUT" "за бюджетом: dev")"
+ERR=$( ( GATES_ENFORCED_SINCE=2026-09-01 bash "$CHECKER" "$R" 2>&1 >/dev/null ) )
+check "унаследованное не уходит в поток находок" "нет" "$(says "$ERR" "ЖУРНАЛОМ")"
+check "лента новее даты амнистии — красная, наследие ни при чём" 1 "$( ( GATES_ENFORCED_SINCE=2026-08-12 bash "$CHECKER" "$R" >/dev/null 2>&1 ); printf '%s' "$?")"
+R=$(new_roles); F=$(add_role "$R" dev 10 6 -); pad_file "$F" 300000
+check "нечитаемая память амнистии не подлежит" 1 "$( ( GATES_ENFORCED_SINCE=2026-09-01 bash "$CHECKER" "$R" >/dev/null 2>&1 ); printf '%s' "$?")"
+R=$(new_roles); add_role "$R" dev 300 0 - >/dev/null
+check "за бюджетом без датированных заголовков — не лента, красная" 1 "$( ( GATES_ENFORCED_SINCE=2026-09-01 bash "$CHECKER" "$R" >/dev/null 2>&1 ); printf '%s' "$?")"
+R=$(new_roles); add_role "$R" dev 300 6 - >/dev/null
+L=$(mktemp); TRASH+=("$L"); printf -- '---\ngates_enforced_since: "2026-09-01"\n---\n' > "$L"
+check "дата читается из шапки ledger" 0 "$( ( LEDGER_FILE="$L" bash "$CHECKER" "$R" >/dev/null 2>&1 ); printf '%s' "$?")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

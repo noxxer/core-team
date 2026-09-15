@@ -13,10 +13,10 @@ set -uo pipefail
 CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-decisions.sh"}
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
-EXPECTED_CASES=38
+EXPECTED_CASES=41
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=5   # документ как адрес: распознавание якоря (::, #, §) и его обязательность;
+MUTATIONS=6   # амнистия: поле ledger не читается; документ как адрес: распознавание якоря (::, #, §) и его обязательность;
               # адрес в никуда: проверка существования снята — набор красный;
               # второй корень: `code_path` не читается — честный адрес соседнего репозитория красный
 ran=0
@@ -53,6 +53,9 @@ add_target() {  # $1 = каталог, $2 = путь файла проверки
 run_checker() {  # $1 = каталог решений
   ( DECISIONS_ROOT="$1" DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="${LEDGER_OVERRIDE:-$1/-ledger-нет-}" bash "$CHECKER" "$1" >/dev/null 2>&1 )
   printf '%s' "$?"
+}
+run_with_ledger_since() {  # $1 = каталог решений, $2 = ledger с gates_enforced_since; без DECISIONS_ENFORCED_SINCE
+  ( DECISIONS_ROOT="$1" LEDGER_FILE="$2" bash "$CHECKER" "$1" >/dev/null 2>&1 ); printf '%s' "$?"
 }
 
 run_output() {  # $1 = каталог решений — печатает stdout+stderr
@@ -230,6 +233,14 @@ unset LEDGER_OVERRIDE
 D=$(make_dir); mkdir -p "$D/project/decisions"; printf '## FR-01\n' > "$D/project/requirements.md"
 add_decision "$D/project/decisions" 306 2026-09-01 "requirements.md::FR-01"
 check "адрес документа от каталога project" 0 "$(run_checker "$D/project/decisions")"
+
+# --- Амнистия унаследованного: дата берётся из шапки ledger -------------------------
+D=$(make_dir); add_decision "$D" DEC-050 2026-09-01 -
+L=$(make_ledger "$D" $'---\nlast_updated: "2026-09-10"\n---\n# L')
+check "решение после константы и без ledger-даты — красное" 1 "$(run_with_ledger_since "$D" "$L")"
+L=$(make_ledger "$D" $'---\ngates_enforced_since: "2026-09-10"   # дата первого обновления\n---\n# L')
+check "gates_enforced_since в ledger сдвигает границу наследия" 0 "$(run_with_ledger_since "$D" "$L")"
+check "окружение прибора сильнее поля ledger" 1 "$( ( DECISIONS_ROOT="$D" DECISIONS_ENFORCED_SINCE=2026-08-25 LEDGER_FILE="$L" bash "$CHECKER" "$D" >/dev/null 2>&1 ); printf '%s' "$?")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s — тест проверил не всё, что обязан\n' "$ran" "$EXPECTED_CASES"

@@ -10,10 +10,10 @@ CHECKER=${1:-"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-session-reflec
 [ -f "$CHECKER" ] || { printf 'нет файла проверщика: %s\n' "$CHECKER" >&2; exit 1; }
 
 SLOTS_FIXTURE=('Структура (Iceberg)' 'Три «Почему»' 'Слепые зоны (System Operator)' 'Ловушки сессии')
-EXPECTED_CASES=29
+EXPECTED_CASES=32
 # Читается снаружи: `check-install-integrity.sh` сверяет это число с документацией.
 # shellcheck disable=SC2034
-MUTATIONS=3   # наследие: граница даты, адрес вывода, код возврата
+MUTATIONS=4   # амнистия: поле ledger не читается; наследие: граница даты, адрес вывода, код возврата
 ran=0
 failed=0
 TRASH=()
@@ -221,6 +221,14 @@ HALF='# Сессия
 Есть.'
 S=$(make_sessions); add_session "$S" 2026-08-20_старая-но-полная "$HALF"
 check "старая сессия со слотами проверяется как все" 1 "$(run_code "$S")"
+
+# --- Амнистия: дата из шапки ledger рядом с каталогом сессий ----------------------------
+S=$(make_sessions); add_session "$S" 2026-09-01_старая "# Сессия
+без единого слота"
+check "сессия после константы без слотов — красная" 1 "$(run_code "$S")"
+L=$(mktemp); TRASH+=("$L"); printf -- '---\ngates_enforced_since: "2026-09-10"\n---\n' > "$L"
+check "gates_enforced_since в ledger делает её унаследованной" 0 "$( ( LEDGER_FILE="$L" bash "$CHECKER" "$S" >/dev/null 2>&1 ); printf '%s' "$?")"
+check "окружение прибора сильнее поля ledger" 1 "$( ( LEDGER_FILE="$L" REFLECTION_ENFORCED_SINCE=2026-08-26 bash "$CHECKER" "$S" >/dev/null 2>&1 ); printf '%s' "$?")"
 
 if [ "$ran" -lt "$EXPECTED_CASES" ]; then
   printf 'FAIL  прогнано случаев %s из %s\n' "$ran" "$EXPECTED_CASES"

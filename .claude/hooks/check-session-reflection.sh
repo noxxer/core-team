@@ -35,6 +35,23 @@ SESSIONS_DIR=${1:-${SESSIONS_DIR:-project/sessions}}
 
 # Дата, с которой слоты смыслов и условие выхода появились в шаблоне сессии (5.1.0).
 ENFORCED_SINCE=${REFLECTION_ENFORCED_SINCE:-2026-08-26}
+LEDGER=${LEDGER_FILE:-$(dirname "${SESSIONS_DIR}")/ledger.md}
+
+# Дата амнистии унаследованного — одна на проект, в шапке ledger (`gates_enforced_since`).
+# Ставится `/setup-project` датой заведения и `/upgrade` датой первого обновления;
+# окружение GATES_ENFORCED_SINCE сильнее файла (для наборов). Замер аудита 2026-09-14:
+# у проекта на 167 сессий 36 стоп-находок, большинство — записи, заведённые до правил.
+gates_since() {  # $1 = ledger → дата либо пусто
+  if [ -n "${GATES_ENFORCED_SINCE:-}" ]; then printf '%s' "${GATES_ENFORCED_SINCE}"; return 0; fi
+  [ -f "$1" ] || return 0
+  awk 'NR==1 && $0!="---" {exit} NR==1 {next} /^---[[:space:]]*$/ {exit} {print}' "$1" 2>/dev/null \
+    | grep -m1 -E '^gates_enforced_since:' | sed -E 's/^gates_enforced_since:[[:space:]]*//; s/"//g' \
+    | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}' || true
+}
+if [ -z "${REFLECTION_ENFORCED_SINCE:-}" ]; then
+  _since=$(gates_since "${LEDGER}")
+  [ -n "${_since}" ] && ENFORCED_SINCE=${_since}
+fi
 SLOTS=('Структура (Iceberg)' 'Три «Почему»' 'Слепые зоны (System Operator)' 'Ловушки сессии')
 
 # Содержимое раздела: строки до следующего заголовка того же или высшего уровня.

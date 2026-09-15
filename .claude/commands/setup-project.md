@@ -94,7 +94,7 @@ description: "Первичная настройка проекта: домен, 
 ```
 project/
 │  ── ПРОЦЕСС ────────────────────────────────────────────────────────────────
-├── ⬤ ledger.md            ← templates/project/ledger.md — где мы сейчас
+├── ⬤ ledger.md            ← templates/project/ledger.md — где мы сейчас; `gates_enforced_since` = сегодня
 ├── ⬤ inbox.md             ← inbox.md — сырой вход Founder до разбора
 ├── ⬤ values.md            ← настроенный на шаге 3 — конституция
 ├── ⬤ glossary.md          ← glossary.md — язык проекта (RU/EN/«не является»)

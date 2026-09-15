@@ -46,6 +46,20 @@ BUDGET_LINES=${ROLE_MEMORY_MAX_LINES:-200}
 # Датированных заголовков больше этого числа — файл ведётся лентой, а не состоянием.
 # Один-два заголовка с датой в документе состояния законны («последние решения»).
 JOURNAL_HEADINGS=${ROLE_MEMORY_JOURNAL_HEADINGS:-3}
+LEDGER=${LEDGER_FILE:-$(dirname "${ROLES_DIR}")/ledger.md}
+
+# Дата амнистии унаследованного — одна на проект, в шапке ledger (`gates_enforced_since`).
+# Ставится `/setup-project` датой заведения и `/upgrade` датой первого обновления;
+# окружение GATES_ENFORCED_SINCE сильнее файла (для наборов). Замер аудита 2026-09-14:
+# у проекта на 167 сессий 36 стоп-находок, большинство — записи, заведённые до правил.
+gates_since() {  # $1 = ledger → дата либо пусто
+  if [ -n "${GATES_ENFORCED_SINCE:-}" ]; then printf '%s' "${GATES_ENFORCED_SINCE}"; return 0; fi
+  [ -f "$1" ] || return 0
+  awk 'NR==1 && $0!="---" {exit} NR==1 {next} /^---[[:space:]]*$/ {exit} {print}' "$1" 2>/dev/null \
+    | grep -m1 -E '^gates_enforced_since:' | sed -E 's/^gates_enforced_since:[[:space:]]*//; s/"//g' \
+    | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}' || true
+}
+SINCE=$(gates_since "${LEDGER}")
 
 if [ ! -d "${ROLES_DIR}" ]; then
   printf 'каталога ролей нет (%s) — проверять нечего\n' "${ROLES_DIR}"
@@ -73,6 +87,8 @@ unreadable=()
 approaching=()
 over_budget=()
 journals=()
+legacy_journals=()
+legacy_budget=()
 
 for file in "${ROLES_DIR}"/*/context.md; do
   [ -f "${file}" ] || continue
@@ -90,8 +106,21 @@ for file in "${ROLES_DIR}"/*/context.md; do
     approaching+=("${role} ($((bytes / 1024)) КБ)")
   fi
 
-  [ "${lines}" -gt "${budget}" ] && over_budget+=("${role} (${lines} стр. при бюджете ${budget})")
-  [ "${dated}" -gt "${JOURNAL_HEADINGS}" ] && journals+=("${role} (заголовков с датой: ${dated})")
+  # Унаследованный журнал: все датированные заголовки старше даты амнистии — память
+  # была лентой до правила, и хук `memory-gate.sh` новых датированных разделов уже не
+  # пропускает. Хоть один заголовок новее — лента продолжается, это не наследие.
+  # Нечитаемость амнистии не подлежит: роль работает без памяти сегодня, а не в прошлом.
+  legacy=no
+  if [ -n "${SINCE}" ] && [ "${dated}" -gt 0 ]; then
+    newest=$(grep -oE '^#{2,3} .*[0-9]{4}-[0-9]{2}-[0-9]{2}' "${file}" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | sort | tail -1)
+    [ -n "${newest}" ] && [[ "${newest}" < "${SINCE}" ]] && legacy=yes
+  fi
+  if [ "${lines}" -gt "${budget}" ]; then
+    if [ "${legacy}" = yes ]; then legacy_budget+=("${role} (${lines} стр.)"); else over_budget+=("${role} (${lines} стр. при бюджете ${budget})"); fi
+  fi
+  if [ "${dated}" -gt "${JOURNAL_HEADINGS}" ]; then
+    if [ "${legacy}" = yes ]; then legacy_journals+=("${role} (заголовков с датой: ${dated}, последний ${newest})"); else journals+=("${role} (заголовков с датой: ${dated})"); fi
+  fi
 done
 
 # Половина «найдено не ноль»: каталог ролей есть, а разобрано ноль файлов — это
@@ -108,6 +137,15 @@ printf 'Память ролей: осмотрено %s, предел чтени�
 [ ${#approaching[@]} -eq 0 ] || printf 'На подходе к пределу: %s.\n' "$(join_list "${approaching[@]}")"
 
 failed=0
+
+# Унаследованное — в обычный поток: сводка находок читает stderr, и напечатанное туда
+# попало бы в «разбирается сейчас» независимо от кода возврата.
+if [ ${#legacy_journals[@]} -gt 0 ] || [ ${#legacy_budget[@]} -gt 0 ]; then
+  printf '\nУНАСЛЕДОВАННАЯ ПАМЯТЬ (лента до %s, перечислена, прогон не роняет):\n' "${SINCE}"
+  [ ${#legacy_journals[@]} -eq 0 ] || printf '  журналом: %s.\n' "$(join_list "${legacy_journals[@]}")"
+  [ ${#legacy_budget[@]} -eq 0 ] || printf '  за бюджетом: %s.\n' "$(join_list "${legacy_budget[@]}")"
+  printf '  Переписывается срезом состояния при первом касании роли; хронику — в `project/sessions/`.\n'
+fi
 
 if [ ${#unreadable[@]} -gt 0 ]; then
   printf '\nПАМЯТЬ НЕ ЧИТАЕТСЯ: %s.\n' "$(join_list "${unreadable[@]}")" >&2
